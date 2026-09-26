@@ -96,7 +96,7 @@ export function specLabelContent(label: string, ref?: SpecRef): string {
 
   const linked = `<a class="link link-hover" href="${escHtml(messageUrl(ref.message))}"
     target="_blank" rel="noopener noreferrer">${escHtml(label)}</a>`;
-  return `<span class="field-tooltip-trigger cursor-help" tabindex="0"
+  return `<span class="field-tooltip-trigger" tabindex="0"
     data-tooltip-content="${escHtml(specTooltipContent(ref, spec))}"
     >${linked}</span>${presenceMark(spec.presence)}`;
 }
@@ -110,6 +110,6 @@ export function specLabelContent(label: string, ref?: SpecRef): string {
  * line of small print under the input.
  */
 export function tooltipLabelContent(label: string, tooltip: string): string {
-  return `<span class="field-tooltip-trigger cursor-help" tabindex="0"
+  return `<span class="field-tooltip-trigger" tabindex="0"
     data-tooltip-content="${escHtml(tooltip)}">${escHtml(label)}</span>`;
 }

@@ -116,6 +116,7 @@ still the upstream.
 - Signing out is a full navigation to `CONFIG.SIGN_OUT_URL`
   (`/oauth2/sign_out`), never a fetch: the endpoint answers with a redirect
   chain ending in HTML, which `api-client.ts` reads as an expired session.
+- UI conventions live in interlocking's `CLAUDE.md`: no `cursor-help`, `toggle` not `checkbox` for on/off settings, `SELECTED_ROW_CLASS` for picked list rows.
 
 ## Related Repos
 

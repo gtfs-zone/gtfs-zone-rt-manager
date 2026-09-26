@@ -58,7 +58,7 @@ const REALTIME_TOOLTIP = `GTFS Realtime is a feed specification that allows publ
  * The glyph is the link, matching `specLabelContent`, where the label is.
  */
 function docsTooltip(url: string, content: string): string {
-  return `<span class="field-tooltip-trigger cursor-help ml-1 align-middle text-xs opacity-60"
+  return `<span class="field-tooltip-trigger ml-1 align-middle text-xs opacity-60"
     tabindex="0" data-tooltip-content="${escHtml(content)}"
     ><a class="link link-hover" href="${escHtml(url)}" target="_blank"
       rel="noopener noreferrer">(?)</a></span>`;
