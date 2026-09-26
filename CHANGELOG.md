@@ -1,3 +1,9 @@
+## v0.5.2 (2026-09-27)
+
+### Fix
+
+- **ui**: drop the help cursor from tooltip triggers
+
 ## v0.5.1 (2026-09-25)
 
 ### Fix
