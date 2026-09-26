@@ -18,8 +18,8 @@ importers:
         specifier: ^5.5.19
         version: 5.7.18
       interlocking:
-        specifier: git+https://git.kcfam.us/gtfs.zone/interlocking.git#v3.3.0
-        version: git+https://git.kcfam.us/gtfs.zone/interlocking.git#13596b5d5846653b041cdc8013fbb332927f41d1(@leeoniya/ufuzzy@1.0.19)(gtfs-realtime-bindings@2.2.0)(jszip@3.10.1)(maplibre-gl@5.24.0)(papaparse@5.6.0)
+        specifier: git+https://git.kcfam.us/gtfs.zone/interlocking.git#v3.3.2
+        version: git+https://git.kcfam.us/gtfs.zone/interlocking.git#3ab1e885bb1ff50512521aab8d5d93ca14513abf(@leeoniya/ufuzzy@1.0.19)(gtfs-realtime-bindings@2.2.0)(jszip@3.10.1)(maplibre-gl@5.24.0)(papaparse@5.6.0)
       jszip:
         specifier: ^3.10.1
         version: 3.10.1
@@ -708,9 +708,9 @@ packages:
   inherits@2.0.4:
     resolution: {integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==}
 
-  interlocking@git+https://git.kcfam.us/gtfs.zone/interlocking.git#13596b5d5846653b041cdc8013fbb332927f41d1:
-    resolution: {commit: 13596b5d5846653b041cdc8013fbb332927f41d1, repo: https://git.kcfam.us/gtfs.zone/interlocking.git, type: git}
-    version: 3.3.0
+  interlocking@git+https://git.kcfam.us/gtfs.zone/interlocking.git#3ab1e885bb1ff50512521aab8d5d93ca14513abf:
+    resolution: {commit: 3ab1e885bb1ff50512521aab8d5d93ca14513abf, repo: https://git.kcfam.us/gtfs.zone/interlocking.git, type: git}
+    version: 3.3.2
     peerDependencies:
       '@leeoniya/ufuzzy': '*'
       gtfs-realtime-bindings: '*'
@@ -1547,7 +1547,7 @@ snapshots:
 
   inherits@2.0.4: {}
 
-  interlocking@git+https://git.kcfam.us/gtfs.zone/interlocking.git#13596b5d5846653b041cdc8013fbb332927f41d1(@leeoniya/ufuzzy@1.0.19)(gtfs-realtime-bindings@2.2.0)(jszip@3.10.1)(maplibre-gl@5.24.0)(papaparse@5.6.0):
+  interlocking@git+https://git.kcfam.us/gtfs.zone/interlocking.git#3ab1e885bb1ff50512521aab8d5d93ca14513abf(@leeoniya/ufuzzy@1.0.19)(gtfs-realtime-bindings@2.2.0)(jszip@3.10.1)(maplibre-gl@5.24.0)(papaparse@5.6.0):
     dependencies:
       '@leeoniya/ufuzzy': 1.0.19
       jszip: 3.10.1
