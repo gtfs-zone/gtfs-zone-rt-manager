@@ -30,6 +30,7 @@
      opens the tracker for a one-vehicle tracker and that vehicle's page for a
      fleet, and follow tracks either a tracker or a single vehicle key. */
 import * as maplibregl from 'maplibre-gl';
+import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import { CONFIG } from './config';
 import { vehicleLocation } from './modules/vehicle-location';
 import type { GTFSScheduled } from 'interlocking/gtfs/scheduled';
@@ -220,6 +221,9 @@ export class MapController {
     const view = restoreView();
     const appearance = readStored<MapAppearance>(CONFIG.MAP_APPEARANCE_KEY) ?? {};
 
+    // maplibre resolves its worker relative to its own module URL, which
+    // breaks once Vite bundles or pre-bundles it; point it at a Vite-built copy.
+    maplibregl.setWorkerUrl(maplibreWorkerUrl);
     this.map = new maplibregl.Map({
       container,
       style: initialMapStyle(appearance),
