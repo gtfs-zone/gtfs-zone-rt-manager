@@ -29,13 +29,13 @@
      carrying several. A vehicle click goes through `vehicleLocation`, so it
      opens the tracker for a one-vehicle tracker and that vehicle's page for a
      fleet, and follow tracks either a tracker or a single vehicle key. */
-import maplibregl from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
 import { CONFIG } from './config';
 import { vehicleLocation } from './modules/vehicle-location';
 import type { GTFSScheduled } from 'interlocking/gtfs/scheduled';
 import type { VehiclePosition as RtVehiclePosition } from 'interlocking/gtfs/rt-types';
 import type { PageState } from './types/page-state';
-import { BasemapControl, initialMapStyle } from 'interlocking/map/basemap-control';
+import { BasemapControl, initialMapStyle, onBasemapChanged } from 'interlocking/map/basemap-control';
 import type { MapAppearance } from 'interlocking/map/basemap-control';
 import { AutoZoom } from 'interlocking/map/auto-zoom';
 import { MAP_MAX_ZOOM } from 'interlocking/map/basemap-styles';
@@ -274,7 +274,7 @@ export class MapController {
     // setStyle drops every source and layer we own, so each basemap change
     // has to re-add them. This is the single highest-risk path in the map:
     // without it, switching basemaps blanks all GTFS data.
-    this.map.on('basemap:changed', () => {
+    onBasemapChanged(this.map, () => {
       this.layers.rebuild();
       // setStyle dropped the trip source along with LayerManager's, so it has
       // to be re-added and re-filled here too.

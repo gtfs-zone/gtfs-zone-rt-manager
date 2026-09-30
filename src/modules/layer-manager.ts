@@ -41,7 +41,7 @@
    deduped focused expression, and `cef96c7`'s direction arrows on the single
    spotlighted route, which is what gives `interlocking`'s `map-icons.ts` a caller. */
 
-import type maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 import type {
   ExpressionSpecification,
   FilterSpecification,
@@ -601,7 +601,7 @@ export class LayerManager {
 
   /**
    * Re-add every source and layer. `map.setStyle()` destroys all of them, so
-   * this runs on `basemap:changed` — without it, switching basemaps blanks all
+   * this runs on `onBasemapChanged` — without it, switching basemaps blanks all
    * GTFS data.
    */
   rebuild(): void {
