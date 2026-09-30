@@ -1,3 +1,9 @@
+## v0.6.0 (2026-09-30)
+
+### Feat
+
+- **map**: bump interlocking to v3.5.0, fit route lines with the feed, pad fits below the map controls, cap max zoom
+
 ## v0.5.2 (2026-09-27)
 
 ### Fix
