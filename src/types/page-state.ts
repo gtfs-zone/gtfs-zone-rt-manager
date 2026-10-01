@@ -1,5 +1,5 @@
 /* @vendored-from gtfs-zone-rt-viewer:src/types/page-state.ts
-   @sha d7abea9
+   @sha 9977955
    @status modified
    @changes
    - Variants replaced wholesale. gtfs-zone-rt-manager browses a hierarchy neither

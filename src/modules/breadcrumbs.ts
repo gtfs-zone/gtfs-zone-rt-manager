@@ -1,5 +1,5 @@
 /* @vendored-from gtfs-zone-rt-viewer:src/modules/breadcrumbs.ts
-   @sha dbb690b
+   @sha 6b6442e
    @status modified
    @changes
    - The variant set is gtfs-zone-rt-manager's. `vehicle` became `tracker` and resolves
@@ -23,7 +23,9 @@
      several, hung off its tracker. Its label is read from the live record and
      falls back to a plain "Vehicle" once that record has expired, and
      `validateState` checks only the tracker: the vehicle page itself says a
-     vehicle has stopped reporting, which a fallback to home would hide. */
+     vehicle has stopped reporting, which a fallback to home would hide.
+   - Skipped `4114ea3`'s catalog-name lookup for the feed crumb: a feed here
+     is an API row with its own name, not a `FeedSelection` URL. */
 /**
  * Synchronous breadcrumb building and focus validation against the session.
  *

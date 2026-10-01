@@ -1,5 +1,5 @@
 /* @vendored-from gtfs-zone-rt-viewer:src/modules/search-entries.ts
-   @sha d169427
+   @sha 6b6442e
    @status modified
    @changes
    - The vehicle loop became a tracker loop over the API's tracker list rather

@@ -1,5 +1,5 @@
 /* @vendored-from gtfs-zone-rt-viewer:src/modules/app-state.ts
-   @sha d7abea9
+   @sha 6b6442e
    @status modified
    @changes
    - Selection is a feed row from the API, not a `FeedSelection` of URLs, so

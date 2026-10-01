@@ -1,5 +1,5 @@
 /* @vendored-from gtfs-zone-rt-viewer:src/modules/pages/alert-page.ts
-   @sha d169427
+   @sha 6b6442e
    @status modified
    @changes
    - `renderAlertPage` renders the *managed* alert, the row this app owns, from

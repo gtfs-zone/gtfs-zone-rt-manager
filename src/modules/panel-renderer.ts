@@ -1,5 +1,5 @@
 /* @vendored-from gtfs-zone-rt-viewer:src/modules/panel-renderer.ts
-   @sha d7abea9
+   @sha 6b6442e
    @status modified
    @changes
    - The session events are gtfs-zone-rt-manager's: `change`, `vehicles`, `assignments`

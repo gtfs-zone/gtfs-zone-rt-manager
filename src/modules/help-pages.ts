@@ -1,5 +1,5 @@
 /* @vendored-from gtfs-zone-rt-viewer:src/modules/help-pages.ts
-   @sha 062b507
+   @sha 9977955
    @status modified
    @changes
    - HELP_PAGES is [aboutPage, shortcutsPage]: this app has no welcome or
@@ -20,7 +20,9 @@
      this app does not have, so the local one links the realtime reference
      this repo's spec is checked against.
    - `getHelpPage` is dropped with upstream: the viewer looks pages up in the
-     registry it was handed. */
+     registry it was handed.
+   - Skipped `fdd58ea`'s `renderDataSourcesSection`: it credits the feed
+     catalogs behind a Load menu this app does not have. */
 /**
  * The help page registry: what pages exist, their grouping, and their copy.
  *
