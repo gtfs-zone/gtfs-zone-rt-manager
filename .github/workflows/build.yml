@@ -1,8 +1,8 @@
 name: Build and Deploy
 
-# On a v* tag: typecheck, build the site, bake it into an nginx image and push
-# it to ghcr.io/<owner>/<repo>, then record the digest in gtfs-zone-infra, which
-# ArgoCD rolls out.
+# On a v* tag: run the check workflow, build the site, bake it into an nginx
+# image and push it to ghcr.io/<owner>/<repo>, then record the digest in
+# gtfs-zone-infra, which ArgoCD rolls out.
 #
 # Requires:
 #   Variables:
@@ -19,7 +19,13 @@ env:
   SITE_DIR: sites
 
 jobs:
+  check:
+    uses: ./.github/workflows/check.yml
+    permissions:
+      contents: read
+
   build:
+    needs: check
     runs-on: ubuntu-latest
 
     permissions:
@@ -46,9 +52,6 @@ jobs:
 
       - name: Install node modules
         run: pnpm install --frozen-lockfile
-
-      - name: Typecheck
-        run: pnpm typecheck
 
       # Unset falls back to web-common's default proxy.
       - name: Build
