@@ -1,4 +1,4 @@
-/* @vendored-from test-track:src/modules/help-pages.ts
+/* @vendored-from gtfs-zone-rt-viewer:src/modules/help-pages.ts
    @sha c9dcb42
    @status modified
    @changes
@@ -9,7 +9,7 @@
      `buildShortcutsTable` and the `shortcuts` half of `setHelpRuntimeData`.
      They are fed from this app's own `shortcut-list.ts` through
      `describeShortcuts()`, so a command cannot be documented without existing.
-   - `AboutApp` is yard-master's own, carried over from the old
+   - `AboutApp` is gtfs-zone-rt-manager's own, carried over from the old
      `about-modal.ts`: it says plainly that an uploaded schedule is stored and
      published, and names viz.rt.gtfs.zone as the sibling app.
    - Project and Resources are rendered locally rather than through

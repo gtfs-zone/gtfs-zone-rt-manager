@@ -1,4 +1,4 @@
-/* @vendored-from test-track:src/modules/pages/route-page.ts
+/* @vendored-from gtfs-zone-rt-viewer:src/modules/pages/route-page.ts
    @sha 968e2de
    @status modified
    @changes

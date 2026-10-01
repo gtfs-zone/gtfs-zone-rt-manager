@@ -1,11 +1,11 @@
-/* @vendored-from test-track:src/map-controller.ts
+/* @vendored-from gtfs-zone-rt-viewer:src/map-controller.ts
    @sha fdb171c
    @status modified
    @changes
    - The `vehicle` PageState variant became `tracker`, keyed by `Tracker.id`. The
      LayerManager target kind stays `vehicle` — that is the map layer's own
      vocabulary — but carries the `trackerId` a click has to navigate by.
-   - `applyFocus` covers yard-master's variant set. `alert` clears the focus
+   - `applyFocus` covers gtfs-zone-rt-manager's variant set. `alert` clears the focus
      without moving the camera, since a managed alert has no geometry of its
      own; `home` reframes the whole feed.
    - `trip` draws the trip's own geometry on a source this file owns, spotlights

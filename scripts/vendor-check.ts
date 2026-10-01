@@ -1,7 +1,7 @@
 /**
  * Two passes over VENDORED.md. Every row names its own `Source repo` and is
  * resolved against that sibling checkout, which is all but a few rows
- * test-track today:
+ * gtfs-zone-rt-viewer today:
  *
  * - drift: every `verbatim` entry must still match its source at the *recorded*
  *   SHA. A mismatch means someone edited the local copy.
@@ -12,11 +12,11 @@
  * Two statuses are exempt from both passes, and both are counted in the summary
  * so the tier stays visible rather than silently unchecked:
  *
- * - `adopted`: was vendored, is yard-master's file now. The banner records
+ * - `adopted`: was vendored, is gtfs-zone-rt-manager's file now. The banner records
  *   where it came from, but feature work has taken it over far enough that
  *   re-syncing has stopped being meaningful, so upstream commits on it are
  *   not news.
- * - `origin`: never vendored. yard-master is the canonical source another repo
+ * - `origin`: never vendored. gtfs-zone-rt-manager is the canonical source another repo
  *   vendors *from*, so the row carries no source repo, no source path and no
  *   SHA. It is listed only so the table is the whole map of what is shared.
  *

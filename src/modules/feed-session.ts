@@ -1,4 +1,4 @@
-/* @vendored-from test-track:src/feed-session.ts
+/* @vendored-from gtfs-zone-rt-viewer:src/feed-session.ts
    @sha 56f120a
    @status adopted */
 /**

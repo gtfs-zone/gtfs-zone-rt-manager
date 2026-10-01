@@ -1,17 +1,17 @@
-/* @vendored-from test-track:src/modules/panel-renderer.ts
+/* @vendored-from gtfs-zone-rt-viewer:src/modules/panel-renderer.ts
    @sha c24eb5b
    @status modified
    @changes
-   - The session events are yard-master's: `change`, `vehicles`, `assignments`
-     and `scheduleloaded` replace test-track's `vehicles` / `tripUpdates` /
+   - The session events are gtfs-zone-rt-manager's: `change`, `vehicles`, `assignments`
+     and `scheduleloaded` replace gtfs-zone-rt-viewer's `vehicles` / `tripUpdates` /
      `alerts`.
-   - No `active` flag and no `hide()`. test-track hands the panel back to a
+   - No `active` flag and no `hide()`. gtfs-zone-rt-viewer hands the panel back to a
      status page when nothing is focused; here `home` is the feed itself, so
      the panel always has something to render.
    - `setBreadcrumbs` passed through to `PanelHost`: the trail is rebuilt
      outside this class and can arrive after the page it belongs to, without a
      scroll reset.
-   - The dispatcher covers yard-master's seven variants: `home` renders the
+   - The dispatcher covers gtfs-zone-rt-manager's seven variants: `home` renders the
      feed itself, `trip` and `vehicle` are this repo's own pages (`vehicle`
      being one vehicle of a tracker that carries several), and `tracker` and
      `alert` render the managed objects. There are no list pages; a list is
@@ -20,7 +20,7 @@
      `RenderContext` is a verbatim type that has no business growing a field
      for it.
    - `action` added to the hooks and handed to `PanelHost`, which delegates
-     `data-action` alongside `data-nav`. test-track's panel is read-only and
+     `data-action` alongside `data-nav`. gtfs-zone-rt-viewer's panel is read-only and
      passes none; here a page emits a button and `actions.ts` owns what it
      does, which is what keeps the pages pure string renderers.
    - The feed page takes no map-issue counts. Upstream reads them off its own

@@ -1,16 +1,16 @@
-/* @vendored-from coloring-book:src/modules/calendar-modal.ts
+/* @vendored-from gtfs-zone-editor:src/modules/calendar-modal.ts
    @sha 59ed6d0
    @status modified
    @changes
    - The chips are this repo's: a service chip and an assignment chip, coloured
-     by route where the trip has one, each a link where coloring-book's is a
+     by route where the trip has one, each a link where gtfs-zone-editor's is a
      click handler
    - Data comes from a FeedSession's serviceCatalog/assignmentsOn, not an
      IndexedDB read through ServiceTimelineSource
    - The month grid's leading/trailing cells are real neighbouring-month days
      from monthGrid(), not blank filler cells
    - The timeline half (renderRuleChart/renderTimeline) has no counterpart
-     upstream; coloring-book's service-timeline.ts answers a different question
+     upstream; gtfs-zone-editor's service-timeline.ts answers a different question
    - The header combines the month nav and the tab bar in one row; upstream
      keeps them separate */
 

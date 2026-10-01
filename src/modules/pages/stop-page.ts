@@ -1,11 +1,11 @@
-/* @vendored-from test-track:src/modules/pages/stop-page.ts
+/* @vendored-from gtfs-zone-rt-viewer:src/modules/pages/stop-page.ts
    @sha fdb171c
    @status modified
    @changes
    - The `vehicle` PageState variant became `tracker`, keyed by `Tracker.id`.
    - "Vehicles here now" became "Trackers here now", and its renderer with it.
    - Departures link their trip through the new `trip` variant, which
-     test-track has no page for.
+     gtfs-zone-rt-viewer has no page for.
    - A Service calendar section draws the services of the trips calling here on
      this repo's timeline chart.
    - Every list on the page — departures, trackers here now, platforms and

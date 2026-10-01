@@ -1,8 +1,8 @@
-/* @vendored-from test-track:src/types/page-state.ts
+/* @vendored-from gtfs-zone-rt-viewer:src/types/page-state.ts
    @sha c24eb5b
    @status modified
    @changes
-   - Variants replaced wholesale. yard-master browses a hierarchy neither
+   - Variants replaced wholesale. gtfs-zone-rt-manager browses a hierarchy neither
      upstream has: `tracker` is a managed object from the API, `route`, `stop`
      and `trip` come from the in-browser GTFS. Dropped `vehicle`; kept `alert`,
      which here is a managed object rather than a decoded GTFS-RT entity.

@@ -1,21 +1,21 @@
-/* @vendored-from test-track:src/modules/pages/alert-page.ts
+/* @vendored-from gtfs-zone-rt-viewer:src/modules/pages/alert-page.ts
    @sha fdb171c
    @status modified
    @changes
    - `renderAlertPage` renders the *managed* alert, the row this app owns, from
      `session.serviceAlerts` and the entities `session.alertDetails` carries.
-     test-track's decoded-entity page is kept below it as
+     gtfs-zone-rt-viewer's decoded-entity page is kept below it as
      `renderRtAlertPage`, which is what a `PageState` naming an alert that is
      only in the live payload still falls back to.
    - An Affects section added: the API's `InformedEntity` rows, whose columns
      are flat where a GTFS-RT `EntitySelector` nests the trip half, each an
      `entity-row.ts` row linking the object it names and carrying a Remove
-     button. The decoded-entity page below keeps test-track's own entity list,
+     button. The decoded-entity page below keeps gtfs-zone-rt-viewer's own entity list,
      with no button, because nothing there is a row this app can write.
    - `renderAlertList`, which the route, stop and trip pages embed, renders
      through this repo's `entity-row.ts` so an alert row looks like every other
      row in the app. `statusBadge`, the translation and active-period renderers
-     are test-track's, unchanged. */
+     are gtfs-zone-rt-viewer's, unchanged. */
 /**
  * The alert page, plus the compact alert list every other page embeds.
  *

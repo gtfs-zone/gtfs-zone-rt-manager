@@ -1,4 +1,4 @@
-/* @vendored-from test-track:src/modules/search-entries.ts
+/* @vendored-from gtfs-zone-rt-viewer:src/modules/search-entries.ts
    @sha fdb171c
    @status modified
    @changes

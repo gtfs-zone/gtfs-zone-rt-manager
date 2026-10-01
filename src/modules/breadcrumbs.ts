@@ -1,8 +1,8 @@
-/* @vendored-from test-track:src/modules/breadcrumbs.ts
+/* @vendored-from gtfs-zone-rt-viewer:src/modules/breadcrumbs.ts
    @sha 96c6144
    @status modified
    @changes
-   - The variant set is yard-master's. `vehicle` became `tracker` and resolves
+   - The variant set is gtfs-zone-rt-manager's. `vehicle` became `tracker` and resolves
      against `session.trackers` (the API list) rather than only against the
      live map, so a tracker that has never reported a fix still has a label.
    - `trip` added, with its route as the parent when the feed names one.
@@ -10,7 +10,7 @@
      pages, so a tracker and a route both hang straight off the feed, a trip
      hangs off its route, a stop off its `parent_station` chain and an alert off
      the entity it informs. Three crumbs is the deepest trail in the app.
-   - HOME is the feed root rather than test-track's "Feed status" page, and it
+   - HOME is the feed root rather than gtfs-zone-rt-viewer's "Feed status" page, and it
      is labelled with the selected feed's name.
    - `alertLabel` reads the managed `serviceAlerts` map first, since an
      `alert` PageState names a row in the API rather than a decoded entity, and

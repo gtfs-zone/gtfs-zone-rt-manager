@@ -1,4 +1,4 @@
-/* @vendored-from test-track:src/modules/app-state.ts
+/* @vendored-from gtfs-zone-rt-viewer:src/modules/app-state.ts
    @sha c24eb5b
    @status modified
    @changes
@@ -19,7 +19,7 @@
      There is no such modal and no `FeedSelection` here — a feed is one of your
      own rows, named in the hash by `feed_name` — so `boot()` stays one call
      that resolves that name and loads it.
-   - A pending focus is held rather than resolved once. test-track can decide
+   - A pending focus is held rather than resolved once. gtfs-zone-rt-viewer can decide
      immediately because it awaits the load; here a `route`/`stop`/`trip` link
      cannot resolve until the zip parses, so `applyPendingFocus` runs at each
      stage and only the last one is entitled to call a link dead.

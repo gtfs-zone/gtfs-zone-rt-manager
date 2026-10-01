@@ -1,13 +1,13 @@
-/* @vendored-from test-track:src/modules/page-state-manager.ts
+/* @vendored-from gtfs-zone-rt-viewer:src/modules/page-state-manager.ts
    @sha c24eb5b
    @status adopted
    @changes
    - The `PageStateManager` class is `gtfs-zone-web-common`'s `ui/page-state-manager.ts`
      now, generic over the page-state union, as it is upstream. What is left
      here is this app's hash codec, which the shared class is constructed with.
-   - The codec is rewritten for yard-master's seven variants. The hash carries
+   - The codec is rewritten for gtfs-zone-rt-manager's seven variants. The hash carries
      an explicit `type` param and the codec switches on it, rather than telling
-     the pages apart by which object key is present the way test-track's can.
+     the pages apart by which object key is present the way gtfs-zone-rt-viewer's can.
    - A tracker appears in the hash as `tracker=<Tracker.id>`. The surrogate is
      not a secret and is unique; `device_key` is the credential and never
      reaches a URL, and nickname is a label that may repeat.
