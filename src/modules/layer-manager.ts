@@ -1,5 +1,5 @@
 /* @vendored-from gtfs-zone-rt-viewer:src/modules/layer-manager.ts
-   @sha bac60b6
+   @sha 66fb4b1
    @status adopted
    Taken over here, as gtfs-zone-rt-viewer took its own copy over in `868909e`. Re-synced
    against that rewrite: the shared half is now `gtfs-zone-web-common`'s
@@ -13,7 +13,7 @@
      composite key, which addresses no tracker; the surrogate is what a page and
      an API call are keyed by. */
 /* @vendored-from gtfs-zone-editor:src/modules/layer-manager.ts
-   @sha 0d38e50
+   @sha a8e7afd
    @status adopted
    Promoted from `modified` in Phase 8. The shared half of this file is now
    `gtfs-zone-web-common`'s `layer-specs.ts` (source ids, layer ids, filters, zoom ramps, fade

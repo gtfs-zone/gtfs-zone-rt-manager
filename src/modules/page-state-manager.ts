@@ -1,5 +1,5 @@
 /* @vendored-from gtfs-zone-rt-viewer:src/modules/page-state-manager.ts
-   @sha c24eb5b
+   @sha d7abea9
    @status adopted
    @changes
    - The `PageStateManager` class is `gtfs-zone-web-common`'s `ui/page-state-manager.ts`

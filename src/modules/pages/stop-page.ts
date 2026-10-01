@@ -1,5 +1,5 @@
 /* @vendored-from gtfs-zone-rt-viewer:src/modules/pages/stop-page.ts
-   @sha fdb171c
+   @sha d169427
    @status modified
    @changes
    - The `vehicle` PageState variant became `tracker`, keyed by `Tracker.id`.

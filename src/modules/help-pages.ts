@@ -1,5 +1,5 @@
 /* @vendored-from gtfs-zone-rt-viewer:src/modules/help-pages.ts
-   @sha c9dcb42
+   @sha 062b507
    @status modified
    @changes
    - HELP_PAGES is [aboutPage, shortcutsPage]: this app has no welcome or

@@ -1,5 +1,5 @@
 /* @vendored-from gtfs-zone-editor:src/modules/calendar-modal.ts
-   @sha 59ed6d0
+   @sha 37edcb3
    @status modified
    @changes
    - The chips are this repo's: a service chip and an assignment chip, coloured

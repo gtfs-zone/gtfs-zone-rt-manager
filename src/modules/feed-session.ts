@@ -1,5 +1,5 @@
 /* @vendored-from gtfs-zone-rt-viewer:src/feed-session.ts
-   @sha 56f120a
+   @sha b5d2903
    @status adopted */
 /**
  * Owns whatever is currently selected: the parsed scheduled GTFS, and the live
