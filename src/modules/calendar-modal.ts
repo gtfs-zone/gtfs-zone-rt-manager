@@ -1,19 +1,3 @@
-/* @vendored-from gtfs-zone-editor:src/modules/calendar-modal.ts
-   @sha 4b43c44
-   @status modified
-   @changes
-   - The chips are this repo's: a service chip and an assignment chip, coloured
-     by route where the trip has one, each a link where gtfs-zone-editor's is a
-     click handler
-   - Data comes from a FeedSession's serviceCatalog/assignmentsOn, not an
-     IndexedDB read through ServiceTimelineSource
-   - The month grid's leading/trailing cells are real neighbouring-month days
-     from monthGrid(), not blank filler cells
-   - The timeline half (renderRuleChart/renderTimeline) has no counterpart
-     upstream; gtfs-zone-editor's service-timeline.ts answers a different question
-   - The header combines the month nav and the tab bar in one row; upstream
-     keeps them separate */
-
 /**
  * The calendar: one month of the feed at a time, and the same waterfall the
  * rest of the app draws.
@@ -41,7 +25,11 @@ import { CONFIG } from '../config';
 import type { Assignment, TrackerRule } from '../types/api';
 import type { PageState } from '../types/page-state';
 import type { FeedSession } from './feed-session';
-import { showModal } from 'gtfs-zone-web-common/ui/modal-utils';
+import { ISO_DATE_CODEC } from 'gtfs-zone-web-common/ui/calendar-input';
+import {
+  renderMonthGrid,
+  showCalendarModal as showSharedCalendarModal,
+} from 'gtfs-zone-web-common/ui/calendar-modal';
 import { formatWindow } from './managed-render';
 import type { RenderContext } from './render-context';
 import { escHtml, section } from 'gtfs-zone-web-common/gtfs/entity-render';
@@ -54,14 +42,8 @@ import {
 import {
   addDays,
   addMonths,
-  dayLabel,
-  dayOfMonth,
-  monthGrid,
-  monthLabel,
-  sameMonth,
   startOfMonth,
   today,
-  WEEKDAY_LABELS,
   type ServiceDate,
 } from './service-date';
 import { assignmentCounts } from './service-catalog';
@@ -81,8 +63,6 @@ export interface CalendarModalHooks {
   /** Load the feed's rules if they are not already in the session. */
   ensureRules: () => Promise<void>;
 }
-
-type CalendarTab = 'grid' | 'timeline';
 
 /**
  * What the navbar badge says: the assignments running today.
@@ -159,54 +139,29 @@ function assignmentChip(ctx: RenderContext, assignment: Assignment): string {
   );
 }
 
-function renderDayCell(
-  ctx: RenderContext,
-  date: ServiceDate,
-  month: ServiceDate,
-  services: readonly ServiceSummary[]
-): string {
-  const assignments = ctx.session.assignmentsOn(date);
-  const running = services.filter((service) => serviceRunsOn(service, date));
-  const chips = [
-    ...running.map((service) => serviceChip(service)),
-    ...assignments.map((assignment) => assignmentChip(ctx, assignment)),
-  ];
-
-  const isToday = date === today();
-  const outside = !sameMonth(date, month);
-
-  return `<div class="min-h-16 p-1 rounded bg-base-200/20 border overflow-hidden ${
-    outside ? 'border-base-300/30 opacity-40' : 'border-base-300/30'
-  }${isToday ? ' ring-1 ring-primary bg-primary/5' : ''}">
-    <span class="block text-[11px] leading-4 tabular-nums font-medium opacity-70
-      ${isToday ? 'text-primary font-bold' : ''}" title="${escHtml(dayLabel(date))}"
-      >${dayOfMonth(date)}</span>
-    <div class="max-h-24 overflow-y-auto overscroll-contain">
-      <div class="flex flex-col gap-0.5">${chips.join('')}</div>
-    </div>
-  </div>`;
-}
-
 function renderGrid(ctx: RenderContext, month: ServiceDate): string {
   const feed = ctx.session.scheduledFeed;
   const services = feed
     ? sortByCascade([...serviceCatalog(feed).values()])
     : [];
-  const days = monthGrid(month);
-
-  const header = WEEKDAY_LABELS.map(
-    (label) =>
-      `<div class="text-center text-[10px] uppercase tracking-wide opacity-50">${escHtml(
-        label
-      )}</div>`
-  ).join('');
 
   return `
     <div class="space-y-1">
-      <div class="grid grid-cols-7 gap-1">${header}</div>
-      <div class="grid grid-cols-7 gap-1">${days
-        .map((date) => renderDayCell(ctx, date, month, services))
-        .join('')}</div>
+      ${renderMonthGrid(month, {
+        codec: ISO_DATE_CODEC,
+        weekStart: CONFIG.WEEK_START,
+        today,
+        renderDay: ({ date }) => ({
+          chips: [
+            ...services
+              .filter((service) => serviceRunsOn(service, date))
+              .map((service) => serviceChip(service)),
+            ...ctx.session
+              .assignmentsOn(date)
+              .map((assignment) => assignmentChip(ctx, assignment)),
+          ].join(''),
+        }),
+      })}
       <p class="text-xs opacity-50">A chip is a service running that day, or a tracker assigned
         to a trip. A tracker chip opens that tracker.</p>
     </div>`;
@@ -321,25 +276,6 @@ function renderTimeline(ctx: RenderContext, month: ServiceDate): string {
 
 // ─── The modal ────────────────────────────────────────────────────────────────
 
-function renderHeader(month: ServiceDate, tab: CalendarTab): string {
-  const tabButton = (key: CalendarTab, label: string): string =>
-    `<button type="button" role="tab" data-cal-tab="${key}"
-      class="tab ${tab === key ? 'tab-active' : ''}">${label}</button>`;
-
-  return `
-    <div class="flex flex-wrap items-center justify-between gap-2">
-      <div class="flex items-center gap-1">
-        <button type="button" class="btn btn-xs btn-ghost" data-cal-month="-1">‹</button>
-        <span class="text-sm font-semibold w-36 text-center">${escHtml(monthLabel(month))}</span>
-        <button type="button" class="btn btn-xs btn-ghost" data-cal-month="1">›</button>
-        <button type="button" class="btn btn-xs btn-ghost" data-cal-today>Today</button>
-      </div>
-      <div role="tablist" class="tabs tabs-border tabs-sm">
-        ${tabButton('grid', 'Month grid')}${tabButton('timeline', 'Timeline')}
-      </div>
-    </div>`;
-}
-
 /** Whether the session already holds the expansion the grid is drawing. */
 function covers(
   session: FeedSession,
@@ -349,6 +285,8 @@ function covers(
   const range = session.assignmentsRange;
   return range !== null && range.from <= from && range.to >= to;
 }
+
+const NO_FEED = '<p class="text-sm opacity-60">No feed is selected.</p>';
 
 /**
  * Open the calendar.
@@ -363,92 +301,55 @@ export async function showCalendarModal(
 ): Promise<void> {
   const { ctx } = hooks;
   const session = ctx.session;
+  let redraw = (): void => {};
 
-  let month = startOfMonth(today());
-  let tab: CalendarTab = 'timeline';
-  let root: HTMLElement | null = null;
-
-  const draw = (): void => {
-    if (!root) {
-      return;
-    }
-    const days = monthGrid(month);
-    const loading =
-      session.feed && !covers(session, days[0], days[days.length - 1])
-        ? '<p class="text-xs opacity-60">Loading this month…</p>'
-        : '';
-
-    root.innerHTML = `
-      <div class="space-y-3">
-        ${renderHeader(month, tab)}
-        ${loading}
-        ${
-          session.feed
-            ? tab === 'grid'
-              ? renderGrid(ctx, month)
-              : renderTimeline(ctx, month)
-            : '<p class="text-sm opacity-60">No feed is selected.</p>'
-        }
-      </div>`;
-  };
-
-  /** The month on screen, and the rules behind both tabs. */
-  const load = (): void => {
-    if (!session.feed) {
-      return;
-    }
-    const days = monthGrid(month);
-    void hooks.ensureAssignments(days[0], days[days.length - 1]);
-    void hooks.ensureRules();
-  };
-
-  const onSessionChange = (): void => draw();
+  const onSessionChange = (): void => redraw();
   for (const event of ['change', 'assignments', 'scheduleloaded'] as const) {
     session.addEventListener(event, onSessionChange);
   }
 
-  await showModal({
+  await showSharedCalendarModal({
     title: 'Calendar',
-    body: '<div data-calendar-root></div>',
-    actions: [{ label: 'Close', onClick: () => {} }],
-    enterAction: 0,
-    escapeAction: 0,
-    boxClassName: 'max-w-5xl',
-    onMount: (close) => {
-      root = document.querySelector<HTMLElement>('[data-calendar-root]');
-      draw();
-      load();
+    codec: ISO_DATE_CODEC,
+    weekStart: CONFIG.WEEK_START,
+    today,
+    initialTab: 'timeline',
+    tabs: [
+      {
+        key: 'grid',
+        label: 'Month grid',
+        render: (month) => (session.feed ? renderGrid(ctx, month) : NO_FEED),
+      },
+      {
+        key: 'timeline',
+        label: 'Timeline',
+        render: (month) =>
+          session.feed ? renderTimeline(ctx, month) : NO_FEED,
+      },
+    ],
+    statusHtml: (from, to) =>
+      session.feed && !covers(session, from, to)
+        ? '<p class="text-xs opacity-60">Loading this month…</p>'
+        : '',
+    // The month on screen, and the rules behind both tabs.
+    onMonth: (from, to) => {
+      if (!session.feed) {
+        return;
+      }
+      void hooks.ensureAssignments(from, to);
+      void hooks.ensureRules();
+    },
+    onMount: (handle) => {
+      redraw = handle.redraw;
 
-      root?.addEventListener('click', (event) => {
-        const source = event.target as HTMLElement | null;
-
-        const step = source?.closest<HTMLElement>('[data-cal-month]');
-        if (step) {
-          month = addMonths(month, Number(step.dataset.calMonth));
-          draw();
-          load();
-          return;
-        }
-        if (source?.closest('[data-cal-today]')) {
-          month = startOfMonth(today());
-          draw();
-          load();
-          return;
-        }
-        const chosen = source?.closest<HTMLElement>('[data-cal-tab]');
-        if (chosen) {
-          tab = chosen.dataset.calTab as CalendarTab;
-          draw();
-          return;
-        }
-
-        // A link: the panel's delegation cannot see it from here, so the modal
-        // closes itself and hands the page over.
-        const link = source?.closest<HTMLElement>('[data-nav]');
-        if (!link) {
-          return;
-        }
+      // A link: the panel's delegation cannot see it from here, so the modal
+      // closes itself and hands the page over.
+      handle.root.addEventListener('click', (event) => {
+        const link = (event.target as HTMLElement | null)?.closest<HTMLElement>(
+          '[data-nav]'
+        );
         if (
+          !link ||
           event.metaKey ||
           event.ctrlKey ||
           event.shiftKey ||
@@ -458,7 +359,7 @@ export async function showCalendarModal(
         }
         event.preventDefault();
         const state = JSON.parse(link.dataset.nav!) as PageState;
-        close();
+        handle.close();
         hooks.navigate(state);
       });
     },

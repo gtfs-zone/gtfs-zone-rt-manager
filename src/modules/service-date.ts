@@ -118,10 +118,6 @@ export function startOfMonth(date: ServiceDate): ServiceDate {
   return `${date.slice(0, 7)}-01`;
 }
 
-export function sameMonth(a: ServiceDate, b: ServiceDate): boolean {
-  return a.slice(0, 7) === b.slice(0, 7);
-}
-
 /** The first day of the displayed week a date falls in. */
 export function startOfWeek(date: ServiceDate): ServiceDate {
   return addDays(date, -weekdayIndex(date));
@@ -146,15 +142,6 @@ export function dayOfMonth(date: ServiceDate): number {
   return Number(date.slice(8, 10));
 }
 
-/** `August 2026`, in the reader's locale. */
-export function monthLabel(date: ServiceDate): string {
-  return asUtc(date).toLocaleDateString(undefined, {
-    month: 'long',
-    year: 'numeric',
-    timeZone: 'UTC',
-  });
-}
-
 /** `Aug 2026`, for a header cell narrow enough to sit over a few weeks. */
 export function monthShortLabel(date: ServiceDate): string {
   return asUtc(date).toLocaleDateString(undefined, {
@@ -172,25 +159,4 @@ export function dayLabel(date: ServiceDate): string {
     month: 'long',
     timeZone: 'UTC',
   });
-}
-
-/**
- * The days a month grid draws: whole weeks starting on `CONFIG.WEEK_START`,
- * padded from the previous month and into the next one so every row has seven
- * cells.
- *
- * Five or six rows depending on where the month falls, never a fixed six: a
- * blank trailing week is a row of dead space in a panel that is already narrow.
- */
-export function monthGrid(date: ServiceDate): ServiceDate[] {
-  const first = startOfMonth(date);
-  const start = addDays(first, -weekdayIndex(first));
-  const last = addDays(addMonths(first, 1), -1);
-  const end = addDays(last, 6 - weekdayIndex(last));
-
-  const days: ServiceDate[] = [];
-  for (let day = start; day <= end; day = addDays(day, 1)) {
-    days.push(day);
-  }
-  return days;
 }

@@ -50,7 +50,7 @@ logs `loaded twice`).
 ### Vendored files
 
 Listed in `VENDORED.md`; rt-viewer is the upstream except where a row says
-otherwise (the calendar month grid comes from gtfs-zone-editor). Never edit a
+otherwise. Never edit a
 `verbatim` file: change it upstream and re-vendor, or promote it to `modified`
 (with `@changes`) or `adopted`. A file taken from rt-viewer keeps rt-viewer's
 own banner under ours; deleting it reports DRIFT.

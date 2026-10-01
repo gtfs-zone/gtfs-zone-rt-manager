@@ -58,16 +58,14 @@ those rows resolve against gtfs-zone-rt-viewer too and the gtfs-zone-editor orig
 recorded in the note. Nothing ever flows the other way: a change wanted upstream
 is made upstream and re-vendored.
 
-The exceptions all name gtfs-zone-editor, and there are three left now that
-`modal-utils.ts`, `tooltip-position.ts` and `breadcrumb-trail.ts` are package
-modules. `spec-markup.ts` is one, for the same underlying reason as the RT spec
+The exceptions all name gtfs-zone-editor, and there are two left now that
+`modal-utils.ts`, `tooltip-position.ts`, `breadcrumb-trail.ts` and
+`calendar-modal.ts` are package modules. `spec-markup.ts` is one, for the same underlying reason as the RT spec
 below — spec-driven form labels are a gtfs-zone-editor idea that gtfs-zone-rt-viewer has no
 counterpart to, because gtfs-zone-rt-viewer edits nothing. `calendar-input.ts` is the
 second, and the only one gtfs-zone-rt-viewer does not have at all: it edits nothing, so
 it has no date to pick. It is also not in the package's first cut for exactly
-that reason, and its row stays until a second wave takes it. `calendar-modal.ts`
-is the third, for the same reason as the input: the month grid is
-gtfs-zone-editor's and gtfs-zone-rt-viewer has no calendar.
+that reason, and its row stays until a second wave takes it.
 
 `src/modules/pages/feed-page.ts`, `src/modules/pages/tracker-page.ts`,
 `src/modules/pages/trip-page.ts`, `src/modules/share-modal.ts`,
@@ -83,8 +81,7 @@ routes hanging off it as scrollboxes rather than as pages, and the managed half
 of that hierarchy — feeds, trackers, assignments, alerts and members — has no
 counterpart upstream at all, because gtfs-zone-rt-viewer owns none of those objects.
 Sharing and the alert list are navbar modals for the same reason: nothing
-upstream has an object to put in them. The calendar is a navbar modal too, but
-its month grid does have an upstream now — see the table. `navbar-action-list.ts`
+upstream has an object to put in them. `navbar-action-list.ts`
 and `shortcut-list.ts` are in neither tier for a third reason: they are the two
 descriptor lists the shared renderers are parameterized over, and a list of this
 app's own actions and keys is the app itself, not a copy of anything.
@@ -113,7 +110,6 @@ without it on purpose, so a sibling's commit cannot break a commit here.
 
 | Local path | Source repo | Source path | SHA | Status | Note |
 |---|---|---|---|---|---|
-| `src/modules/calendar-modal.ts` | `gtfs-zone-editor` | `src/modules/calendar-modal.ts` | 4b43c44 | modified | The month grid's cell shape: `min-h-16 p-1 rounded bg-base-200/20 border border-base-300/30 overflow-hidden`, today's `ring-1 ring-primary bg-primary/5`, the day number line, and a `max-h-24 overflow-y-auto` chip stack in place of a fixed count plus `+n more`. See the banner's `@changes`: the chips, the data source and the timeline half are all this repo's own |
 | `src/modules/layer-manager.ts` | `gtfs-zone-rt-viewer` | `src/modules/layer-manager.ts` | 66fb4b1 | adopted | Every map layer: stops, route lines and casings, and the moving dots, fed from `GTFSScheduled`. Re-synced against gtfs-zone-rt-viewer's `868909e` rewrite, so the shared half is now `gtfs-zone-web-common`'s `layer-specs.ts` and `stop-layer-style.ts` and what is left is this app's own sources. `adopted` because upstream's remaining manager is the editor's, on `GTFSParser` / IndexedDB, so re-syncing against it has stopped being meaningful; the two spec files carry the contract instead. The banner records the one divergence: a vehicle feature carries `tracker_id` beside the composite `vehicle_id` so a click on a dot resolves to the tracker it is reporting under |
 | `src/map-controller.ts` | `gtfs-zone-rt-viewer` | `src/map-controller.ts` | 8f8ffd5 | modified | MapLibre setup, camera moves and focus. Navigation-driven moves go through `auto-zoom.ts` as of `dc25c3a`; `fitFeed` and the follow ease stay ungated, matching upstream. See the banner's `@changes`: the `vehicle` PageState variant became `tracker`, `VehiclePosition` carries a `trackerId`, follow tracks a tracker rather than one of its vehicles, and the two extra gated moves are the `trip` and `showTrips` fits, which are focus kinds upstream does not have |
 | `src/modules/search-entries.ts` | `gtfs-zone-rt-viewer` | `src/modules/search-entries.ts` | 6b6442e | modified | Builds `SearchController` entries from the session. See the banner's `@changes`: the vehicle loop became a tracker loop over the API's list (one entry per tracker, whatever it is running), service alerts were added, and the priorities bucket managed objects ahead of GTFS objects |
