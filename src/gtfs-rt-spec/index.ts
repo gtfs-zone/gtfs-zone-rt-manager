@@ -78,4 +78,4 @@ export function rtEnumValues(name: string): readonly string[] {
   return spec.values.map((v) => v.value);
 }
 
-export type { RTEnumSpec, RTEnumValue, RTFieldSpec, RTMessageSpec, RTSpec } from './types';
+export type { RTEnumSpec, RTFieldSpec, RTMessageSpec, RTSpec } from './types';

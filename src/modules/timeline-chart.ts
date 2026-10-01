@@ -439,37 +439,3 @@ export function renderTimelineChart(
   </div>`;
 }
 
-/**
- * Wire the chart up.
- *
- * A cell click is a row click too unless `onCellClick` is given, so a chart
- * with no cell behaviour behaves as one big row target.
- *
- * The pointer cursor is added here rather than rendered, so a chart nobody
- * wired up does not advertise a click that does nothing. A row whose label is
- * a link is navigated by the panel's own delegation and needs none of this.
- */
-export function attachTimelineListeners(
-  root: ParentNode,
-  onRowClick?: (key: string) => void,
-  onCellClick?: (key: string, date: ServiceDate) => void
-): void {
-  root.querySelectorAll<HTMLElement>(`.${ROW_CLASS}`).forEach((row) => {
-    const key = row.dataset.timelineKey;
-    if (key === undefined) return;
-
-    if (onRowClick || onCellClick) row.classList.add('cursor-pointer');
-
-    if (onCellClick) {
-      row.querySelectorAll<HTMLElement>(`.${CELL_CLASS}`).forEach((cell) => {
-        const date = cell.dataset.timelineDate;
-        if (date === undefined) return;
-        cell.addEventListener('click', (event) => {
-          event.stopPropagation();
-          onCellClick(key, date);
-        });
-      });
-    }
-    if (onRowClick) row.addEventListener('click', () => onRowClick(key));
-  });
-}

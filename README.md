@@ -19,7 +19,7 @@ pnpm build
 pnpm vendor:check # diff vendored files against gtfs-zone-editor / rt-viewer
 pnpm check-rt-spec     # diff src/gtfs-rt-spec against reference/
 pnpm check-alert-enums # hold the alert enums to rt-api's alert_enums.py
-pnpm check             # typecheck plus both of the above
+pnpm check             # typecheck, knip, both of the above, vendor:check
 ```
 
 ## One local door

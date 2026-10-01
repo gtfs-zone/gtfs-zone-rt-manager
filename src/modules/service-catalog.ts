@@ -53,20 +53,6 @@ export function weekdaysLabel(days: readonly boolean[]): string {
 }
 
 /**
- * Every `service_id` either calendar file names.
- *
- * Cheaper than `serviceCatalog`, which walks every trip in the feed: this is
- * for the callers that only need to know whether a service exists, or how many
- * there are.
- */
-export function serviceIds(feed: GTFSScheduled): Set<string> {
-  const ids = new Set<string>();
-  for (const row of feed.calendar) ids.add(row.service_id);
-  for (const row of feed.calendarDates) ids.add(row.service_id);
-  return ids;
-}
-
-/**
  * Every service the zip names, keyed by `service_id`.
  *
  * A service can be named by either file alone, so the map is seeded from both:

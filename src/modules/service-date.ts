@@ -123,16 +123,6 @@ export function startOfWeek(date: ServiceDate): ServiceDate {
   return addDays(date, -weekdayIndex(date));
 }
 
-/** `Mon 17 Aug`, for a week header and a day chip. */
-export function shortDayLabel(date: ServiceDate): string {
-  return asUtc(date).toLocaleDateString(undefined, {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    timeZone: 'UTC',
-  });
-}
-
 /** The display slot a date falls in: 0 is `CONFIG.WEEK_START`. */
 export function weekdayIndex(date: ServiceDate): number {
   return (asUtc(date).getUTCDay() - CONFIG.WEEK_START + 7) % 7;
