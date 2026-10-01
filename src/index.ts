@@ -24,6 +24,8 @@ import { AppState } from './modules/app-state';
 import { showFeedSwitcher } from './modules/feed-switcher';
 import { showAccountModal } from './modules/account-modal';
 import { SearchController } from 'gtfs-zone-web-common/ui/search-controller';
+import { searchPlaces } from 'gtfs-zone-web-common/map/place-search';
+import type { PlacePayload } from 'gtfs-zone-web-common/map/place-search';
 import { buildSearchEntries } from './modules/search-entries';
 import { PanelRenderer } from './modules/panel-renderer';
 import { Actions } from './modules/actions';
@@ -208,10 +210,15 @@ mapCtrl.onSelect = (state) => appState.setFocus(state);
 mapCtrl.onEmptySelect = () => appState.clearFocus();
 
 // ─── Map search ───────────────────────────────────────────────────────────────
-// Selecting a result is the same event as clicking the object on the map.
-const searchController = new SearchController<PageState>({
+// Selecting a feed object is the same event as clicking it on the map; a place
+// only moves the map.
+const searchController = new SearchController<PageState | PlacePayload>({
   getEntries: () => buildSearchEntries(session),
-  onSelect: (state) => appState.setFocus(state),
+  getRemoteEntries: (query, signal) => searchPlaces(query, mapCtrl.getCenter(), signal),
+  onSelect: (payload) => {
+    if ('kind' in payload) mapCtrl.focusPlace(payload);
+    else appState.setFocus(payload);
+  },
 });
 searchController.initialize();
 

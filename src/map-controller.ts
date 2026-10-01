@@ -1,5 +1,5 @@
 /* @vendored-from gtfs-zone-rt-viewer:src/map-controller.ts
-   @sha d169427
+   @sha 6b6442e
    @status modified
    @changes
    - The `vehicle` PageState variant became `tracker`, keyed by `Tracker.id`. The
@@ -41,6 +41,8 @@ import type { MapAppearance } from 'gtfs-zone-web-common/map/basemap-control';
 import { AutoZoom } from 'gtfs-zone-web-common/map/auto-zoom';
 import { MAP_MAX_ZOOM } from 'gtfs-zone-web-common/map/basemap-styles';
 import { fitPadding } from 'gtfs-zone-web-common/map/fit-padding';
+import { SearchPlaceMarker } from 'gtfs-zone-web-common/map/place-search';
+import type { PlacePayload } from 'gtfs-zone-web-common/map/place-search';
 import { LayerManager } from './modules/layer-manager';
 import type { MapDataIssues } from './modules/layer-manager';
 import { STOP_FOCUS_HALO_LAYER } from 'gtfs-zone-web-common/map/stop-layer-style';
@@ -146,6 +148,8 @@ function boundsOf(path: [number, number][] | null): [[number, number], [number, 
 export class MapController {
   private map!: maplibregl.Map;
   private layers!: LayerManager;
+  /** Rings the place picked from search until the next map click. */
+  private placeMarker!: SearchPlaceMarker;
   private resizeTimeout: ReturnType<typeof setTimeout> | null = null;
   private viewSaveTimeout: ReturnType<typeof setTimeout> | null = null;
   /** Height of the mobile bottom sheet, kept out of the camera's way. */
@@ -260,6 +264,8 @@ export class MapController {
       }
     };
     this.layers.onEmptySelect = () => this.onEmptySelect?.();
+    this.placeMarker = new SearchPlaceMarker(this.map);
+    this.map.on('click', () => this.placeMarker.clear());
 
     new BasemapControl(this.map, {
       initial: appearance,
@@ -283,6 +289,7 @@ export class MapController {
       // setStyle dropped the trip source along with LayerManager's, so it has
       // to be re-added and re-filled here too.
       this.drawTripShape();
+      this.placeMarker.redraw();
     });
 
     this.map.on('moveend', () => this.queueViewSave());
@@ -432,6 +439,16 @@ export class MapController {
   }
 
   // ── Focus ──────────────────────────────────────────────────────────────────
+
+  /** Move to a place picked from search and ring it. */
+  focusPlace(place: PlacePayload): void {
+    this.whenLoaded(() => this.placeMarker.focus(place, this.padding()));
+  }
+
+  /** Biases the place search towards what is on screen. */
+  getCenter(): { lng: number; lat: number } {
+    return this.map.getCenter();
+  }
 
   /**
    * Highlight the focused object and move the camera to it. Called for every
