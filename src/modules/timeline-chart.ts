@@ -27,8 +27,8 @@
  */
 
 import { CONFIG } from '../config';
-import { renderTriangleIcon } from 'interlocking/ui/modal-utils';
-import { escHtml } from 'interlocking/gtfs/entity-render';
+import { renderTriangleIcon } from 'gtfs-zone-web-common/ui/modal-utils';
+import { escHtml } from 'gtfs-zone-web-common/gtfs/entity-render';
 import {
   addDays,
   dayLabel,

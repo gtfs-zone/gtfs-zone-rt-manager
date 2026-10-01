@@ -31,19 +31,19 @@
  */
 
 import { CONFIG } from '../../config';
-import type { AlertRecord } from 'interlocking/gtfs/rt-types';
-import type { Route } from 'interlocking/gtfs/scheduled';
+import type { AlertRecord } from 'gtfs-zone-web-common/gtfs/rt-types';
+import type { Route } from 'gtfs-zone-web-common/gtfs/scheduled';
 import type { VehiclePosition } from '../../map-controller';
 import type { PageState } from '../../types/page-state';
-import { alertsForRoute, alertsForRouteStop, feedWideAlerts } from 'interlocking/gtfs/alerts';
-import { renderTriangleIcon, renderWarningIcon } from 'interlocking/ui/modal-utils';
-import { GTFSScheduledRouteSource } from 'interlocking/gtfs/scheduled-route-source';
-import { routeGraph } from 'interlocking/gtfs/route-graph';
-import type { VehicleStopSequence } from 'interlocking/gtfs/rt-index';
+import { alertsForRoute, alertsForRouteStop, feedWideAlerts } from 'gtfs-zone-web-common/gtfs/alerts';
+import { renderTriangleIcon, renderWarningIcon } from 'gtfs-zone-web-common/ui/modal-utils';
+import { GTFSScheduledRouteSource } from 'gtfs-zone-web-common/gtfs/scheduled-route-source';
+import { routeGraph } from 'gtfs-zone-web-common/gtfs/route-graph';
+import type { VehicleStopSequence } from 'gtfs-zone-web-common/gtfs/rt-index';
 import type { RtIndex } from '../render-context';
-import type { Prediction } from 'interlocking/gtfs/rt-index';
-import type { RouteSequence, StopStats } from 'interlocking/gtfs/route-sequence';
-import { directionsForRoute, routeSequence } from 'interlocking/gtfs/route-sequence';
+import type { Prediction } from 'gtfs-zone-web-common/gtfs/rt-index';
+import type { RouteSequence, StopStats } from 'gtfs-zone-web-common/gtfs/route-sequence';
+import { directionsForRoute, routeSequence } from 'gtfs-zone-web-common/gtfs/route-sequence';
 import {
   endpointNote,
   endpointThreshold,
@@ -55,8 +55,8 @@ import {
   renderDirectionSections,
   rowPaths,
   STRIP_ROW_CLASS,
-} from 'interlocking/gtfs/route-strip';
-import type { RowDot } from 'interlocking/gtfs/route-strip';
+} from 'gtfs-zone-web-common/gtfs/route-strip';
+import type { RowDot } from 'gtfs-zone-web-common/gtfs/route-strip';
 import type { RenderContext } from '../render-context';
 import { cappedNote, countBadge, entityRow, entityRowList, rowSection } from '../entity-row';
 import { assignmentCounts, servicesForTrips, weekdaysLabel } from '../service-catalog';
@@ -81,7 +81,7 @@ import {
   stopSequenceMark,
   tripRelationshipMark,
   vehicleDisplayName,
-} from 'interlocking/gtfs/entity-render';
+} from 'gtfs-zone-web-common/gtfs/entity-render';
 import { renderAlertList } from './alert-page';
 
 /** A vehicle that could not be put on the strip, and why not. */

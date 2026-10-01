@@ -13,7 +13,7 @@ import type { PageState } from '../../types/page-state';
 import type { RenderContext } from '../render-context';
 import { vehicleLabel } from '../breadcrumbs';
 import { renderVehicle } from './tracker-page';
-import { entityLink, escHtml, missing, section } from 'interlocking/gtfs/entity-render';
+import { entityLink, escHtml, missing, section } from 'gtfs-zone-web-common/gtfs/entity-render';
 
 export function renderVehiclePage(
   ctx: RenderContext,

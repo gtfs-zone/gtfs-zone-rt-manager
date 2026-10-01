@@ -33,7 +33,7 @@
  * the wrong alert.
  */
 
-import type { AlertRecord, ServiceAlert } from 'interlocking/gtfs/rt-types';
+import type { AlertRecord, ServiceAlert } from 'gtfs-zone-web-common/gtfs/rt-types';
 import type { Alert, InformedEntity } from '../../types/api';
 import type { PageState } from '../../types/page-state';
 import {
@@ -47,7 +47,7 @@ import {
   preferredText,
   selectorLevel,
   translations,
-} from 'interlocking/gtfs/alerts';
+} from 'gtfs-zone-web-common/gtfs/alerts';
 import type { RenderContext } from '../render-context';
 import { emptyState, entityRow, entityRowList, rowSection } from '../entity-row';
 import { actionButton, formatIso } from '../managed-render';
@@ -62,7 +62,7 @@ import {
   propList,
   renderRawJson,
   section,
-} from 'interlocking/gtfs/entity-render';
+} from 'gtfs-zone-web-common/gtfs/entity-render';
 
 type EntitySelector = NonNullable<ServiceAlert['informedEntity']>[number];
 

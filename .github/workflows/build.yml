@@ -5,6 +5,8 @@ name: Build and Deploy
 # ArgoCD rolls out.
 #
 # Requires:
+#   Variables:
+#     VITE_CORS_PROXY - CORS proxy prefix (optional)
 #   Secrets:
 #     INFRA_DEPLOY_KEY - private half of a write deploy key on gtfs-zone-infra
 
@@ -48,8 +50,11 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      # Unset falls back to web-common's default proxy.
       - name: Build
         run: pnpm build
+        env:
+          VITE_CORS_PROXY: ${{ vars.VITE_CORS_PROXY }}
 
       # Precompressed siblings for nginx's gzip_static.
       - name: Precompress assets

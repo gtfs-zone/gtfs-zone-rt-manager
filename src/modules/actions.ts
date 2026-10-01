@@ -62,7 +62,7 @@ import {
 } from './api-client';
 import { confirmAction, confirmTyped } from './confirm';
 import { isHosted, publicScheduleUrl } from './feed-source';
-import { formatBytes } from 'interlocking/gtfs/feed-download';
+import { formatBytes } from 'gtfs-zone-web-common/gtfs/feed-download';
 import { isHttpUrl, putSchedule, scheduleZipField } from './schedule-upload';
 import { rtEnum } from '../gtfs-rt-spec/index';
 import { tooltipLabelContent } from './spec-field';
@@ -89,12 +89,12 @@ import {
   ruleTimeInput,
   toLocalInput,
 } from './managed-render';
-import { parseGtfsClock } from 'interlocking/gtfs/feed-time';
+import { parseGtfsClock } from 'gtfs-zone-web-common/gtfs/feed-time';
 import { dayLabel, isServiceDate, today, WEEKDAY_KEYS, weekdayKey } from './service-date';
 import { assignableTrips, tripLabel, tripName, tripOptions } from './trip-picker';
-import { showModal } from 'interlocking/ui/modal-utils';
-import { notify } from 'interlocking/ui/notification-system';
-import { escHtml } from 'interlocking/gtfs/entity-render';
+import { showModal } from 'gtfs-zone-web-common/ui/modal-utils';
+import { notify } from 'gtfs-zone-web-common/ui/notification-system';
+import { escHtml } from 'gtfs-zone-web-common/gtfs/entity-render';
 
 /** One line of the cell menu: what it writes, and the write itself. */
 interface MenuChoice {

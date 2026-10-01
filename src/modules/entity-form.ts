@@ -29,10 +29,10 @@
  */
 
 import { CONFIG } from '../config';
-import { attachCalendarInput, ISO_DATE_CODEC } from 'interlocking/ui/calendar-input';
+import { attachCalendarInput, ISO_DATE_CODEC } from 'gtfs-zone-web-common/ui/calendar-input';
 import { ApiError, SessionExpiredError } from './api-client';
-import { showModal } from 'interlocking/ui/modal-utils';
-import { escHtml } from 'interlocking/gtfs/entity-render';
+import { showModal } from 'gtfs-zone-web-common/ui/modal-utils';
+import { escHtml } from 'gtfs-zone-web-common/gtfs/entity-render';
 import { WEEKDAY_DISPLAY, WEEKDAY_KEYS, WEEKDAY_LABELS } from './service-date';
 import type { SpecRef } from './spec-field';
 import { specLabelContent, tooltipLabelContent } from './spec-field';

@@ -2,7 +2,7 @@
    @sha c24eb5b
    @status adopted
    @changes
-   - The `PageStateManager` class is `interlocking`'s `ui/page-state-manager.ts`
+   - The `PageStateManager` class is `gtfs-zone-web-common`'s `ui/page-state-manager.ts`
      now, generic over the page-state union, as it is upstream. What is left
      here is this app's hash codec, which the shared class is constructed with.
    - The codec is rewritten for yard-master's seven variants. The hash carries
@@ -23,9 +23,9 @@
      wrapped in `withModal`, the fallbacks to home included. That is what makes
      a hash naming only a modal open it over home. */
 
-import type { PageStateCodec } from 'interlocking/ui/page-state-manager';
-import { PageStateManager } from 'interlocking/ui/page-state-manager';
-import type { BreadcrumbItem } from 'interlocking/ui/breadcrumb-trail';
+import type { PageStateCodec } from 'gtfs-zone-web-common/ui/page-state-manager';
+import { PageStateManager } from 'gtfs-zone-web-common/ui/page-state-manager';
+import type { BreadcrumbItem } from 'gtfs-zone-web-common/ui/breadcrumb-trail';
 import type { ModalState, ModalType, PageState } from '../types/page-state';
 import { MODAL_TYPES, isPageState } from '../types/page-state';
 

@@ -3,7 +3,7 @@
  * exists before any other module is evaluated and looks up an element id.
  */
 
-import { mountAppShell } from 'interlocking/ui/app-shell';
+import { mountAppShell } from 'gtfs-zone-web-common/ui/app-shell';
 
 // No dock: the panel is the whole of the mobile UI here.
 mountAppShell({

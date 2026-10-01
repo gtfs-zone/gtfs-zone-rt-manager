@@ -34,8 +34,8 @@
  * would otherwise be either immortal or invisible.
  */
 import { CONFIG } from '../config';
-import { GTFSScheduled } from 'interlocking/gtfs/scheduled';
-import type { AlertRecord, TripUpdate } from 'interlocking/gtfs/rt-types';
+import { GTFSScheduled } from 'gtfs-zone-web-common/gtfs/scheduled';
+import type { AlertRecord, TripUpdate } from 'gtfs-zone-web-common/gtfs/rt-types';
 import type {
   Alert,
   AlertDetail,
@@ -50,9 +50,9 @@ import type {
 } from '../types/api';
 import type { ServiceDate } from './service-date';
 import type { VehiclePosition } from '../map-controller';
-import { adoptFeedTimezone } from 'interlocking/gtfs/feed-time';
-import { feedProgressIndicator } from 'interlocking/ui/progress-indicator';
-import { downloadPercent, formatBytes, LoadCancelledError } from 'interlocking/gtfs/feed-download';
+import { adoptFeedTimezone } from 'gtfs-zone-web-common/gtfs/feed-time';
+import { feedProgressIndicator } from 'gtfs-zone-web-common/ui/progress-indicator';
+import { downloadPercent, formatBytes, LoadCancelledError } from 'gtfs-zone-web-common/gtfs/feed-download';
 
 export class FeedSession extends EventTarget {
   /** The selected feed's API row, or null when nothing is selected. */

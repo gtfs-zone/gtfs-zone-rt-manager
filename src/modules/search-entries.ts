@@ -29,13 +29,13 @@ import type { PageState } from '../types/page-state';
 import type { FeedSession } from './feed-session';
 import type { VehiclePosition } from '../map-controller';
 import { vehicleLocation } from './vehicle-location';
-import { vehicleDisplayName } from 'interlocking/gtfs/entity-render';
+import { vehicleDisplayName } from 'gtfs-zone-web-common/gtfs/entity-render';
 import {
   dotMarker,
   routeMarker,
   stopMarker,
   type SearchEntry,
-} from 'interlocking/ui/search-controller';
+} from 'gtfs-zone-web-common/ui/search-controller';
 
 // Alerts have no map feature and so no color of their own; amber reads as the
 // warning it is against every basemap.

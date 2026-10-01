@@ -1,5 +1,5 @@
 /**
- * interlocking's generic render types, bound to this app's own shapes: the
+ * gtfs-zone-web-common's generic render types, bound to this app's own shapes: the
  * page-state union, the session class, and the vehicle that carries a tracker
  * id.
  *
@@ -9,8 +9,8 @@
  * the shared renderers are written against.
  */
 
-import type { RenderContext as SharedRenderContext } from 'interlocking/gtfs/entity-render';
-import type { RtIndex as SharedRtIndex } from 'interlocking/gtfs/rt-index';
+import type { RenderContext as SharedRenderContext } from 'gtfs-zone-web-common/gtfs/entity-render';
+import type { RtIndex as SharedRtIndex } from 'gtfs-zone-web-common/gtfs/rt-index';
 import type { PageState } from '../types/page-state';
 import type { VehiclePosition } from '../map-controller';
 import type { FeedSession } from './feed-session';

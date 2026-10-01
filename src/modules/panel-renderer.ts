@@ -31,18 +31,18 @@
  *
  * The host, meaning the breadcrumb header, the `data-nav` and `data-action`
  * delegation, and the scroll and `<details>` restore around each re-render, is
- * `interlocking`'s `PanelHost`. What this adds is the session events that
+ * `gtfs-zone-web-common`'s `PanelHost`. What this adds is the session events that
  * trigger a re-render, the realtime index the pages read, the live relative
  * times, and the route-strip hover.
  */
 
 import type { PageState } from '../types/page-state';
-import type { BreadcrumbItem } from 'interlocking/ui/breadcrumb-trail';
-import { PanelHost } from 'interlocking/ui/panel-host';
+import type { BreadcrumbItem } from 'gtfs-zone-web-common/ui/breadcrumb-trail';
+import { PanelHost } from 'gtfs-zone-web-common/ui/panel-host';
 import type { FeedSession } from './feed-session';
-import { RtIndex as LiveRtIndex } from 'interlocking/gtfs/rt-index';
+import { RtIndex as LiveRtIndex } from 'gtfs-zone-web-common/gtfs/rt-index';
 import type { RenderContext, RtIndex } from './render-context';
-import { formatRelative } from 'interlocking/gtfs/entity-render';
+import { formatRelative } from 'gtfs-zone-web-common/gtfs/entity-render';
 import { renderAlertPage } from './pages/alert-page';
 import { renderRoutePage } from './pages/route-page';
 import { renderStopPage } from './pages/stop-page';

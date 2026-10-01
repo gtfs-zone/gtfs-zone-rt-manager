@@ -27,13 +27,13 @@
  * Rendering lives in `help-modal.ts`. This module is data only.
  */
 
-import { type HelpPageEntry } from 'interlocking/ui/help-modal';
+import { type HelpPageEntry } from 'gtfs-zone-web-common/ui/help-modal';
 import {
   renderBlurb,
   renderVersionAndSource,
   renderFeedbackSection,
   type AboutApp,
-} from 'interlocking/ui/about-links';
+} from 'gtfs-zone-web-common/ui/about-links';
 
 export type HelpGroup = 'Getting Started' | 'Reference';
 

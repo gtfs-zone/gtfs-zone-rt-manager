@@ -22,7 +22,7 @@
 
 import type { PageState } from '../types/page-state';
 import type { RenderContext } from './render-context';
-import { entityLink, escHtml, section } from 'interlocking/gtfs/entity-render';
+import { entityLink, escHtml, section } from 'gtfs-zone-web-common/gtfs/entity-render';
 
 export interface EntityRow {
   /** Where the row goes. A row with no state is text, not a link. */

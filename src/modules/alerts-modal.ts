@@ -28,7 +28,7 @@ import type { PageState } from '../types/page-state';
 import { entityRow, entityRowList } from './entity-row';
 import type { FeedSession } from './feed-session';
 import { actionButton } from './managed-render';
-import { showModal } from 'interlocking/ui/modal-utils';
+import { showModal } from 'gtfs-zone-web-common/ui/modal-utils';
 import type { RenderContext } from './render-context';
 
 export interface AlertsModalHooks {

@@ -14,16 +14,16 @@
  * silently rewrite 25:10:00 as 01:10 the wrong day.
  */
 
-import type { Trip } from 'interlocking/gtfs/scheduled';
+import type { Trip } from 'gtfs-zone-web-common/gtfs/scheduled';
 import type { PageState } from '../../types/page-state';
-import { alertsForTrip } from 'interlocking/gtfs/alerts';
+import { alertsForTrip } from 'gtfs-zone-web-common/gtfs/alerts';
 import { entityRow, entityRowList, rowSection } from '../entity-row';
 import { vehicleLocation } from '../vehicle-location';
 import { actionButton, describeRecurrence, formatWindow } from '../managed-render';
-import { zoneLabel } from 'interlocking/gtfs/feed-time';
-import type { Prediction } from 'interlocking/gtfs/rt-index';
+import { zoneLabel } from 'gtfs-zone-web-common/gtfs/feed-time';
+import type { Prediction } from 'gtfs-zone-web-common/gtfs/rt-index';
 import type { RtIndex } from '../render-context';
-import { STRIP_ROW_CLASS } from 'interlocking/gtfs/route-strip';
+import { STRIP_ROW_CLASS } from 'gtfs-zone-web-common/gtfs/route-strip';
 import type { RenderContext } from '../render-context';
 import {
   entityLink,
@@ -38,7 +38,7 @@ import {
   routeBadge,
   section,
   vehicleDisplayName,
-} from 'interlocking/gtfs/entity-render';
+} from 'gtfs-zone-web-common/gtfs/entity-render';
 import { serviceCatalog, weekdaysLabel } from '../service-catalog';
 import { renderAlertList } from './alert-page';
 

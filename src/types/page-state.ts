@@ -35,7 +35,7 @@
      The modal is destructured out and validated on its own, which is the whole
      of what the modal dimension costs the guard here.
    - What is generic over the union (`NavigationEvent`, `StateValidator`,
-     `pageStatesEqual`, `sameLocation`) lives in `interlocking`'s
+     `pageStatesEqual`, `sameLocation`) lives in `gtfs-zone-web-common`'s
      `ui/page-state-manager.ts`, as it does upstream, and `BreadcrumbItem` in
      its `ui/breadcrumb-trail.ts`.
    - `ModalStateOf` follows upstream's drop: `modal-router.ts` narrows an

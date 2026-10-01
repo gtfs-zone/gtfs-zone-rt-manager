@@ -15,11 +15,11 @@
 import { CONFIG } from '../config';
 import type { Feed, GtfsUpload } from '../types/api';
 import { createFeed, uploadSchedule } from './api-client';
-import { formatBytes } from 'interlocking/gtfs/feed-download';
+import { formatBytes } from 'gtfs-zone-web-common/gtfs/feed-download';
 import type { FormField } from './entity-form';
 import { showEntityForm } from './entity-form';
 import { previewGtfsZip } from './gtfs-zip-preview';
-import { escHtml } from 'interlocking/gtfs/entity-render';
+import { escHtml } from 'gtfs-zone-web-common/gtfs/entity-render';
 
 /** Mirrors cafe-car's `_FEED_NAME_RE`, so the refusal happens before the request. */
 const FEED_NAME_RE = /^[a-z][a-z0-9_-]{2,63}$/;

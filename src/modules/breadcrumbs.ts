@@ -33,8 +33,8 @@
  */
 
 import type { PageState } from '../types/page-state';
-import type { BreadcrumbItem } from 'interlocking/ui/breadcrumb-trail';
-import { stopTypeLabel } from 'interlocking/ui/breadcrumb-trail';
+import type { BreadcrumbItem } from 'gtfs-zone-web-common/ui/breadcrumb-trail';
+import { stopTypeLabel } from 'gtfs-zone-web-common/ui/breadcrumb-trail';
 import type { FeedSession } from './feed-session';
 
 /**

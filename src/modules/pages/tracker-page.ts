@@ -39,7 +39,7 @@ import {
   propList,
   section,
   timestampWithAge,
-} from 'interlocking/gtfs/entity-render';
+} from 'gtfs-zone-web-common/gtfs/entity-render';
 
 /**
  * The credential, behind a disclosure.

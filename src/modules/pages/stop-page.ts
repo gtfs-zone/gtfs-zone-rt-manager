@@ -25,12 +25,12 @@
  * in `stop_times`.
  */
 
-import type { AlertRecord } from 'interlocking/gtfs/rt-types';
-import type { Stop, Trip } from 'interlocking/gtfs/scheduled';
+import type { AlertRecord } from 'gtfs-zone-web-common/gtfs/rt-types';
+import type { Stop, Trip } from 'gtfs-zone-web-common/gtfs/scheduled';
 import type { PageState } from '../../types/page-state';
-import { alertsForStop } from 'interlocking/gtfs/alerts';
-import { stopTypeLabel } from 'interlocking/ui/breadcrumb-trail';
-import { zoneLabel } from 'interlocking/gtfs/feed-time';
+import { alertsForStop } from 'gtfs-zone-web-common/gtfs/alerts';
+import { stopTypeLabel } from 'gtfs-zone-web-common/ui/breadcrumb-trail';
+import { zoneLabel } from 'gtfs-zone-web-common/gtfs/feed-time';
 import type { RtIndex } from '../render-context';
 import type { RenderContext } from '../render-context';
 import { cappedNote, entityRow, entityRowList, rowSection } from '../entity-row';
@@ -49,7 +49,7 @@ import {
   routeBadge,
   section,
   vehicleDisplayName,
-} from 'interlocking/gtfs/entity-render';
+} from 'gtfs-zone-web-common/gtfs/entity-render';
 import {
   servicesForTrips,
   weekdaysLabel,

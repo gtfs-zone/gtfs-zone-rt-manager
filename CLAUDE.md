@@ -49,23 +49,23 @@ A feed's schedule is set by one of two buttons on the feed page, *Upload GTFS
 schedule* and *Load schedule from URL*, never by a `source_kind` field in a
 form; whichever is used decides what the feed is.
 
-## Shared modules (`interlocking`)
+## Shared modules (`gtfs-zone-web-common`)
 
 A third of `src/` is no longer in this repo. The files that have moved out of
-the apps live in the `interlocking` package, a git dependency shipping raw
+the apps live in the `gtfs-zone-web-common` package, a git dependency shipping raw
 TypeScript with no build step. The scheduled feed parser is one of them, as
-`interlocking/gtfs/scheduled`, along with the feed clock, the calendar input,
+`gtfs-zone-web-common/gtfs/scheduled`, along with the feed clock, the calendar input,
 the spec description renderer, which `src/index.ts` points at the realtime
 reference, and the realtime half: the payload types, the live index, the alert
 lookups and the page furniture the pages render through, and the app shell:
 its markup (mounted by `src/shell.ts`, which `index.ts` must import first), its
 stylesheet (`@import`ed by `src/styles/main.css`), the page-state manager, the
-focus controller and the panel host. Import them as `interlocking/ui/...`,
-`interlocking/gtfs/...`, `interlocking/map/...` and `interlocking/util/...`;
+focus controller and the panel host. Import them as `gtfs-zone-web-common/ui/...`,
+`gtfs-zone-web-common/gtfs/...`, `gtfs-zone-web-common/map/...` and `gtfs-zone-web-common/util/...`;
 `tsconfig.json` `paths` and a `resolve.alias` in `vite.config.ts` both point at
-`node_modules/interlocking/src`.
+`node_modules/gtfs-zone-web-common/src`.
 
-A shared change is a commit in interlocking, a tag, and a bump in each of the
+A shared change is a commit in gtfs-zone-web-common, a tag, and a bump in each of the
 three consumers. It is not edited here and `vendor:check` does not cover it.
 
 Restart the dev server after a bump. The alias resolves through a pnpm symlink
@@ -116,7 +116,7 @@ still the upstream.
 - Signing out is a full navigation to `CONFIG.SIGN_OUT_URL`
   (`/oauth2/sign_out`), never a fetch: the endpoint answers with a redirect
   chain ending in HTML, which `api-client.ts` reads as an expired session.
-- UI conventions live in interlocking's `CLAUDE.md`: no `cursor-help`, `toggle` not `checkbox` for on/off settings, `SELECTED_ROW_CLASS` for picked list rows.
+- UI conventions live in gtfs-zone-web-common's `CLAUDE.md`: no `cursor-help`, `toggle` not `checkbox` for on/off settings, `SELECTED_ROW_CLASS` for picked list rows.
 
 ## Related Repos
 
@@ -131,4 +131,4 @@ still the upstream.
 | landing-zone | Static marketing/status site | https://git.kcfam.us/gtfs.zone/landing-zone |
 | test-track | GTFS-RT visualizer, and upstream for the files still in `VENDORED.md` | https://git.kcfam.us/gtfs.zone/test-track |
 | coloring-book | GTFS editor, where most of the hand-copied modules were born; reached through test-track, never copied from directly | https://git.kcfam.us/gtfs.zone/coloring-book |
-| interlocking | Shared UI/GTFS library, upstream for everything it holds; edited there, not here | https://git.kcfam.us/gtfs.zone/interlocking |
+| gtfs-zone-web-common | Shared UI/GTFS library, upstream for everything it holds; edited there, not here | https://github.com/gtfs-zone/gtfs-zone-web-common |

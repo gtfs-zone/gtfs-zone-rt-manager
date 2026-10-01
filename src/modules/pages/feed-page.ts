@@ -26,7 +26,7 @@
 import { CONFIG } from '../../config';
 import type { Feed, GtfsUpload } from '../../types/api';
 import type { RenderContext } from '../render-context';
-import { escHtml, prop, propList, routeBadge, section } from 'interlocking/gtfs/entity-render';
+import { escHtml, prop, propList, routeBadge, section } from 'gtfs-zone-web-common/gtfs/entity-render';
 import { cappedNote, entityRow, entityRowList, rowSection } from '../entity-row';
 import {
   actionButton,
@@ -36,10 +36,10 @@ import {
   personLabel,
   trackerLiveness,
 } from '../managed-render';
-import { resolveRealtimeUrl } from 'interlocking/gtfs/feed-url-resolve';
+import { resolveRealtimeUrl } from 'gtfs-zone-web-common/gtfs/feed-url-resolve';
 import { isHosted, publicScheduleUrl, sourceLabel } from '../feed-source';
-import { formatBytes } from 'interlocking/gtfs/feed-download';
-import { routeSortKey } from 'interlocking/gtfs/route-sort';
+import { formatBytes } from 'gtfs-zone-web-common/gtfs/feed-download';
+import { routeSortKey } from 'gtfs-zone-web-common/gtfs/route-sort';
 import { assignmentCounts } from '../service-catalog';
 
 /** Where a section heading's `(?)` sends a reader who wants the whole thing. */

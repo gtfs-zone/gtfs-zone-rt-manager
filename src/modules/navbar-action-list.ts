@@ -1,5 +1,5 @@
-import { renderMoonIcon, renderNavIcon, renderSunIcon } from 'interlocking/ui/nav-icons';
-import type { NavbarAction } from 'interlocking/ui/navbar-actions';
+import { renderMoonIcon, renderNavIcon, renderSunIcon } from 'gtfs-zone-web-common/ui/nav-icons';
+import type { NavbarAction } from 'gtfs-zone-web-common/ui/navbar-actions';
 
 /**
  * This app's navbar action row.

@@ -41,10 +41,10 @@ import { CONFIG } from '../config';
 import type { Assignment, TrackerRule } from '../types/api';
 import type { PageState } from '../types/page-state';
 import type { FeedSession } from './feed-session';
-import { showModal } from 'interlocking/ui/modal-utils';
+import { showModal } from 'gtfs-zone-web-common/ui/modal-utils';
 import { formatWindow } from './managed-render';
 import type { RenderContext } from './render-context';
-import { escHtml, section } from 'interlocking/gtfs/entity-render';
+import { escHtml, section } from 'gtfs-zone-web-common/gtfs/entity-render';
 import {
   serviceCatalog,
   serviceRunsOn,

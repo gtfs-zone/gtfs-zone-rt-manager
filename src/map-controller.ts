@@ -13,7 +13,7 @@
      shape lives here instead. The same source takes a whole
      day's assigned trips at once, which is what a selected day in the
      assignments calendar draws.
-   - `VehiclePosition` extends interlocking's with a `trackerId`. A tracker can
+   - `VehiclePosition` extends gtfs-zone-web-common's with a `trackerId`. A tracker can
      carry several concurrent vehicles, so `key` is the tracker *plus* the
      vehicle id and something else has to say which tracker they belong to;
      upstream's feeds have no such object.
@@ -33,21 +33,21 @@ import * as maplibregl from 'maplibre-gl';
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import { CONFIG } from './config';
 import { vehicleLocation } from './modules/vehicle-location';
-import type { GTFSScheduled } from 'interlocking/gtfs/scheduled';
-import type { VehiclePosition as RtVehiclePosition } from 'interlocking/gtfs/rt-types';
+import type { GTFSScheduled } from 'gtfs-zone-web-common/gtfs/scheduled';
+import type { VehiclePosition as RtVehiclePosition } from 'gtfs-zone-web-common/gtfs/rt-types';
 import type { PageState } from './types/page-state';
-import { BasemapControl, initialMapStyle, onBasemapChanged } from 'interlocking/map/basemap-control';
-import type { MapAppearance } from 'interlocking/map/basemap-control';
-import { AutoZoom } from 'interlocking/map/auto-zoom';
-import { MAP_MAX_ZOOM } from 'interlocking/map/basemap-styles';
-import { fitPadding } from 'interlocking/map/fit-padding';
+import { BasemapControl, initialMapStyle, onBasemapChanged } from 'gtfs-zone-web-common/map/basemap-control';
+import type { MapAppearance } from 'gtfs-zone-web-common/map/basemap-control';
+import { AutoZoom } from 'gtfs-zone-web-common/map/auto-zoom';
+import { MAP_MAX_ZOOM } from 'gtfs-zone-web-common/map/basemap-styles';
+import { fitPadding } from 'gtfs-zone-web-common/map/fit-padding';
 import { LayerManager } from './modules/layer-manager';
 import type { MapDataIssues } from './modules/layer-manager';
-import { STOP_FOCUS_HALO_LAYER } from 'interlocking/map/stop-layer-style';
-import { resolveThemeColor } from 'interlocking/util/theme-color';
+import { STOP_FOCUS_HALO_LAYER } from 'gtfs-zone-web-common/map/stop-layer-style';
+import { resolveThemeColor } from 'gtfs-zone-web-common/util/theme-color';
 
 /**
- * interlocking's vehicle, plus the tracker it is reporting under.
+ * gtfs-zone-web-common's vehicle, plus the tracker it is reporting under.
  *
  * `key` is the tracker's surrogate id plus the vehicle's own id — the
  * `vehicle:*` Redis key without its prefix — so it is unique even when one

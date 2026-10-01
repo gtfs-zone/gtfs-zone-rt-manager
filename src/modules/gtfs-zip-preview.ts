@@ -15,7 +15,7 @@
 
 import JSZip from 'jszip';
 import { CONFIG } from '../config';
-import { GTFSScheduled } from 'interlocking/gtfs/scheduled';
+import { GTFSScheduled } from 'gtfs-zone-web-common/gtfs/scheduled';
 
 /** Mirrors cafe-car's `REQUIRED_FILES`. */
 const REQUIRED_FILES = [

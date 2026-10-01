@@ -20,8 +20,8 @@
 
 import type { RTFieldSpec, RTPresence } from '../gtfs-rt-spec/types';
 import { rtField } from '../gtfs-rt-spec/index';
-import { renderSpecDescription } from 'interlocking/gtfs/spec-markup';
-import { escHtml } from 'interlocking/gtfs/entity-render';
+import { renderSpecDescription } from 'gtfs-zone-web-common/gtfs/spec-markup';
+import { escHtml } from 'gtfs-zone-web-common/gtfs/entity-render';
 
 /** Which message field a form field is. Resolved against `src/gtfs-rt-spec/`. */
 export interface SpecRef {

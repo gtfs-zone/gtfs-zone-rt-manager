@@ -17,9 +17,9 @@ importers:
       daisyui:
         specifier: ^5.7.46
         version: 5.7.46
-      interlocking:
-        specifier: github:gtfs-zone/interlocking#v4.0.0
-        version: https://codeload.github.com/gtfs-zone/interlocking/tar.gz/17e7be762021eeb7463b92b5f678494406c07ddf(@leeoniya/ufuzzy@1.0.19)(gtfs-realtime-bindings@2.2.0)(jszip@3.10.2)(maplibre-gl@6.11.2)(papaparse@5.7.0)
+      gtfs-zone-web-common:
+        specifier: github:gtfs-zone/gtfs-zone-web-common#v5.0.1
+        version: https://codeload.github.com/gtfs-zone/gtfs-zone-web-common/tar.gz/5b2b35eda87ef2424bd153c769611d71a978fe9b(@leeoniya/ufuzzy@1.0.19)(gtfs-realtime-bindings@2.2.0)(jszip@3.10.2)(maplibre-gl@6.11.2)(papaparse@5.7.0)
       jszip:
         specifier: ^3.10.2
         version: 3.10.2
@@ -694,19 +694,9 @@ packages:
     resolution: {integrity: sha512-JX6aADdPWtKMXA3Z/G2TK2kgR/gXZFFpfL7cdlR2fYvnJK5JDiyfEGC4+/65dF591d8nooUjhM387OSdesAIDQ==}
     engines: {node: '>=22'}
 
-  immediate@3.0.6:
-    resolution: {integrity: sha512-XXOFtyqDjNDAQxVfYxuF7g9Il/IbWmmlQg2MYKOH8ExIT1qg6xc4zyS3HaEEATgs1btfzxq15ciUiY7gjSXRGQ==}
-
-  inflight@1.0.6:
-    resolution: {integrity: sha512-k92I/b08q4wvFscXCLvqfsHCrjrF7yiXsQuIVvVE7N82W3+aqpzuUdBbfhWcy/FZR3/4IgflMgKLOsvPDrGCJA==}
-    deprecated: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
-
-  inherits@2.0.4:
-    resolution: {integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==}
-
-  interlocking@https://codeload.github.com/gtfs-zone/interlocking/tar.gz/17e7be762021eeb7463b92b5f678494406c07ddf:
-    resolution: {gitHosted: true, tarball: https://codeload.github.com/gtfs-zone/interlocking/tar.gz/17e7be762021eeb7463b92b5f678494406c07ddf}
-    version: 4.0.0
+  gtfs-zone-web-common@https://codeload.github.com/gtfs-zone/gtfs-zone-web-common/tar.gz/5b2b35eda87ef2424bd153c769611d71a978fe9b:
+    resolution: {gitHosted: true, tarball: https://codeload.github.com/gtfs-zone/gtfs-zone-web-common/tar.gz/5b2b35eda87ef2424bd153c769611d71a978fe9b}
+    version: 5.0.1
     peerDependencies:
       '@leeoniya/ufuzzy': '*'
       gtfs-realtime-bindings: '*'
@@ -716,6 +706,16 @@ packages:
     peerDependenciesMeta:
       gtfs-realtime-bindings:
         optional: true
+
+  immediate@3.0.6:
+    resolution: {integrity: sha512-XXOFtyqDjNDAQxVfYxuF7g9Il/IbWmmlQg2MYKOH8ExIT1qg6xc4zyS3HaEEATgs1btfzxq15ciUiY7gjSXRGQ==}
+
+  inflight@1.0.6:
+    resolution: {integrity: sha512-k92I/b08q4wvFscXCLvqfsHCrjrF7yiXsQuIVvVE7N82W3+aqpzuUdBbfhWcy/FZR3/4IgflMgKLOsvPDrGCJA==}
+    deprecated: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+
+  inherits@2.0.4:
+    resolution: {integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==}
 
   isarray@1.0.0:
     resolution: {integrity: sha512-VLghIWNM6ELQzo7zwmcg0NmTVyWKYjvIeM83yjp0wRDTmUnrM678fQbcKBo6n2CJEF0szoG//ytg+TKla89ALQ==}
@@ -1534,6 +1534,15 @@ snapshots:
       protobufjs: 8.8.0
       protobufjs-cli: 2.7.0(protobufjs@8.8.0)
 
+  gtfs-zone-web-common@https://codeload.github.com/gtfs-zone/gtfs-zone-web-common/tar.gz/5b2b35eda87ef2424bd153c769611d71a978fe9b(@leeoniya/ufuzzy@1.0.19)(gtfs-realtime-bindings@2.2.0)(jszip@3.10.2)(maplibre-gl@6.11.2)(papaparse@5.7.0):
+    dependencies:
+      '@leeoniya/ufuzzy': 1.0.19
+      jszip: 3.10.2
+      maplibre-gl: 6.11.2
+      papaparse: 5.7.0
+    optionalDependencies:
+      gtfs-realtime-bindings: 2.2.0
+
   immediate@3.0.6: {}
 
   inflight@1.0.6:
@@ -1542,15 +1551,6 @@ snapshots:
       wrappy: 1.0.2
 
   inherits@2.0.4: {}
-
-  interlocking@https://codeload.github.com/gtfs-zone/interlocking/tar.gz/17e7be762021eeb7463b92b5f678494406c07ddf(@leeoniya/ufuzzy@1.0.19)(gtfs-realtime-bindings@2.2.0)(jszip@3.10.2)(maplibre-gl@6.11.2)(papaparse@5.7.0):
-    dependencies:
-      '@leeoniya/ufuzzy': 1.0.19
-      jszip: 3.10.2
-      maplibre-gl: 6.11.2
-      papaparse: 5.7.0
-    optionalDependencies:
-      gtfs-realtime-bindings: 2.2.0
 
   isarray@1.0.0: {}
 

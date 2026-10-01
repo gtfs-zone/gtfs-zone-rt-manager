@@ -15,8 +15,8 @@
  * 3 trackers and 2 alerts" is the sentence that stops the wrong delete.
  */
 
-import { showModal } from 'interlocking/ui/modal-utils';
-import { escHtml } from 'interlocking/gtfs/entity-render';
+import { showModal } from 'gtfs-zone-web-common/ui/modal-utils';
+import { escHtml } from 'gtfs-zone-web-common/gtfs/entity-render';
 
 function consequenceList(consequences: string[]): string {
   if (consequences.length === 0) return '';

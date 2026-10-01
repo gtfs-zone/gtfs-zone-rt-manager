@@ -11,25 +11,25 @@ import {
   renderAutoZoomControl,
   syncAutoZoomControl,
   wireAutoZoomControl,
-} from 'interlocking/map/auto-zoom';
+} from 'gtfs-zone-web-common/map/auto-zoom';
 import { MapController } from './map-controller';
-import type { GTFSScheduled } from 'interlocking/gtfs/scheduled';
+import type { GTFSScheduled } from 'gtfs-zone-web-common/gtfs/scheduled';
 import type { ModalState, PageState } from './types/page-state';
-import { notify } from 'interlocking/ui/notification-system';
-import { PanelResizer, restorePanelWidth } from 'interlocking/ui/panel-resizer';
-import { BottomSheetController } from 'interlocking/ui/bottom-sheet';
-import { ThemeController } from 'interlocking/ui/theme-controller';
+import { notify } from 'gtfs-zone-web-common/ui/notification-system';
+import { PanelResizer, restorePanelWidth } from 'gtfs-zone-web-common/ui/panel-resizer';
+import { BottomSheetController } from 'gtfs-zone-web-common/ui/bottom-sheet';
+import { ThemeController } from 'gtfs-zone-web-common/ui/theme-controller';
 import { FeedSession } from './modules/feed-session';
 import { AppState } from './modules/app-state';
 import { showFeedSwitcher } from './modules/feed-switcher';
 import { showAccountModal } from './modules/account-modal';
-import { SearchController } from 'interlocking/ui/search-controller';
+import { SearchController } from 'gtfs-zone-web-common/ui/search-controller';
 import { buildSearchEntries } from './modules/search-entries';
 import { PanelRenderer } from './modules/panel-renderer';
 import { Actions } from './modules/actions';
 import { addDays, startOfWeek, today } from './modules/service-date';
-import { initFieldTooltipPortal } from 'interlocking/util/tooltip-position';
-import { setHelpPages, showHelpModal } from 'interlocking/ui/help-modal';
+import { initFieldTooltipPortal } from 'gtfs-zone-web-common/util/tooltip-position';
+import { setHelpPages, showHelpModal } from 'gtfs-zone-web-common/ui/help-modal';
 import {
   HELP_GROUP_ORDER,
   HELP_PAGES,
@@ -39,12 +39,12 @@ import { calendarBadgeCount, showCalendarModal } from './modules/calendar-modal'
 import { alertsBadgeCount, showAlertsModal } from './modules/alerts-modal';
 import { showShareModal } from './modules/share-modal';
 import { personLabel } from './modules/managed-render';
-import { renderNavbarActions } from 'interlocking/ui/navbar-actions';
+import { renderNavbarActions } from 'gtfs-zone-web-common/ui/navbar-actions';
 import { NAVBAR_ACTIONS } from './modules/navbar-action-list';
-import { createModalRouter } from 'interlocking/ui/modal-router';
-import { KeyboardShortcuts, describeShortcuts } from 'interlocking/ui/keyboard-shortcuts';
+import { createModalRouter } from 'gtfs-zone-web-common/ui/modal-router';
+import { KeyboardShortcuts, describeShortcuts } from 'gtfs-zone-web-common/ui/keyboard-shortcuts';
 import { managerShortcuts } from './modules/shortcut-list';
-import { configureSpecMarkup } from 'interlocking/gtfs/spec-markup';
+import { configureSpecMarkup } from 'gtfs-zone-web-common/gtfs/spec-markup';
 
 // A `#anchor` in a spec description resolves against the realtime reference.
 // The realtime reference embeds no images, so none are handed in.
