@@ -1,0 +1,46 @@
+publiccodeYmlVersion: "0.4"
+
+name: GTFS.zone RT Manager
+url: "https://github.com/gtfs-zone/gtfs-zone-rt-manager"
+landingURL: "https://manage.rt.gtfs.zone"
+
+platforms:
+  - web
+
+categories:
+  - fleet-management
+  - geographic-information-systems
+
+developmentStatus: beta
+
+softwareType: "standalone/web"
+
+description:
+  en:
+    shortDescription: >
+      A map-first manager for gtfs.zone realtime feeds, trackers and tracker assignments.
+    longDescription: >
+      GTFS.zone RT Manager is the admin interface for gtfs.zone realtime
+      feeds. A map fills the view, a side panel browses feeds, trackers and
+      their trip assignments, and every object has an editable properties
+      page. It is a static single-page app that reads and writes the
+      authenticated JSON API of gtfs-zone-rt-api on the same hostname, behind
+      oauth2-proxy, so it handles no tokens itself.
+    features:
+      - Map of feeds, stops and live vehicles
+      - Management of feeds, trackers and trip assignments
+      - Service alert editing
+
+legal:
+  license: AGPL-3.0-or-later
+
+maintenance:
+  type: community
+  contacts:
+    - name: Max Katz-Christy
+      email: maxkatzchristy@gmail.com
+
+localisation:
+  localisationReady: false
+  availableLanguages:
+    - en
