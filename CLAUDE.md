@@ -1,10 +1,10 @@
-# yard-master - Claude Guide
+# gtfs-zone-rt-manager - Claude Guide
 
 ## Project Overview
 
 Map-first manager for gtfs.zone feeds, trackers and tracker assignments, served
-at `manage.rt.gtfs.zone`. A static Vite/TS/daisyUI SPA against cafe-car's
-authenticated JSON API. Replaces cafe-car's SQLAdmin admin interface.
+at `manage.rt.gtfs.zone`. A static Vite/TS/daisyUI SPA against rt-api's
+authenticated JSON API. Replaces rt-api's SQLAdmin admin interface.
 
 ## Commands
 
@@ -13,14 +13,14 @@ pnpm install
 pnpm dev          # watch build into dist/; there is no vite dev server
 pnpm typecheck    # the gate before any commit
 pnpm build
-pnpm vendor:check # diff vendored files against test-track
+pnpm vendor:check # diff vendored files against rt-viewer
 pnpm check-rt-spec     # diff src/gtfs-rt-spec against reference/
-pnpm check-alert-enums # hold the alert enums to cafe-car's alert_enums.py
+pnpm check-alert-enums # hold the alert enums to rt-api's alert_enums.py
 pnpm check             # typecheck plus both of the above
 
 git config core.hooksPath .githooks   # once per clone; runs both checks pre-commit
 
-# Behind the real oauth2-proxy, at music-student's http://localhost:4180. That
+# Behind the real oauth2-proxy, at dev-stack's http://localhost:4180. That
 # stack bind-mounts this dist/, so a rebuild is the whole deploy step.
 VITE_RT_BASE=http://localhost:8000 pnpm build --watch
 ```
@@ -32,14 +32,14 @@ Keycloak (brokers GitHub / Google / GitLab)
   └─> oauth2-proxy (ForwardAuth, auth.gtfs.zone)
         └─> Traefik, host manage.rt.gtfs.zone
               ├─> /        nginx serving this SPA
-              └─> /api/*   cafe-car admin app (FastAPI)
+              └─> /api/*   rt-api admin app (FastAPI)
 ```
 
 Same host on purpose. Same origin means no CORS, no preflight on writes, and
 the existing `X-Auth-Request-*` headers reach the API untouched.
 
 The static GTFS feed is downloaded and parsed **in the browser**, the same way
-test-track does it, but from `GET /api/feeds/{id}/schedule.zip` rather than
+rt-viewer does it, but from `GET /api/feeds/{id}/schedule.zip` rather than
 from the feed's `static_feed_url` directly: same origin for both source kinds,
 so there is no CORS refusal on a linked feed's zip and no stale prod URL for a
 hosted one. The API serves the managed objects (feeds, trackers, rules, alerts,
@@ -71,10 +71,10 @@ three consumers. It is not edited here and `vendor:check` does not cover it.
 Restart the dev server after a bump. The alias resolves through a pnpm symlink
 into the store, and Vite does not watch `node_modules`, so files whose transform
 is still cached keep importing the old store path: the page then holds two
-copies of a shared module, each with its own module-level state. Interlocking's
+copies of a shared module, each with its own module-level state. gtfs-zone-web-common's
 `util/module-state` keeps that from corrupting anything and logs `loaded twice`.
 
-What is still hand-copied is in `VENDORED.md`, and for that half test-track is
+What is still hand-copied is in `VENDORED.md`, and for that half rt-viewer is
 still the upstream.
 
 ## Rules
@@ -86,16 +86,16 @@ still the upstream.
   by `GET /api/trackers/{id}` alone and belongs in the properties panel only.
   `Tracker.id` is a surrogate and carries nothing: it is the right thing to put
   in navigation state, in the map feature key and in a request body.
-- Every write sends the `X-Yard-Master` CSRF header. A fetch helper owns this;
+- Every write sends the `X-RT-Manager` CSRF header. A fetch helper owns this;
   never call `fetch` for a mutation directly.
 - A 302 or non-JSON response to an XHR means the oauth2-proxy session expired.
   Do a full page reload so the browser can follow the redirect chain. Never
   parse it as an error payload.
-- Vendored files carry their banner and a `VENDORED.md` row, and test-track is
+- Vendored files carry their banner and a `VENDORED.md` row, and rt-viewer is
   the upstream for all of them. Do not edit a `verbatim` file: change it
   upstream and re-vendor, promote it to `modified` with an `@changes` list, or
   promote it to `adopted` if this repo has taken it over for good.
-- A file taken out of test-track's tree keeps test-track's own banner underneath
+- A file taken out of rt-viewer's tree keeps rt-viewer's own banner underneath
   ours. `vendor-check` strips the banner on the local side only, so deleting the
   inner one reports DRIFT.
 - A tracker with a fix is a `VehiclePosition` in `FeedSession.vehicles`, keyed by
@@ -105,10 +105,10 @@ still the upstream.
   within a feed but never the key.
 - All magic numbers live in `src/config.ts`.
 - The calendar's month grid (`src/modules/calendar-modal.ts`) is vendored from
-  coloring-book at `modified`: the cell shape and its scrolling chip stack are
-  coloring-book's, the chips themselves, the `FeedSession` data source and the
+  gtfs-zone-editor at `modified`: the cell shape and its scrolling chip stack are
+  gtfs-zone-editor's, the chips themselves, the `FeedSession` data source and the
   timeline half are this repo's own. See `VENDORED.md`.
-- music-student's `:4180` is the only local door: there is no vite dev server
+- dev-stack's `:4180` is the only local door: there is no vite dev server
   and no dev proxy, and `pnpm dev` is a watch build into the `dist/` that stack
   bind-mounts. Session expiry, the cookie, the CSRF header on a write, SSE
   through the proxy and signing out only exist behind the real oauth2-proxy,
@@ -122,13 +122,13 @@ still the upstream.
 
 | Repo | Description | URL |
 |---|---|---|
-| cafe-car | GTFS-RT HTTP API serving real-time feeds, and this app's API | https://git.kcfam.us/gtfs.zone/cafe-car |
-| vehicle-poser | Worker that tracks and posts vehicle positions | https://git.kcfam.us/gtfs.zone/vehicle-poser |
-| trip-updogger | Worker that generates trip update predictions | https://git.kcfam.us/gtfs.zone/trip-updogger |
-| schedule-foamer | Worker that ingests and processes GTFS schedule data | https://git.kcfam.us/gtfs.zone/schedule-foamer |
-| railroad-club | Shared Python library for GTFS types and utilities | https://git.kcfam.us/gtfs.zone/railroad-club |
-| music-student | Orchestration repo for deployments and infra | https://git.kcfam.us/gtfs.zone/music-student |
-| landing-zone | Static marketing/status site | https://git.kcfam.us/gtfs.zone/landing-zone |
-| test-track | GTFS-RT visualizer, and upstream for the files still in `VENDORED.md` | https://git.kcfam.us/gtfs.zone/test-track |
-| coloring-book | GTFS editor, where most of the hand-copied modules were born; reached through test-track, never copied from directly | https://git.kcfam.us/gtfs.zone/coloring-book |
+| rt-api | GTFS-RT HTTP API serving real-time feeds, and this app's API | https://github.com/gtfs-zone/gtfs-zone-rt-api |
+| rt-traccar-receiver | Worker that tracks and posts vehicle positions | https://github.com/gtfs-zone/gtfs-zone-rt-traccar-receiver |
+| rt-delay-estimator | Worker that generates trip update predictions | https://github.com/gtfs-zone/gtfs-zone-rt-delay-estimator |
+| static-importer | Worker that ingests and processes GTFS schedule data | https://github.com/gtfs-zone/gtfs-zone-static-importer |
+| gtfs-zone-db-models | Shared Python library for GTFS types and utilities | https://github.com/gtfs-zone/gtfs-zone-db-models |
+| dev-stack | Orchestration repo for deployments and infra | https://github.com/gtfs-zone/gtfs-zone-dev-stack |
+| homepage | Static marketing/status site | https://github.com/gtfs-zone/gtfs-zone-homepage |
+| rt-viewer | GTFS-RT visualizer, and upstream for the files still in `VENDORED.md` | https://github.com/gtfs-zone/gtfs-zone-rt-viewer |
+| gtfs-zone-editor | GTFS editor, where most of the hand-copied modules were born; reached through rt-viewer, never copied from directly | https://github.com/gtfs-zone/gtfs-zone-editor |
 | gtfs-zone-web-common | Shared UI/GTFS library, upstream for everything it holds; edited there, not here | https://github.com/gtfs-zone/gtfs-zone-web-common |

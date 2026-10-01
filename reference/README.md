@@ -28,5 +28,5 @@ it does declare must match the reference field for field.
    verbatim; the curated extras (`label` on an enum value, `gtfsField`,
    `enumName`) are hand-written and are not checked.
 4. A new or changed alert enum value also needs `pnpm check-alert-enums`, which
-   holds `src/modules/managed-render.ts`'s derived lists against cafe-car's
-   `src/cafe_car/alert_enums.py`. The reference wins: cafe-car is what changes.
+   holds `src/modules/managed-render.ts`'s derived lists against rt-api's
+   `src/gtfs_zone_rt_api/alert_enums.py`. The reference wins: rt-api is what changes.

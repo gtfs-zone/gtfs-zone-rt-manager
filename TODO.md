@@ -26,7 +26,7 @@ In NEXT_PLAN:
 
 - Parity review against the old SQLAdmin: feeds, trackers, provisioning,
   alerts, members, uploads. Needs a logged-in visit to manage.rt.gtfs.zone.
-- cafe-car's `OIDCAuthBackend` and its `sqladmin` dependency are dead code,
+- rt-api's `OIDCAuthBackend` and its `sqladmin` dependency are dead code,
   noted in its `pyproject.toml`.
 - Audit `entity_router.py` for htmx routes orphaned when the SQLAdmin pages
   that embedded them were deleted. `api/members.py` covers the same ground.
