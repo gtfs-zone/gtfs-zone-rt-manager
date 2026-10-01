@@ -1,5 +1,5 @@
 /* @vendored-from gtfs-zone-rt-viewer:src/modules/pages/stop-page.ts
-   @sha d169427
+   @sha 6b6442e
    @status modified
    @changes
    - The `vehicle` PageState variant became `tracker`, keyed by `Tracker.id`.
@@ -12,7 +12,9 @@
      sibling platforms — renders through this repo's `entity-row.ts` instead of
      its own `<li>` or `<table>` markup, so a stop's lists look like every other
      list in the app.
- */
+   - `c121187`'s `predictionCells` are table cells; here the same resolved
+     event (scheduled time by `stop_sequence`, italic when calculated, the
+     skip badge, `predictionTooltip` on hover) renders as the row's badge. */
 /**
  * The stop page. For a platform (or a plain stop) this is what serves it, what
  * is predicted to arrive, and what is sitting at it now. For a *station* it is
@@ -33,9 +35,11 @@ import { stopTypeLabel } from 'gtfs-zone-web-common/ui/breadcrumb-trail';
 import { zoneLabel } from 'gtfs-zone-web-common/gtfs/feed-time';
 import type { RtIndex } from '../render-context';
 import type { RenderContext } from '../render-context';
+import { TOOLTIP_TRIGGER_CLASS, tooltipContentAttr } from 'gtfs-zone-web-common/ui/field-label';
 import { cappedNote, entityRow, entityRowList, rowSection } from '../entity-row';
 import {
   VEHICLE_STATUS_LABELS,
+  derivedClass,
   entityLink,
   escHtml,
   formatDelay,
@@ -43,11 +47,14 @@ import {
   formatScheduledTime,
   missing,
   pageHeader,
+  predictionTooltip,
+  primaryEvent,
   prop,
   propList,
   renderRawFields,
   routeBadge,
   section,
+  stopTimeRelationshipMark,
   vehicleDisplayName,
 } from 'gtfs-zone-web-common/gtfs/entity-render';
 import {
@@ -153,16 +160,24 @@ function renderDepartures(
   const rows = upcoming.map(p => {
     const trip = feed.trips.get(p.trip_id);
     const route = trip ? feed.routes.get(trip.route_id) : undefined;
-    const scheduled = trip
-      ? feed.stopTimesByTrip.get(trip.trip_id)?.find(t => t.stop_id === p.stop_id)?.departure_time
-      : undefined;
+    const ev = primaryEvent(p);
+    const skipped = p.scheduleRelationship === 1;
 
     // Scheduled time, and the platform it leaves from where that is not the
     // page's own stop. Both are what tells two departures of one route apart.
     const detail = [
-      `sched ${formatScheduledTime(scheduled, false)}`,
+      `sched ${formatScheduledTime(ev.scheduledText, false)}`,
       isStation ? `@ ${childName(ctx, p.stop_id)}` : '',
     ].filter(Boolean);
+
+    // Calculated values are italic; a skipped stop shows only its badge. The
+    // hover is the prediction row's.
+    const times = skipped
+      ? ''
+      : `<span class="tabular-nums${derivedClass(ev.timeFrom)}">${escHtml(
+          ev.time === undefined ? '—' : formatEpochTime(ev.time, false),
+        )}</span>
+        <span class="${derivedClass(ev.delayFrom).trim()}">${formatDelay(ev.delay)}</span>`;
 
     return entityRow(ctx, {
       state: { type: 'trip', trip_id: p.trip_id, route_id: trip?.route_id },
@@ -171,9 +186,10 @@ function renderDepartures(
         : `<span class="badge badge-ghost badge-sm">${escHtml(p.update.trip?.routeId ?? '?')}</span>`,
       label: trip?.headsign || p.trip_id,
       sublabel: detail.join(' - '),
-      badgeHtml: `<span class="text-xs flex items-center gap-2 whitespace-nowrap">
-        <span class="tabular-nums">${escHtml(formatEpochTime(p.time, false))}</span>
-        ${formatDelay(p.delay)}
+      badgeHtml: `<span class="text-xs flex items-center gap-2 whitespace-nowrap ${TOOLTIP_TRIGGER_CLASS}" tabindex="0" ${tooltipContentAttr(
+        predictionTooltip(p),
+      )}>
+        ${times}${stopTimeRelationshipMark(p.scheduleRelationship)}
       </span>`,
     });
   });
