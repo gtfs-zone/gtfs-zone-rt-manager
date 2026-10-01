@@ -1,3 +1,15 @@
+## v0.8.0 (2026-10-01)
+
+### Feat
+
+- **search**: place search in the map search box
+- **pages**: show predictions with the shared resolved event and tooltip
+
+### Fix
+
+- point check-alert-enums at the gtfs-zone-rt-api folder
+- **vendor**: fail when a recorded SHA does not resolve
+
 ## v0.7.1 (2026-10-01)
 
 ### Fix
