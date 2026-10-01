@@ -1,3 +1,13 @@
+## v0.7.0 (2026-10-01)
+
+### BREAKING CHANGE
+
+- needs an rt-api that accepts X-RT-Manager
+
+### Feat
+
+- send X-RT-Manager as the CSRF header
+
 ## v0.6.2 (2026-10-01)
 
 ## v0.6.1 (2026-10-01)
