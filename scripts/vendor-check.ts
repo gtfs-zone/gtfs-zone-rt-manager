@@ -79,17 +79,20 @@ function stripBanner(text: string): string {
   return text;
 }
 
-/** Commits on `path` after `sha`, newest first. Empty when the entry is current. */
-function commitsSince(repo: string, sha: string, path: string): string[] {
+/**
+ * Commits on `path` after `sha`, newest first. Empty when the entry is current,
+ * null when `sha` does not resolve in `repo`.
+ */
+function commitsSince(repo: string, sha: string, path: string): string[] | null {
   try {
     const log = execFileSync(
       'git',
       ['-C', repo, 'log', '--oneline', `${sha}..HEAD`, '--', path],
-      { encoding: 'utf8' }
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }
     ).trim();
     return log ? log.split('\n') : [];
   } catch {
-    return [];
+    return null;
   }
 }
 
@@ -110,6 +113,7 @@ const entries = parseVendoredTable(
 const strict = process.argv.includes('--strict');
 
 let drift = 0;
+let unreadable = 0;
 let checked = 0;
 let stale = 0;
 let skipped = 0;
@@ -147,6 +151,11 @@ for (const entry of entries) {
   // Staleness applies to every checked entry: a `modified` file still has to be
   // told about upstream work, even though its body is expected to differ.
   const behind = commitsSince(repo, entry.sha, entry.sourcePath);
+  if (behind === null) {
+    console.error(`UNREADABLE  ${entry.sourceRepo}@${entry.sha} - commit not found in ${repo}`);
+    unreadable++;
+    continue;
+  }
   if (behind.length > 0) {
     stale++;
     console.warn(
@@ -201,8 +210,13 @@ if (skipped > 0 && skipped + unchecked === entries.length) {
   process.exit(0);
 }
 
+if (unreadable > 0) {
+  console.error(`\n${unreadable} entries name a SHA their source repo does not have.`);
+}
 if (drift > 0) {
   console.error(`\n${drift} of ${checked} verbatim entries drifted.`);
+}
+if (unreadable > 0 || drift > 0) {
   process.exit(1);
 }
 
