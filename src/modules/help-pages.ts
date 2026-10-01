@@ -72,7 +72,7 @@ const ABOUT_APP: AboutApp = {
   blurbFooter:
     'The schedule is parsed in your browser, so browsing a feed uploads nothing. Uploading a schedule is the exception and is the point of it: that zip is stored and served publicly at the permanent gtfs.zip URL of that feed.',
   contactSubject: 'manage.rt.gtfs.zone feedback',
-  repo: 'yard-master',
+  repo: 'gtfs-zone-rt-manager',
   sibling: {
     name: 'viz.rt.gtfs.zone',
     href: 'https://viz.rt.gtfs.zone',
