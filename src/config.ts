@@ -17,7 +17,7 @@ export const CONFIG = {
 
   // Header that makes a write ineligible for a cross-site form post. A simple
   // request cannot carry it, so its presence proves the caller ran our JS.
-  CSRF_HEADER: 'X-Yard-Master',
+  CSRF_HEADER: 'X-RT-Manager',
 
   // oauth2-proxy's sign-out endpoint, same origin like everything else.
   // Relative on purpose, the way cafe-car's `oauth2_proxy_logout_url` is.
