@@ -1,5 +1,5 @@
 /* @vendored-from gtfs-zone-rt-viewer:src/modules/breadcrumbs.ts
-   @sha 6b6442e
+   @sha 8f8ffd5
    @status modified
    @changes
    - The variant set is gtfs-zone-rt-manager's. `vehicle` became `tracker` and resolves

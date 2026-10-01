@@ -1,5 +1,5 @@
 /* @vendored-from gtfs-zone-rt-viewer:src/map-controller.ts
-   @sha 6b6442e
+   @sha 8f8ffd5
    @status modified
    @changes
    - The `vehicle` PageState variant became `tracker`, keyed by `Tracker.id`. The
