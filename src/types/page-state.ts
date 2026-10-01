@@ -42,7 +42,7 @@
      opener's argument itself now. */
 
 /**
- * Union of every page yard-master can display. Each variant carries the minimal
+ * Union of every page gtfs-zone-rt-manager can display. Each variant carries the minimal
  * set of object keys needed to identify and restore the page.
  *
  * `home` is the no-feed-selected state. Everything else is scoped to the

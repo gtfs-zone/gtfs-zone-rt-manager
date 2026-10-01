@@ -1,5 +1,5 @@
 /**
- * The GTFS-realtime spec as typed data, in the shape of coloring-book's
+ * The GTFS-realtime spec as typed data, in the shape of gtfs-zone-editor's
  * `src/gtfs-spec/`.
  *
  * It covers the messages this app edits or displays, not the whole reference:

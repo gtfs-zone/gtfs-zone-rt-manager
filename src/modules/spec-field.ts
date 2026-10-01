@@ -13,7 +13,7 @@
  * for why that clips a CSS tooltip. `initFieldTooltipPortal()` is called once,
  * from `src/index.ts`.
  *
- * Modelled on coloring-book's `renderFieldLabelContent`, but not vendored from
+ * Modelled on gtfs-zone-editor's `renderFieldLabelContent`, but not vendored from
  * it: that one is built around a `FieldConfig` describing a schedule table
  * column, and this one is built around an `RTFieldSpec`.
  */

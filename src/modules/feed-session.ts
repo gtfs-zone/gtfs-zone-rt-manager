@@ -5,7 +5,7 @@
  * Owns whatever is currently selected: the parsed scheduled GTFS, and the live
  * payloads the map and the panel read.
  *
- * Adopted, not copied. test-track's `feed-session.ts` is built around a GTFS-RT
+ * Adopted, not copied. gtfs-zone-rt-viewer's `feed-session.ts` is built around a GTFS-RT
  * poller it owns; here the managed objects come from the API and the live half
  * arrives on the SSE channel, so only the shape the vendored modules read
  * (`scheduledFeed`, `vehicles`, `alerts`, `tripUpdates`) is deliberately the same.
@@ -20,7 +20,7 @@
  *
  * `vehicles` is filled from two places that must be indistinguishable: the
  * whole live fleet, fetched once on selection, and every fix after that,
- * pushed one at a time down the event channel. cafe-car builds both with one
+ * pushed one at a time down the event channel. gtfs-zone-rt-api builds both with one
  * function, so neither this class nor anything reading it needs to know which
  * a vehicle came through.
  *

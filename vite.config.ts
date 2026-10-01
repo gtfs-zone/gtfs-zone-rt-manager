@@ -15,9 +15,9 @@ try {
   }
 }
 
-// No dev server and no dev proxy. The only local door is music-student's
+// No dev server and no dev proxy. The only local door is gtfs-zone-dev-stack's
 // oauth2-proxy at :4180, which serves this `dist/` through nginx and routes
-// /api to cafe-car on the same origin; `pnpm dev` is a watch build into that
+// /api to gtfs-zone-rt-api on the same origin; `pnpm dev` is a watch build into that
 // directory. A vite server would have to forge the X-Auth-Request-* headers,
 // and everything auth-shaped (the cookie, session expiry, the CSRF header on a
 // write, SSE through the proxy, sign-out) is exactly what a forgery cannot

@@ -1,7 +1,7 @@
 /**
  * The one row shape every list in this app uses.
  *
- * yard-master's own file, with coloring-book's `utils/entity-references.ts` as
+ * gtfs-zone-rt-manager's own file, with gtfs-zone-editor's `utils/entity-references.ts` as
  * the visual model: a colour dot, a label over a sublabel, a right-aligned
  * badge, and `hover:bg-base-200` over the whole row. Before this, every list in
  * the app wrote its own `<li>`, so a tracker, a stop and a manager each looked

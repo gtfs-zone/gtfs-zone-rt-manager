@@ -2,7 +2,7 @@
  * Sharing: who may work on this feed, and who has been invited but has never
  * signed in.
  *
- * yard-master's own file, and the one place the two halves of sharing are
+ * gtfs-zone-rt-manager's own file, and the one place the two halves of sharing are
  * visible together. A manager is somebody with an account; an invite is an
  * email address that was shared with before an account existed behind it, and
  * it becomes a manager the first time that address signs in. Showing them in
@@ -11,7 +11,7 @@
  * address, and only the sign-in behind it makes a manager.
  *
  * The API calls these rows members and this app keeps that name in its types,
- * so `Member` still mirrors cafe-car's schema. Only the label says manager.
+ * so `Member` still mirrors gtfs-zone-rt-api's schema. Only the label says manager.
  *
  * Reading is open to every member, which is why this opens for anyone with the
  * feed selected. The mutations are owner-only, so the buttons appear only for a

@@ -1,7 +1,7 @@
 /**
  * The feed page: identity, children, then facts.
  *
- * yard-master's own page. test-track shows a feed status page here; this repo
+ * gtfs-zone-rt-manager's own page. gtfs-zone-rt-viewer shows a feed status page here; this repo
  * is a manager, so the no-focus page is the feed itself.
  *
  * The order is the point. The feed names itself, then the two things that hang
@@ -17,7 +17,7 @@
  * is a section of its own.
  *
  * What this browser parsed out of the zip is deliberately not reported here.
- * cafe-car's load and this browser's parse can legitimately disagree, and the
+ * gtfs-zone-rt-api's load and this browser's parse can legitimately disagree, and the
  * page used to print both sets of counts side by side and leave the reader to
  * notice; the map draws one of them and `renderScheduledStatus` says when the
  * other has not arrived, which is the same information without the table.
@@ -196,9 +196,9 @@ function uploadLine(ctx: RenderContext, upload: GtfsUpload): string {
 /**
  * Re-download a linked feed's zip.
  *
- * Disabled while cafe-car's own load is running, which the event stream
+ * Disabled while gtfs-zone-rt-api's own load is running, which the event stream
  * reports as it happens. Queueing a second load on top of one already in
- * flight does nothing — schedule-foamer's task is a singleton per feed — so a
+ * flight does nothing — gtfs-zone-static-importer's task is a singleton per feed — so a
  * button that offered it would be lying about what it does.
  */
 function reloadButton(feed: Feed): string {
@@ -265,7 +265,7 @@ function renderHistory(ctx: RenderContext, feed: Feed): string {
 
 /**
  * The schedule, whole: where it comes from, where a consumer gets it, and what
- * cafe-car's loader last made of it.
+ * gtfs-zone-rt-api's loader last made of it.
  *
  * The two kinds of source answer the same question differently — a linked feed
  * shows the URL it is downloaded from, a hosted feed shows the URL this app

@@ -364,7 +364,7 @@ export class MapController {
       // Follow: re-centre on the followed tracker's new position. If it has
       // stopped reporting, leave the camera where it is — the tracker page
       // says so in words rather than the map lying with a stale dot. Ungated by
-      // auto-zoom, matching test-track's vehicle follow: pressing Follow is a
+      // auto-zoom, matching gtfs-zone-rt-viewer's vehicle follow: pressing Follow is a
       // request for camera movement, not a navigation.
       if (this.following) {
         const v = this.followedVehicle(this.following);
@@ -417,7 +417,7 @@ export class MapController {
    * Instant, with no duration: on the boot path a deep link's focus ease runs
    * right after this and would visibly interrupt an animated fit.
    *
-   * Ungated by auto-zoom, matching coloring-book's feed-load exemption: a
+   * Ungated by auto-zoom, matching gtfs-zone-editor's feed-load exemption: a
    * freshly loaded feed has to frame itself or the map opens on nothing.
    */
   private fitFeed(): void {

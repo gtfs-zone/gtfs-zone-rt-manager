@@ -1,8 +1,8 @@
 /**
  * The feed picker: your feeds, and a form for a new one.
  *
- * yard-master's feeds are rows you own or were given, not URLs you type, which
- * is why none of test-track's `FeedSelection` machinery appears here. A feed
+ * gtfs-zone-rt-manager's feeds are rows you own or were given, not URLs you type, which
+ * is why none of gtfs-zone-rt-viewer's `FeedSelection` machinery appears here. A feed
  * either links a URL, which is stored server-side rather than kept in the
  * hash, or hosts a zip somebody uploaded; `schedule-upload.ts` owns that form,
  * because the drop zone and its preview are shared with the feed page.

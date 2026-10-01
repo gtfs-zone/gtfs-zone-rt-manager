@@ -1,7 +1,7 @@
 /**
  * The shape of the GTFS-realtime spec data.
  *
- * Modelled on coloring-book's `src/gtfs-spec/types.ts`, but for the realtime
+ * Modelled on gtfs-zone-editor's `src/gtfs-spec/types.ts`, but for the realtime
  * reference rather than the schedule one, so a field carries a Cardinality as
  * well as a Required value and an enum is a top-level object rather than a
  * list hanging off one field: `Cause` is referenced by name because the same

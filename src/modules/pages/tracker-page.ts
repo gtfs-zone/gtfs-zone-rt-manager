@@ -2,7 +2,7 @@
  * The tracker page: what a tracker is called, what provisions it, and where it
  * is reporting from right now.
  *
- * yard-master's own page. test-track's vehicle page is the nearest thing, but
+ * gtfs-zone-rt-manager's own page. gtfs-zone-rt-viewer's vehicle page is the nearest thing, but
  * it describes an entity in somebody else's feed; a tracker is a row this app
  * created, and the half of the page that matters most has nothing to do with
  * GTFS-RT.

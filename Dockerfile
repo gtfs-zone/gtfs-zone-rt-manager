@@ -1,9 +1,9 @@
 # Serves the built site as an immutable image, deployed to k3s by ArgoCD
-# (deploy-gtfs-rt). Expects `dist/` to exist: run `pnpm build` first, which is
+# (gtfs-zone-infra). Expects `dist/` to exist: run `pnpm build` first, which is
 # what CI does before calling docker build.
 #
 # Only the SPA is served here. `/api/*` on the same hostname is routed to
-# cafe-car by Traefik, so this image never proxies anything itself.
+# gtfs-zone-rt-api by Traefik, so this image never proxies anything itself.
 #
 # nginx-unprivileged listens on :8080 as uid 101 and never needs root, so the
 # pod can run with runAsNonRoot + readOnlyRootFilesystem.

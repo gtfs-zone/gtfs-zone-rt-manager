@@ -10,7 +10,7 @@
  * answer goes through here instead.
  *
  * The two URLs are deliberately different functions. `publicScheduleUrl` is
- * what cafe-car tells a *consumer*, which is an absolute prod URL by design
+ * what gtfs-zone-rt-api tells a *consumer*, which is an absolute prod URL by design
  * (its `PUBLIC_RT_BASE` is hardcoded rather than deploy config in a response
  * body). `scheduleFetchUrl` is what *this browser* downloads, and it is
  * always same-origin: `GET /api/feeds/{id}/schedule.zip` serves a hosted

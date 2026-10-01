@@ -330,9 +330,9 @@ export class Actions {
    * here patches the feed: it re-reads the row the server wrote.
    */
   /**
-   * Ask cafe-car to re-download a linked feed's zip, and re-download it here.
+   * Ask gtfs-zone-rt-api to re-download a linked feed's zip, and re-download it here.
    *
-   * Two halves, deliberately: cafe-car re-downloads the zip for the schedule
+   * Two halves, deliberately: gtfs-zone-rt-api re-downloads the zip for the schedule
    * pipeline, and this browser re-downloads it for the map. Neither is the
    * other. Offered on a linked feed only; a hosted one has no upstream, and
    * Replace schedule is its equivalent.
@@ -344,7 +344,7 @@ export class Actions {
     await reloadFeed(feed.id);
     notify.info(`Queued a reload of ${feed.feed_name}`);
     // The stream reports the load moving to `running` a moment from now, but
-    // only once schedule-foamer picks the task up; re-reading the row keeps the
+    // only once gtfs-zone-static-importer picks the task up; re-reading the row keeps the
     // gap from looking like nothing happened.
     await this.app.refreshFeed();
     this.app.reloadScheduled();
@@ -598,7 +598,7 @@ export class Actions {
    *
    * Everything in it encodes `device_key`, the QR included, so it is opened
    * deliberately and is never part of a page's default render. The SVG is
-   * inserted as markup because it *is* markup: cafe-car builds it from the
+   * inserted as markup because it *is* markup: gtfs-zone-rt-api builds it from the
    * config URL alone, and a QR carries no text nodes to smuggle anything in.
    */
   private async showProvisioning(trackerId: string): Promise<void> {

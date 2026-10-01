@@ -16,7 +16,7 @@
  * it closes the source for good — and that is almost always oauth2-proxy
  * answering an expired session with a login page. Reopening against one of
  * those forever is the infinite loop worth designing against, so it is retried
- * a few times with a backoff, for the case where cafe-car is merely restarting,
+ * a few times with a backoff, for the case where gtfs-zone-rt-api is merely restarting,
  * and then the page is reloaded so the browser can follow the redirect chain
  * and come back signed in. That is the same recovery `api-client.ts` performs
  * on a non-JSON response, for the same reason.

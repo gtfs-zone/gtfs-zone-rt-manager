@@ -1,5 +1,5 @@
 /**
- * The shapes cafe-car's `/api` returns, one type per model in its
+ * The shapes gtfs-zone-rt-api's `/api` returns, one type per model in its
  * `api/schemas.py`. Hand-mirrored rather than generated: the API is small, it
  * is in a repo next door, and a generated client would bring a build step that
  * buys nothing at this size.
@@ -10,7 +10,7 @@
  * - `Tracker` has no `device_key`. Only `TrackerDetail` does, only
  *   `GET /trackers/{id}` returns it, and it belongs in the properties panel and
  *   nowhere else — never in the hash, never in a log line.
- * - `Feed.load` is null for a feed schedule-foamer has never touched. That is
+ * - `Feed.load` is null for a feed gtfs-zone-static-importer has never touched. That is
  *   not `pending`, and a status reader that treats it as pending will claim a
  *   brand-new feed is already downloading.
  *
@@ -29,7 +29,7 @@ export interface Me {
   account_url: string | null;
 }
 
-/** Mirrors railroad-club's `LoadStatus`. */
+/** Mirrors gtfs-zone-db-models's `LoadStatus`. */
 export type LoadStatusName = 'pending' | 'running' | 'success' | 'failed';
 
 export interface LoadStatus {
@@ -41,14 +41,14 @@ export interface LoadStatus {
   next_retry_at: string | null;
 }
 
-/** Mirrors railroad-club's `FeedSourceKind`. */
+/** Mirrors gtfs-zone-db-models's `FeedSourceKind`. */
 export type FeedSourceKind = 'url' | 'hosted';
 
 /**
  * One schedule zip somebody uploaded, as the feed page's history lists it.
  *
- * No `object_key`: where the bytes sit in the bucket is between cafe-car and
- * schedule-foamer, and a client that knew it would be one refactor away from
+ * No `object_key`: where the bytes sit in the bucket is between gtfs-zone-rt-api and
+ * gtfs-zone-static-importer, and a client that knew it would be one refactor away from
  * addressing the store directly. An upload is named by its id and reached
  * through the feed's public URL.
  */
@@ -86,7 +86,7 @@ export interface Feed {
   vehicle_positions_url: string;
   trip_updates_url: string;
   service_alerts_url: string;
-  /** Null when the feed has never been handed to schedule-foamer. */
+  /** Null when the feed has never been handed to gtfs-zone-static-importer. */
   load: LoadStatus | null;
 }
 
@@ -211,7 +211,7 @@ export interface Assignment {
 }
 
 // ─── What a write sends ───────────────────────────────────────────────────────
-// One type per request model in cafe-car's `api/schemas.py`. None of them
+// One type per request model in gtfs-zone-rt-api's `api/schemas.py`. None of them
 // carries an `owner_id`, an `id` or a `device_key`: the server does not read
 // those from a body, and a type that offered them would suggest otherwise.
 
@@ -322,8 +322,8 @@ export interface ShareResult {
 }
 
 // ─── The event channel ────────────────────────────────────────────────────────
-// `GET /feeds/{id}/events` frames, mirroring railroad-club's `feed_events.py`.
-// cafe-car forwards these unparsed, so the shape is agreed between whoever
+// `GET /feeds/{id}/events` frames, mirroring gtfs-zone-db-models's `feed_events.py`.
+// gtfs-zone-rt-api forwards these unparsed, so the shape is agreed between whoever
 // published it and this file, with no server-side schema in between.
 
 /**
@@ -341,7 +341,7 @@ export interface LoadEvent {
  * it goes into `FeedSession.vehicles` without a translation layer.
  *
  * The same object `GET /feeds/{id}/tracker-positions` returns, built by one
- * function in cafe-car's `vehicle_payload.py`. Which of the two a vehicle
+ * function in gtfs-zone-rt-api's `vehicle_payload.py`. Which of the two a vehicle
  * arrived through is not something anything downstream may be able to tell.
  */
 export interface PositionEvent {

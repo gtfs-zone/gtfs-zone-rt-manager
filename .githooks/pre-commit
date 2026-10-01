@@ -1,6 +1,6 @@
 #!/bin/sh
 # Drift from the GTFS-realtime reference blocks a commit, and so does a spec
-# that has drifted from cafe-car's accepted alert values. Both are fast and
+# that has drifted from gtfs-zone-rt-api's accepted alert values. Both are fast and
 # neither touches the network.
 #
 # vendor:check blocks on drift in a vendored file and warns when one is behind

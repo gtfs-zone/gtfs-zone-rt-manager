@@ -9,8 +9,8 @@
  *
  * Runs in the pre-commit hook, so any drift from the reference blocks a commit.
  *
- * Unlike coloring-book's check-spec, a reference message the spec does not
- * declare is not a finding: this module covers the messages yard-master edits
+ * Unlike gtfs-zone-editor's check-spec, a reference message the spec does not
+ * declare is not a finding: this module covers the messages gtfs-zone-rt-manager edits
  * or displays, not the whole reference. What is declared must match exactly.
  */
 

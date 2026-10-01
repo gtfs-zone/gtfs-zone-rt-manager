@@ -1,7 +1,7 @@
 /**
  * The vehicle page: one live vehicle of a tracker that carries several.
  *
- * yard-master's own page. A tracker with one vehicle never links here (see
+ * gtfs-zone-rt-manager's own page. A tracker with one vehicle never links here (see
  * `vehicle-location.ts`); this is for a producer posting a fleet under one
  * credential, where the tracker page is the fleet and this is one train or bus
  * in it. Nothing here is managed: the vehicle exists only while its record

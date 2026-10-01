@@ -2,7 +2,7 @@
  * The waterfall chart: one row per object, one column per week, shaded where
  * the object runs, with per-day ticks on top of the shading.
  *
- * yard-master's own file. coloring-book's `src/modules/service-timeline.ts` is
+ * gtfs-zone-rt-manager's own file. gtfs-zone-editor's `src/modules/service-timeline.ts` is
  * the visual specification and nothing else is taken from it: the look is
  * shared across the family, the code is this repo's. What is kept from it is
  * the shape that makes the chart cheap — an HTML `<table>` of fixed-width
@@ -17,7 +17,7 @@
  * the caller may render the inside of any cell itself.
  *
  * **Monday first.** `service-date.ts` is Monday-first and that is what already
- * ships, so this chart is too, where coloring-book's is Sunday-first. Every
+ * ships, so this chart is too, where gtfs-zone-editor's is Sunday-first. Every
  * date here goes through `service-date.ts`; there is no second set of date
  * helpers in this file.
  *

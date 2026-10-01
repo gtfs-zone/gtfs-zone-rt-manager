@@ -1,9 +1,9 @@
 /**
  * Every managed alert on the selected feed, and the way to make another one.
  *
- * yard-master's own file, built on test-track's alerts modal: the same navbar
+ * gtfs-zone-rt-manager's own file, built on gtfs-zone-rt-viewer's alerts modal: the same navbar
  * button with the same `indicator` badge, opening the same flat list. What
- * differs is what a row is for. test-track reads a feed it does not own, so its
+ * differs is what a row is for. gtfs-zone-rt-viewer reads a feed it does not own, so its
  * rows expand in place; here an alert is an object with a page of its own — its
  * text, its active period and the entities it informs — so a row is a link into
  * the panel and the modal gets out of the way.

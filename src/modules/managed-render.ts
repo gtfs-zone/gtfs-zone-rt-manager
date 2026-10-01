@@ -51,7 +51,7 @@ const LOAD_BADGE_CLASS: Record<string, string> = {
 };
 
 /**
- * How a feed's last schedule load is badged. A feed schedule-foamer has never
+ * How a feed's last schedule load is badged. A feed gtfs-zone-static-importer has never
  * touched has no `load` at all, which is not `pending`: saying "pending" would
  * claim a brand-new feed is already on its way.
  */
@@ -96,7 +96,7 @@ export function actionButton(
  *
  * Derived from `src/gtfs-rt-spec/`, not listed here: the reference is the
  * truth, `scripts/check-rt-spec.ts` holds the spec to it, and
- * `scripts/check-alert-enums.ts` holds cafe-car's `alert_enums.py` to these,
+ * `scripts/check-alert-enums.ts` holds gtfs-zone-rt-api's `alert_enums.py` to these,
  * so a value the forms offer is a value the API accepts.
  */
 export const ALERT_CAUSES = rtEnumValues('Cause');

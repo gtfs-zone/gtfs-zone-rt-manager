@@ -4,7 +4,7 @@
  *
  * The preview is the feature rather than decoration — the counts and the
  * service dates are how somebody notices they picked last year's export
- * before they upload it, and cafe-car cannot tell them that because cafe-car
+ * before they upload it, and gtfs-zone-rt-api cannot tell them that because gtfs-zone-rt-api
  * only sees the file after it has been sent.
  *
  * A new feed is created with no schedule at all: `POST /feeds` makes a hosted
@@ -21,7 +21,7 @@ import { showEntityForm } from './entity-form';
 import { previewGtfsZip } from './gtfs-zip-preview';
 import { escHtml } from 'gtfs-zone-web-common/gtfs/entity-render';
 
-/** Mirrors cafe-car's `_FEED_NAME_RE`, so the refusal happens before the request. */
+/** Mirrors gtfs-zone-rt-api's `_FEED_NAME_RE`, so the refusal happens before the request. */
 const FEED_NAME_RE = /^[a-z][a-z0-9_-]{2,63}$/;
 
 /**
@@ -93,7 +93,7 @@ export function scheduleZipField(overrides: Partial<FormField> = {}): FormField 
   };
 }
 
-/** What cafe-car's `AnyHttpUrl` accepts: an absolute http or https URL. */
+/** What gtfs-zone-rt-api's `AnyHttpUrl` accepts: an absolute http or https URL. */
 export function isHttpUrl(value: string): boolean {
   try {
     const parsed = new URL(value);

@@ -1,7 +1,7 @@
 /**
  * The feed's services: both calendar files resolved into one answer.
  *
- * yard-master's own file. `calendar.txt` and `calendar_dates.txt` are two
+ * gtfs-zone-rt-manager's own file. `calendar.txt` and `calendar_dates.txt` are two
  * halves of one answer — a weekly pattern over a window, and the individual
  * days that break it — and every page that asks "when does this run" has to
  * put them back together. This is where that happens, once, so the route, stop

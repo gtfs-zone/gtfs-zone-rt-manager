@@ -4,12 +4,12 @@
  *
  * The map and realtime blocks are the constants `gtfs-zone-web-common`'s map stack and
  * the vendored realtime files read. They came across with those files (see
- * VENDORED.md) and are kept in the same order as test-track's so the two are
+ * VENDORED.md) and are kept in the same order as gtfs-zone-rt-viewer's so the two are
  * diffable.
  */
 export const CONFIG = {
   // Same-origin in every environment. In production Traefik routes
-  // manage.rt.gtfs.zone/api/* to cafe-car's admin app; in dev vite proxies it
+  // manage.rt.gtfs.zone/api/* to gtfs-zone-rt-api's admin app; in dev vite proxies it
   // to localhost:8001 with forged oauth2-proxy headers. Never an absolute URL:
   // a cross-origin API would need CORS and credentialed preflights that
   // production deliberately does not have.
@@ -20,7 +20,7 @@ export const CONFIG = {
   CSRF_HEADER: 'X-RT-Manager',
 
   // oauth2-proxy's sign-out endpoint, same origin like everything else.
-  // Relative on purpose, the way cafe-car's `oauth2_proxy_logout_url` is.
+  // Relative on purpose, the way gtfs-zone-rt-api's `oauth2_proxy_logout_url` is.
   // Reached by a full navigation and never by fetch: it answers with a
   // redirect chain and then HTML, which api-client reads as an expired
   // session.
@@ -171,8 +171,8 @@ export const CONFIG = {
   SSE_RETRY_MAX_MS: 15_000,
   SSE_MAX_RETRIES: 4,
 
-  // Where a path-only feed URL resolves to. Dev is the music-student stack's
-  // cafe-car (`docker-compose.yml`, service `api`); prod is the deployed feed
+  // Where a path-only feed URL resolves to. Dev is gtfs-zone-dev-stack's
+  // gtfs-zone-rt-api (`docker-compose.yml`, service `api`); prod is the deployed feed
   // server. Read by `gtfs-zone-web-common`'s `feed-url-resolve.ts`, which all three
   // apps share and so cannot hardcode either.
   //
@@ -187,14 +187,14 @@ export const CONFIG = {
     import.meta.env?.VITE_RT_BASE ??
     (import.meta.env?.DEV ? 'http://localhost:8000' : 'https://rt.gtfs.zone'),
 
-  // The cap cafe-car enforces on an uploaded schedule zip
-  // (`max_gtfs_zip_bytes`, which is also schedule-foamer's download cap).
+  // The cap gtfs-zone-rt-api enforces on an uploaded schedule zip
+  // (`max_gtfs_zip_bytes`, which is also gtfs-zone-static-importer's download cap).
   // Mirrored so the drop zone refuses an oversized file before spending a
   // minute sending it; the server still enforces it, this only saves the wait.
   UPLOAD_MAX_BYTES: 31_457_280,
 
   // Uploads the feed page lists before the rest are left to the server's own
-  // retention. Matches cafe-car's `keep_uploads`, so a full history fits.
+  // retention. Matches gtfs-zone-rt-api's `keep_uploads`, so a full history fits.
   UPLOAD_HISTORY_MAX: 10,
 
   // Trips a `<select>` may offer before the field falls back to the searchable

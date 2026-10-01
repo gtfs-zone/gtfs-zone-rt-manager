@@ -2,7 +2,7 @@
  * The trip page: one trip's schedule, stop by stop, with whatever the live feed
  * predicts for it laid alongside, and the trackers assigned to run it.
  *
- * yard-master's own page. test-track has no trip page at all — it browses
+ * gtfs-zone-rt-manager's own page. gtfs-zone-rt-viewer has no trip page at all — it browses
  * route, stop, vehicle and alert — but the object hierarchy here runs
  * Route -> Trips -> Trip, because a trip is what a tracker is assigned to. Both
  * halves are here: the schedule and predictions the feeds carry, and the

@@ -1,5 +1,5 @@
 /**
- * The one way this app talks to cafe-car.
+ * The one way this app talks to gtfs-zone-rt-api.
  *
  * Three contracts live here and nowhere else:
  *
@@ -9,10 +9,10 @@
  *   for a mutation directly, which is why the verbs are exported and the raw
  *   request function is not.
  * - **Session expiry.** oauth2-proxy answers an expired session with a 302 to
- *   Keycloak before the request reaches cafe-car, so what an XHR sees is a
+ *   Keycloak before the request reaches gtfs-zone-rt-api, so what an XHR sees is a
  *   redirect chain ending in HTML. That is not an error payload and must never
  *   be parsed as one: the only recovery is a full page load, so the browser can
- *   follow the chain and come back signed in. Everything cafe-car builds itself
+ *   follow the chain and come back signed in. Everything gtfs-zone-rt-api builds itself
  *   is JSON including its errors, which is what makes "not JSON" unambiguous.
  * - **Errors.** A non-2xx JSON body carries FastAPI's `detail`, which is
  *   written for a person. `ApiError.message` is that string, so a caller can
@@ -49,7 +49,7 @@ import type {
   TrackerUpdate,
 } from '../types/api';
 
-/** A response cafe-car built: a status, and the `detail` it explained it with. */
+/** A response gtfs-zone-rt-api built: a status, and the `detail` it explained it with. */
 export class ApiError extends Error {
   readonly status: number;
 
@@ -91,7 +91,7 @@ export class SessionExpiredError extends Error {
   }
 }
 
-/** True when the body is something cafe-car built, rather than a login page. */
+/** True when the body is something gtfs-zone-rt-api built, rather than a login page. */
 function isJson(response: Response): boolean {
   return (response.headers.get('Content-Type') ?? '').includes('application/json');
 }
@@ -229,7 +229,7 @@ export const api = {
 };
 
 // ─── The endpoints, named ─────────────────────────────────────────────────────
-// Paths appear here once. A route renamed in cafe-car breaks in one place.
+// Paths appear here once. A route renamed in gtfs-zone-rt-api breaks in one place.
 
 export const getMe = () => api.get<Me>('/me');
 

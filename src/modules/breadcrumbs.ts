@@ -31,7 +31,7 @@
  *
  * Our whole model is in memory — parsed GTFS plus the API objects the session
  * holds — so both of these are plain reads rather than the async, database
- * backed lookups coloring-book needs.
+ * backed lookups gtfs-zone-editor needs.
  */
 
 import type { PageState } from '../types/page-state';

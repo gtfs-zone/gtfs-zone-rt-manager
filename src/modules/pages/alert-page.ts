@@ -20,13 +20,13 @@
  * The alert page, plus the compact alert list every other page embeds.
  *
  * Two objects share this file and this `PageState` variant, which is worth
- * being explicit about. The *managed* alert is a row in cafe-car with a numeric
+ * being explicit about. The *managed* alert is a row in gtfs-zone-rt-api with a numeric
  * id, and it is what this app creates, browses and publishes. The `AlertRecord`
  * is what a consumer decoding the published feed sees. Here they are the same
  * disruption seen from two ends, so `alert_id` is `String(Alert.id)` and the
  * managed row is what the page shows.
  *
- * The one trap: cafe-car numbers the entities in the published GTFS-RT feed
+ * The one trap: gtfs-zone-rt-api numbers the entities in the published GTFS-RT feed
  * positionally (`entity.id = str(i)`), so an `AlertRecord.id` is *not* an
  * `Alert.id`. Nothing fills `session.alerts` yet; whatever does has to key it
  * by the managed id, or the links the route and stop pages emit will point at
@@ -418,7 +418,7 @@ export function renderAlertPage(
   return renderRtAlertPage(ctx, record);
 }
 
-/** test-track's page: the decoded GTFS-RT entity, as a consumer sees it. */
+/** gtfs-zone-rt-viewer's page: the decoded GTFS-RT entity, as a consumer sees it. */
 function renderRtAlertPage(ctx: RenderContext, record: AlertRecord): string {
   const alert = record.alert;
   const url = preferredText(alert.url);

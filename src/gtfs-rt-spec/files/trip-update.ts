@@ -1,4 +1,4 @@
-/** TripUpdate, the message trip-updogger publishes. */
+/** TripUpdate, the message gtfs-zone-rt-delay-estimator publishes. */
 
 import type { RTMessageSpec } from '../types';
 

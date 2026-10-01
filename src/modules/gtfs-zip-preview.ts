@@ -2,7 +2,7 @@
  * What is actually in the zip somebody just chose, read in the browser before
  * a byte of it is sent.
  *
- * This is the point of the upload dialog. cafe-car checks the same things
+ * This is the point of the upload dialog. gtfs-zone-rt-api checks the same things
  * server-side and is the authority, but it can only answer after the file has
  * been uploaded; somebody who picked last year's export, or the wrong agency's,
  * finds out here instead of three minutes later in a failed load.
@@ -17,7 +17,7 @@ import JSZip from 'jszip';
 import { CONFIG } from '../config';
 import { GTFSScheduled } from 'gtfs-zone-web-common/gtfs/scheduled';
 
-/** Mirrors cafe-car's `REQUIRED_FILES`. */
+/** Mirrors gtfs-zone-rt-api's `REQUIRED_FILES`. */
 const REQUIRED_FILES = [
   'agency.txt',
   'stops.txt',
