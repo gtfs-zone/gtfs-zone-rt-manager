@@ -63,7 +63,10 @@ import type { PageState } from '../types/page-state';
 import type { BreadcrumbItem } from 'gtfs-zone-web-common/ui/breadcrumb-trail';
 import type { FocusHooks } from 'gtfs-zone-web-common/ui/focus-controller';
 import { FocusController } from 'gtfs-zone-web-common/ui/focus-controller';
-import { homeWithModal, sameLocation } from 'gtfs-zone-web-common/ui/page-state-manager';
+import {
+  homeWithModal,
+  sameLocation,
+} from 'gtfs-zone-web-common/ui/page-state-manager';
 import type { Feed, LoadStatus, Me } from '../types/api';
 import type { VehiclePosition } from '../map-controller';
 import { buildBreadcrumbs, validateState } from './breadcrumbs';
@@ -94,8 +97,11 @@ export interface AppStateHooks extends FocusHooks<PageState> {
   onFeedChange: (feed: Feed | null) => void;
 }
 
-export class AppState extends FocusController<PageState, BreadcrumbItem<PageState>> {
-  protected declare hooks: AppStateHooks;
+export class AppState extends FocusController<
+  PageState,
+  BreadcrumbItem<PageState>
+> {
+  declare protected hooks: AppStateHooks;
   private session: FeedSession;
 
   /** The signed-in person. Null until `boot()` has answered. */
@@ -143,7 +149,8 @@ export class AppState extends FocusController<PageState, BreadcrumbItem<PageStat
    * The service-date window the calendar last asked to have expanded, so a
    * write from anywhere in the app can re-read exactly what is on screen.
    */
-  private assignmentWindow: { from: ServiceDate; to: ServiceDate } | null = null;
+  private assignmentWindow: { from: ServiceDate; to: ServiceDate } | null =
+    null;
 
   /** The expansion request in flight, so two widenings do not race. */
   private assignmentLoad: Promise<void> | null = null;
@@ -152,7 +159,9 @@ export class AppState extends FocusController<PageState, BreadcrumbItem<PageStat
     super(createPageStateManager(), hooks);
     this.session = session;
 
-    this.pages.setBreadcrumbBuilder((state) => buildBreadcrumbs(session, state));
+    this.pages.setBreadcrumbBuilder((state) =>
+      buildBreadcrumbs(session, state)
+    );
     this.pages.setStateValidator((state) => validateState(session, state));
 
     // The parsed feed is the last thing a linked route/stop/trip was waiting
@@ -175,7 +184,9 @@ export class AppState extends FocusController<PageState, BreadcrumbItem<PageStat
     try {
       this.me = await getMe();
     } catch (err) {
-      if (err instanceof SessionExpiredError) return;
+      if (err instanceof SessionExpiredError) {
+        return;
+      }
       notify.error(`Could not reach the API: ${describe(err)}`);
       this.repaint();
       return;
@@ -185,9 +196,12 @@ export class AppState extends FocusController<PageState, BreadcrumbItem<PageStat
       new URLSearchParams(window.location.hash.slice(1)).get('feed') ??
       localStorage.getItem(CONFIG.SELECTED_FEED_KEY);
 
-    const feed = (wanted ? await this.findFeed(wanted) : null) ?? (await this.onlyFeed());
+    const feed =
+      (wanted ? await this.findFeed(wanted) : null) ?? (await this.onlyFeed());
     if (!feed) {
-      if (wanted) notify.warning(`No feed named "${wanted}" is available to you.`);
+      if (wanted) {
+        notify.warning(`No feed named "${wanted}" is available to you.`);
+      }
       // No feed means no focus worth restoring: every page but home is scoped
       // to one.
       this.hooks.onFeedChange(null);
@@ -226,11 +240,15 @@ export class AppState extends FocusController<PageState, BreadcrumbItem<PageStat
     try {
       const mine = await listFeeds();
       const found = mine.find((f) => f.feed_name === name);
-      if (found || !this.me?.is_admin) return found ?? null;
+      if (found || !this.me?.is_admin) {
+        return found ?? null;
+      }
       const all = await listFeeds(true);
       return all.find((f) => f.feed_name === name) ?? null;
     } catch (err) {
-      if (err instanceof SessionExpiredError) return null;
+      if (err instanceof SessionExpiredError) {
+        return null;
+      }
       notify.error(`Could not list your feeds: ${describe(err)}`);
       return null;
     }
@@ -244,7 +262,10 @@ export class AppState extends FocusController<PageState, BreadcrumbItem<PageStat
    * resolves, which for a managed page is immediately and for a GTFS page is
    * once the zip has parsed.
    */
-  async selectFeed(feed: Feed, restore: PageState = { type: 'home' }): Promise<void> {
+  async selectFeed(
+    feed: Feed,
+    restore: PageState = { type: 'home' }
+  ): Promise<void> {
     this.session.selectFeed(feed);
     localStorage.setItem(CONFIG.SELECTED_FEED_KEY, feed.feed_name);
     // Written before anything is fetched, so the address bar is shareable even
@@ -281,10 +302,14 @@ export class AppState extends FocusController<PageState, BreadcrumbItem<PageStat
    */
   reloadScheduled(): void {
     const feed = this.session.feed;
-    if (!feed) return;
+    if (!feed) {
+      return;
+    }
     const url = scheduleFetchUrl(feed);
     if (!url) {
-      this.session.noScheduled('This feed has no schedule yet. Upload a zip to give it one.');
+      this.session.noScheduled(
+        'This feed has no schedule yet. Upload a zip to give it one.'
+      );
       return;
     }
     void this.session.loadScheduled(url, feed.feed_name);
@@ -308,27 +333,39 @@ export class AppState extends FocusController<PageState, BreadcrumbItem<PageStat
   /** Re-read the trackers, e.g. after creating, renaming or deleting one. */
   async refreshTrackers(): Promise<void> {
     const feed = this.session.feed;
-    if (!feed) return;
-    await this.fetchInto('trackers', () => listTrackers(feed.id), (rows) =>
-      this.session.setTrackers(rows)
+    if (!feed) {
+      return;
+    }
+    await this.fetchInto(
+      'trackers',
+      () => listTrackers(feed.id),
+      (rows) => this.session.setTrackers(rows)
     );
   }
 
   /** Re-read the managed alerts. */
   async refreshServiceAlerts(): Promise<void> {
     const feed = this.session.feed;
-    if (!feed) return;
-    await this.fetchInto('service alerts', () => listAlerts(feed.id), (rows) =>
-      this.session.setServiceAlerts(rows)
+    if (!feed) {
+      return;
+    }
+    await this.fetchInto(
+      'service alerts',
+      () => listAlerts(feed.id),
+      (rows) => this.session.setServiceAlerts(rows)
     );
   }
 
   /** Re-read the members and open invites. */
   async refreshMembers(): Promise<void> {
     const feed = this.session.feed;
-    if (!feed) return;
-    await this.fetchInto('members', () => getMembers(feed.id), (members) =>
-      this.session.setMembers(members)
+    if (!feed) {
+      return;
+    }
+    await this.fetchInto(
+      'members',
+      () => getMembers(feed.id),
+      (members) => this.session.setMembers(members)
     );
   }
 
@@ -341,11 +378,15 @@ export class AppState extends FocusController<PageState, BreadcrumbItem<PageStat
    */
   async refreshUploads(): Promise<void> {
     const feed = this.session.feed;
-    if (!feed) return;
+    if (!feed) {
+      return;
+    }
     try {
       this.session.setUploads(await listUploads(feed.id));
     } catch (err) {
-      if (err instanceof SessionExpiredError) return;
+      if (err instanceof SessionExpiredError) {
+        return;
+      }
       this.session.failedUploads();
       notify.error(`Could not load uploads: ${describe(err)}`);
     }
@@ -354,19 +395,27 @@ export class AppState extends FocusController<PageState, BreadcrumbItem<PageStat
   /** Re-read the feed's assignment rules. */
   async refreshRules(): Promise<void> {
     const feed = this.session.feed;
-    if (!feed) return;
-    await this.fetchInto('assignment rules', () => listRules(feed.id), (rows) =>
-      this.session.setRules(rows)
+    if (!feed) {
+      return;
+    }
+    await this.fetchInto(
+      'assignment rules',
+      () => listRules(feed.id),
+      (rows) => this.session.setRules(rows)
     );
   }
 
   /** Expand the rules over one window, which is what the week charts draw. */
   async refreshAssignments(from: ServiceDate, to: ServiceDate): Promise<void> {
     const feed = this.session.feed;
-    if (!feed) return;
+    if (!feed) {
+      return;
+    }
     this.assignmentWindow = { from, to };
-    await this.fetchInto('assignments', () => listAssignments(feed.id, from, to), (rows) =>
-      this.session.setAssignments(from, to, rows)
+    await this.fetchInto(
+      'assignments',
+      () => listAssignments(feed.id, from, to),
+      (rows) => this.session.setAssignments(from, to, rows)
     );
   }
 
@@ -383,13 +432,18 @@ export class AppState extends FocusController<PageState, BreadcrumbItem<PageStat
     // A request already out lands first, so its window is the one this widens.
     await this.assignmentLoad;
     const held = this.assignmentWindow;
-    if (held && held.from <= from && held.to >= to) return;
+    if (held && held.from <= from && held.to >= to) {
+      return;
+    }
 
     const wanted = {
       from: held && held.from < from ? held.from : from,
       to: held && held.to > to ? held.to : to,
     };
-    this.assignmentLoad = this.refreshAssignments(wanted.from, wanted.to).finally(() => {
+    this.assignmentLoad = this.refreshAssignments(
+      wanted.from,
+      wanted.to
+    ).finally(() => {
       this.assignmentLoad = null;
     });
     await this.assignmentLoad;
@@ -408,16 +462,22 @@ export class AppState extends FocusController<PageState, BreadcrumbItem<PageStat
     const window = this.assignmentWindow;
     await Promise.all([
       this.refreshRules(),
-      window ? this.refreshAssignments(window.from, window.to) : Promise.resolve(),
+      window
+        ? this.refreshAssignments(window.from, window.to)
+        : Promise.resolve(),
     ]);
   }
 
   /** Re-read the whole live fleet. The pushed fixes keep it current after. */
   async refreshPositions(): Promise<void> {
     const feed = this.session.feed;
-    if (!feed) return;
-    await this.fetchInto('tracker positions', () => listTrackerPositions(feed.id), (rows) =>
-      this.session.setVehicles(rows)
+    if (!feed) {
+      return;
+    }
+    await this.fetchInto(
+      'tracker positions',
+      () => listTrackerPositions(feed.id),
+      (rows) => this.session.setVehicles(rows)
     );
   }
 
@@ -448,20 +508,28 @@ export class AppState extends FocusController<PageState, BreadcrumbItem<PageStat
    */
   private async loadManagedObjects(feed: Feed): Promise<void> {
     await Promise.all([
-      this.fetchInto('trackers', () => listTrackers(feed.id), (rows) =>
-        this.session.setTrackers(rows)
+      this.fetchInto(
+        'trackers',
+        () => listTrackers(feed.id),
+        (rows) => this.session.setTrackers(rows)
       ),
-      this.fetchInto('service alerts', () => listAlerts(feed.id), (rows) =>
-        this.session.setServiceAlerts(rows)
+      this.fetchInto(
+        'service alerts',
+        () => listAlerts(feed.id),
+        (rows) => this.session.setServiceAlerts(rows)
       ),
-      this.fetchInto('members', () => getMembers(feed.id), (members) =>
-        this.session.setMembers(members)
+      this.fetchInto(
+        'members',
+        () => getMembers(feed.id),
+        (members) => this.session.setMembers(members)
       ),
       // The fleet as it stands, so the map is populated before the first fix
       // is pushed. A tracker reporting once a minute would otherwise leave the
       // map empty for most of that minute.
-      this.fetchInto('tracker positions', () => listTrackerPositions(feed.id), (rows) =>
-        this.session.setVehicles(rows)
+      this.fetchInto(
+        'tracker positions',
+        () => listTrackerPositions(feed.id),
+        (rows) => this.session.setVehicles(rows)
       ),
     ]);
   }
@@ -475,7 +543,9 @@ export class AppState extends FocusController<PageState, BreadcrumbItem<PageStat
     try {
       apply(await fetch());
     } catch (err) {
-      if (err instanceof SessionExpiredError) return;
+      if (err instanceof SessionExpiredError) {
+        return;
+      }
       notify.error(`Could not load ${what}: ${describe(err)}`);
     }
   }
@@ -490,7 +560,9 @@ export class AppState extends FocusController<PageState, BreadcrumbItem<PageStat
    */
   private async loadPageData(state: PageState): Promise<void> {
     const key = JSON.stringify(state);
-    if (this.loadingPages.has(key)) return;
+    if (this.loadingPages.has(key)) {
+      return;
+    }
 
     const session = this.session;
     let load: (() => Promise<void>) | null = null;
@@ -505,7 +577,9 @@ export class AppState extends FocusController<PageState, BreadcrumbItem<PageStat
         load = async () => {
           await Promise.all([
             needsDetail
-              ? getTracker(state.tracker_id).then((d) => session.setTrackerDetail(d))
+              ? getTracker(state.tracker_id).then((d) =>
+                  session.setTrackerDetail(d)
+                )
               : Promise.resolve(),
             needsRules ? this.refreshRules() : Promise.resolve(),
           ]);
@@ -515,11 +589,16 @@ export class AppState extends FocusController<PageState, BreadcrumbItem<PageStat
       // The trip page lists what is assigned to it, and an empty rule map
       // would otherwise read as "nothing is".
       load = async () => this.refreshRules();
-    } else if (state.type === 'alert' && !session.alertDetails.has(state.alert_id)) {
+    } else if (
+      state.type === 'alert' &&
+      !session.alertDetails.has(state.alert_id)
+    ) {
       // The id is the managed row's, so it goes back to a number here and
       // nowhere else: everything above this line keys alerts by string.
       const id = Number(state.alert_id);
-      if (Number.isFinite(id)) load = async () => session.setAlertDetail(await getAlert(id));
+      if (Number.isFinite(id)) {
+        load = async () => session.setAlertDetail(await getAlert(id));
+      }
     } else if (state.type === 'home' && session.feed) {
       // A feed linked now may still have upload history from when it was
       // hosted, so this is asked for regardless of the current source kind.
@@ -544,7 +623,9 @@ export class AppState extends FocusController<PageState, BreadcrumbItem<PageStat
         };
       }
     }
-    if (!load) return;
+    if (!load) {
+      return;
+    }
 
     this.loadingPages.add(key);
     try {
@@ -589,17 +670,25 @@ export class AppState extends FocusController<PageState, BreadcrumbItem<PageStat
    */
   private applyLoadStatus(feedId: number, load: LoadStatus | null): void {
     const feed = this.session.feed;
-    if (!feed || feed.id !== feedId) return;
+    if (!feed || feed.id !== feedId) {
+      return;
+    }
 
     const before = feed.load?.status ?? null;
     this.session.setLoadStatus(load);
     const after = load?.status ?? null;
-    if (after === before) return;
+    if (after === before) {
+      return;
+    }
 
     if (after === 'success') {
-      notify.success(`${feed.feed_name}: the server finished loading the schedule.`);
+      notify.success(
+        `${feed.feed_name}: the server finished loading the schedule.`
+      );
     } else if (after === 'failed') {
-      notify.error(`${feed.feed_name}: the server could not load the schedule.`);
+      notify.error(
+        `${feed.feed_name}: the server could not load the schedule.`
+      );
     }
   }
 
@@ -612,7 +701,9 @@ export class AppState extends FocusController<PageState, BreadcrumbItem<PageStat
    */
   private applyPosition(feedId: number, vehicle: VehiclePosition): void {
     const feed = this.session.feed;
-    if (!feed || feed.id !== feedId) return;
+    if (!feed || feed.id !== feedId) {
+      return;
+    }
     this.session.applyVehicle(vehicle);
 
     // A fix from a tracker this app has not listed means the list is out of
@@ -620,8 +711,12 @@ export class AppState extends FocusController<PageState, BreadcrumbItem<PageStat
     // The vehicle is drawn either way — it is a real thing in a real place —
     // but without the row it has no nickname and no page to click into, so the
     // list is re-read once per unknown id rather than left to be noticed.
-    if (this.session.trackers.has(vehicle.trackerId)) return;
-    if (this.chasedTrackers.has(vehicle.trackerId)) return;
+    if (this.session.trackers.has(vehicle.trackerId)) {
+      return;
+    }
+    if (this.chasedTrackers.has(vehicle.trackerId)) {
+      return;
+    }
     this.chasedTrackers.add(vehicle.trackerId);
     void this.refreshTrackers();
   }
@@ -635,20 +730,26 @@ export class AppState extends FocusController<PageState, BreadcrumbItem<PageStat
   }
 
   private stopPruning(): void {
-    if (this.pruneTimer !== null) clearInterval(this.pruneTimer);
+    if (this.pruneTimer !== null) {
+      clearInterval(this.pruneTimer);
+    }
     this.pruneTimer = null;
   }
 
   /** Re-read the selected feed's row, e.g. after asking for a reload. */
   async refreshFeed(): Promise<void> {
     const current = this.session.feed;
-    if (!current) return;
+    if (!current) {
+      return;
+    }
     try {
       const feed = await getFeed(current.id);
       this.session.updateFeed(feed);
       this.hooks.onFeedChange(feed);
     } catch (err) {
-      if (err instanceof SessionExpiredError) return;
+      if (err instanceof SessionExpiredError) {
+        return;
+      }
       notify.error(`Could not refresh the feed: ${describe(err)}`);
     }
   }
@@ -674,7 +775,9 @@ export class AppState extends FocusController<PageState, BreadcrumbItem<PageStat
    */
   private applyPendingFocus(options: { reportMiss: boolean }): void {
     const pending = this.pendingFocus;
-    if (!pending) return;
+    if (!pending) {
+      return;
+    }
 
     if (validateState(this.session, pending)) {
       this.pendingFocus = null;
@@ -688,7 +791,9 @@ export class AppState extends FocusController<PageState, BreadcrumbItem<PageStat
 
     if (options.reportMiss) {
       this.pendingFocus = null;
-      notify.warning(`Nothing in this feed matches the linked ${pending.type}.`);
+      notify.warning(
+        `Nothing in this feed matches the linked ${pending.type}.`
+      );
       // The modal outlives the page it was linked over: it names no object.
       this.pages.adoptState(homeWithModal(pending));
       this.pages.syncHash();

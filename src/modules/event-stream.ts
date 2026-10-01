@@ -27,7 +27,12 @@
  */
 
 import { CONFIG } from '../config';
-import type { FeedEvent, LoadEvent, LoadStatus, PositionEvent } from '../types/api';
+import type {
+  FeedEvent,
+  LoadEvent,
+  LoadStatus,
+  PositionEvent,
+} from '../types/api';
 import type { VehiclePosition } from '../map-controller';
 
 export interface FeedEventHandlers {
@@ -73,7 +78,9 @@ export class FeedEventStream {
 
   private open(): void {
     const feedId = this.feedId;
-    if (feedId === null) return;
+    if (feedId === null) {
+      return;
+    }
 
     // Same origin, so the oauth2-proxy cookie rides along. No custom header is
     // possible on an `EventSource` and none is needed: this is a GET, and the
@@ -93,8 +100,12 @@ export class FeedEventStream {
       // Still connecting means the browser is retrying a dropped stream by
       // itself, which is the case that needs no help. Only a closed source is
       // ours to deal with.
-      if (source.readyState !== EventSource.CLOSED) return;
-      if (this.source !== source) return;
+      if (source.readyState !== EventSource.CLOSED) {
+        return;
+      }
+      if (this.source !== source) {
+        return;
+      }
       this.scheduleRetry();
     };
   }

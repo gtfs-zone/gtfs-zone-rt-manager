@@ -35,15 +35,28 @@ import type { AlertRecord } from 'gtfs-zone-web-common/gtfs/rt-types';
 import type { Route } from 'gtfs-zone-web-common/gtfs/scheduled';
 import type { VehiclePosition } from '../../map-controller';
 import type { PageState } from '../../types/page-state';
-import { alertsForRoute, alertsForRouteStop, feedWideAlerts } from 'gtfs-zone-web-common/gtfs/alerts';
-import { renderTriangleIcon, renderWarningIcon } from 'gtfs-zone-web-common/ui/modal-utils';
+import {
+  alertsForRoute,
+  alertsForRouteStop,
+  feedWideAlerts,
+} from 'gtfs-zone-web-common/gtfs/alerts';
+import {
+  renderTriangleIcon,
+  renderWarningIcon,
+} from 'gtfs-zone-web-common/ui/modal-utils';
 import { GTFSScheduledRouteSource } from 'gtfs-zone-web-common/gtfs/scheduled-route-source';
 import { routeGraph } from 'gtfs-zone-web-common/gtfs/route-graph';
 import type { VehicleStopSequence } from 'gtfs-zone-web-common/gtfs/rt-index';
 import type { RtIndex } from '../render-context';
 import type { Prediction } from 'gtfs-zone-web-common/gtfs/rt-index';
-import type { RouteSequence, StopStats } from 'gtfs-zone-web-common/gtfs/route-sequence';
-import { directionsForRoute, routeSequence } from 'gtfs-zone-web-common/gtfs/route-sequence';
+import type {
+  RouteSequence,
+  StopStats,
+} from 'gtfs-zone-web-common/gtfs/route-sequence';
+import {
+  directionsForRoute,
+  routeSequence,
+} from 'gtfs-zone-web-common/gtfs/route-sequence';
 import {
   endpointNote,
   endpointThreshold,
@@ -58,9 +71,22 @@ import {
 } from 'gtfs-zone-web-common/gtfs/route-strip';
 import type { RowDot } from 'gtfs-zone-web-common/gtfs/route-strip';
 import type { RenderContext } from '../render-context';
-import { TOOLTIP_TRIGGER_CLASS, tooltipContentAttr } from 'gtfs-zone-web-common/ui/field-label';
-import { cappedNote, countBadge, entityRow, entityRowList, rowSection } from '../entity-row';
-import { assignmentCounts, servicesForTrips, weekdaysLabel } from '../service-catalog';
+import {
+  TOOLTIP_TRIGGER_CLASS,
+  tooltipContentAttr,
+} from 'gtfs-zone-web-common/ui/field-label';
+import {
+  cappedNote,
+  countBadge,
+  entityRow,
+  entityRowList,
+  rowSection,
+} from '../entity-row';
+import {
+  assignmentCounts,
+  servicesForTrips,
+  weekdaysLabel,
+} from '../service-catalog';
 import {
   OCCUPANCY_LABELS,
   ROUTE_TYPE_LABELS,
@@ -126,7 +152,7 @@ function placeVehicles(
   rt: RtIndex,
   sequence: RouteSequence,
   routeId: string,
-  directionId: string,
+  directionId: string
 ): { placed: PlacedVehicle[]; unplaced: Unplaced[] } {
   const feed = ctx.session.scheduledFeed;
   const placed: PlacedVehicle[] = [];
@@ -135,7 +161,9 @@ function placeVehicles(
   for (const vehicle of rt.vehiclesByRoute.get(routeId) ?? []) {
     const trip = vehicle.tripId ? feed?.trips.get(vehicle.tripId) : undefined;
 
-    if (trip && (trip.direction_id ?? '') !== directionId) continue;
+    if (trip && (trip.direction_id ?? '') !== directionId) {
+      continue;
+    }
     if (!trip) {
       // A vehicle whose trip we cannot resolve might belong to either
       // direction, so it is listed rather than guessed onto this one.
@@ -143,7 +171,8 @@ function placeVehicles(
       const reasonSuffix =
         relationship !== undefined && relationship !== 0
           ? `; the feed reports it as ${
-              TRIP_SCHEDULE_RELATIONSHIP_LABELS[relationship] ?? String(relationship)
+              TRIP_SCHEDULE_RELATIONSHIP_LABELS[relationship] ??
+              String(relationship)
             }`
           : '';
       unplaced.push({
@@ -160,13 +189,16 @@ function placeVehicles(
     if (!current) {
       unplaced.push({
         vehicle,
-        reason: 'no current_stop_sequence, and no future prediction to derive one from',
+        reason:
+          'no current_stop_sequence, and no future prediction to derive one from',
       });
       continue;
     }
 
     const times = feed?.stopTimesByTrip.get(trip.trip_id) ?? [];
-    const stopIndex = times.findIndex(t => t.stop_sequence === current.sequence);
+    const stopIndex = times.findIndex(
+      (t) => t.stop_sequence === current.sequence
+    );
     if (stopIndex < 0) {
       unplaced.push({
         vehicle,
@@ -177,11 +209,19 @@ function placeVehicles(
 
     const position = sequence.positionOf(trip.trip_id, stopIndex);
     if (position === null) {
-      unplaced.push({ vehicle, reason: "this trip's stop pattern is not among those shown" });
+      unplaced.push({
+        vehicle,
+        reason: "this trip's stop pattern is not among those shown",
+      });
       continue;
     }
 
-    placed.push({ vehicle, position, atStop: vehicle.currentStatus === 1, current });
+    placed.push({
+      vehicle,
+      position,
+      atStop: vehicle.currentStatus === 1,
+      current,
+    });
   }
 
   return { placed, unplaced };
@@ -198,7 +238,7 @@ function stripRow(
   railHtml: string,
   content: string,
   laneCount: number,
-  stopId?: string,
+  stopId?: string
 ): string {
   const rowAttrs = stopId ? ` data-stop-id="${escHtml(stopId)}"` : '';
   return `<div class="grid gap-2 items-stretch ${
@@ -214,7 +254,9 @@ function stripRow(
  * the delay. Calculated values are italic; the hover is the prediction row's.
  */
 function eta(prediction: Prediction | undefined): string {
-  if (!prediction) return '';
+  if (!prediction) {
+    return '';
+  }
   const ev = primaryEvent(prediction);
   const parts: string[] = [];
   if (ev.time !== undefined) {
@@ -225,15 +267,17 @@ function eta(prediction: Prediction | undefined): string {
         ? `<span class="${cls} opacity-60">${escHtml(formatDuration(secs))} ago</span>`
         : secs < 3600
           ? `<span class="${cls}">${escHtml(formatDuration(secs))}</span>`
-          : `<span class="${cls}">${escHtml(formatEpochTime(ev.time))}</span>`,
+          : `<span class="${cls}">${escHtml(formatEpochTime(ev.time))}</span>`
     );
   }
   if (ev.delay !== undefined) {
-    parts.push(`<span class="${derivedClass(ev.delayFrom).trim()}">${formatDelay(ev.delay)}</span>`);
+    parts.push(
+      `<span class="${derivedClass(ev.delayFrom).trim()}">${formatDelay(ev.delay)}</span>`
+    );
   }
   return parts.length
     ? `<span class="text-xs flex gap-2 shrink-0 ${TOOLTIP_TRIGGER_CLASS}" tabindex="0" ${tooltipContentAttr(
-        predictionTooltip(prediction),
+        predictionTooltip(prediction)
       )}>${parts.join('')}</span>`
     : '';
 }
@@ -241,7 +285,7 @@ function eta(prediction: Prediction | undefined): string {
 function vehicleChip(
   ctx: RenderContext,
   vehicle: VehiclePosition,
-  current: VehicleStopSequence,
+  current: VehicleStopSequence
 ): string {
   const label = vehicleDisplayName(ctx.session.scheduledFeed, vehicle);
   const status =
@@ -252,7 +296,8 @@ function vehicleChip(
     vehicle.occupancyStatus === undefined
       ? ''
       : `<span class="opacity-60">${escHtml(
-          OCCUPANCY_LABELS[vehicle.occupancyStatus] ?? String(vehicle.occupancyStatus),
+          OCCUPANCY_LABELS[vehicle.occupancyStatus] ??
+            String(vehicle.occupancyStatus)
         )}</span>`;
   return `<div class="text-xs flex items-center gap-1 flex-wrap">
     <span class="badge badge-xs badge-neutral">${renderTriangleIcon('h-2 w-2')}</span>
@@ -265,7 +310,9 @@ function vehicleChip(
 }
 
 function alertPips(ctx: RenderContext, alerts: AlertRecord[]): string {
-  if (alerts.length === 0) return '';
+  if (alerts.length === 0) {
+    return '';
+  }
   const first = alerts[0];
   const label = alerts.length === 1 ? '1 alert' : `${alerts.length} alerts`;
   return entityLink(
@@ -273,7 +320,7 @@ function alertPips(ctx: RenderContext, alerts: AlertRecord[]): string {
     { type: 'alert', alert_id: first.id },
     label,
     'badge badge-warning badge-xs shrink-0 gap-1',
-    renderWarningIcon('h-3 w-3'),
+    renderWarningIcon('h-3 w-3')
   );
 }
 
@@ -290,7 +337,7 @@ function renderStrip(
   route: Route,
   sequence: RouteSequence,
   directionId: string,
-  placed: PlacedVehicle[],
+  placed: PlacedVehicle[]
 ): string {
   const feed = ctx.session.scheduledFeed;
   if (sequence.stops.length === 0) {
@@ -302,8 +349,11 @@ function renderStrip(
   for (const p of placed) {
     const bucket = p.atStop ? at : before;
     const list = bucket.get(p.position);
-    if (list) list.push(p);
-    else bucket.set(p.position, [p]);
+    if (list) {
+      list.push(p);
+    } else {
+      bucket.set(p.position, [p]);
+    }
   }
 
   const graph = routeGraph(sequence);
@@ -326,7 +376,11 @@ function renderStrip(
     chipsBefore.forEach((p, n) => {
       rows.push({
         dot: { kind: 'none' },
-        paths: rowPaths(graph, index, { kind: 'gap', side: 'above', last: n === 0 }),
+        paths: rowPaths(graph, index, {
+          kind: 'gap',
+          side: 'above',
+          last: n === 0,
+        }),
         content: vehicleChip(ctx, p.vehicle, p.current),
       });
     });
@@ -339,7 +393,12 @@ function renderStrip(
     // makes between boardable descendants (service) and all of them (alerts).
     const serviceIds = [stopId, ...(feed?.boardableDescendants(stopId) ?? [])];
     const alertIds = [stopId, ...(feed?.descendants(stopId) ?? [])];
-    const prediction = rt.nextAtStopsForRoute(serviceIds, route.id, directionId, feed ?? null);
+    const prediction = rt.nextAtStopsForRoute(
+      serviceIds,
+      route.id,
+      directionId,
+      feed ?? null
+    );
     const stopAlerts = alertsForRouteStop(ctx.session, route.id, alertIds);
 
     const stats = sequence.stopStats[index];
@@ -355,12 +414,12 @@ function renderStrip(
         leadOut: chipsAt.length > 0,
       }),
       content: `<div class="flex items-center gap-2" title="${escHtml(
-        `Served by ${stats.serves} of ${sequence.totalTrips} trips`,
+        `Served by ${stats.serves} of ${sequence.totalTrips} trips`
       )}">
         <span class="flex-1 min-w-0 truncate text-sm${minority ? ' opacity-60' : ''}">${entityLink(
           ctx,
           { type: 'stop', stop_id: stopId },
-          name,
+          name
         )}${
           stop.occurrence > 0
             ? `<span class="opacity-50 text-xs ml-1">(visit ${stop.occurrence + 1})</span>`
@@ -370,7 +429,7 @@ function renderStrip(
         ${
           minority
             ? `<span class="text-xs opacity-50 tabular-nums shrink-0">${escHtml(
-                `${stats.serves} of ${sequence.totalTrips} trips`,
+                `${stats.serves} of ${sequence.totalTrips} trips`
               )}</span>`
             : ''
         }
@@ -393,13 +452,13 @@ function renderStrip(
   });
 
   return `<div class="-mx-1">${rows
-    .map(row =>
+    .map((row) =>
       stripRow(
         railCell(route.color, graph.laneCount, row.paths, row.dot),
         row.content,
         graph.laneCount,
-        row.stopId,
-      ),
+        row.stopId
+      )
     )
     .join('')}</div>`;
 }
@@ -407,22 +466,24 @@ function renderStrip(
 // ─── Unplaced notes ───────────────────────────────────────────────────────────
 
 function renderUnplaced(ctx: RenderContext, unplaced: Unplaced[]): string {
-  if (unplaced.length === 0) return '';
+  if (unplaced.length === 0) {
+    return '';
+  }
   return rowSection(
     'Unplaced trackers',
     unplaced.length,
     `<p class="text-xs opacity-60">On this route but not positionable on the strip.</p>
      ${entityRowList(
-       unplaced.map(u =>
+       unplaced.map((u) =>
          entityRow(ctx, {
            state: { type: 'tracker', tracker_id: u.vehicle.trackerId },
            label: vehicleDisplayName(ctx.session.scheduledFeed, u.vehicle),
            sublabel: u.reason,
            badgeHtml: tripRelationshipMark(u.relationship),
-         }),
+         })
        ),
-       '',
-     )}`,
+       ''
+     )}`
   );
 }
 
@@ -439,55 +500,74 @@ function assignedTrackers(ctx: RenderContext): Map<string, string> {
   const byTrip = new Map<string, string>();
   for (const rule of session.rules?.values() ?? []) {
     const tracker = session.trackers.get(rule.tracker_id);
-    if (!tracker || byTrip.has(rule.trip_id)) continue;
+    if (!tracker || byTrip.has(rule.trip_id)) {
+      continue;
+    }
     byTrip.set(rule.trip_id, tracker.nickname);
   }
   return byTrip;
 }
 
 /** `Unassigned`, in the same style a badge from the API would render in. */
-const UNASSIGNED_BADGE = '<span class="badge badge-ghost badge-xs opacity-60">Unassigned</span>';
+const UNASSIGNED_BADGE =
+  '<span class="badge badge-ghost badge-xs opacity-60">Unassigned</span>';
 
 /**
  * The route's trips in this direction, ordered by first departure, so the tree
  * can be walked down to a trip page. A busy route has thousands of them, so the
  * list scrolls in place, is capped, and says how many it left out.
  */
-function renderTrips(ctx: RenderContext, routeId: string, directionId: string): string {
+function renderTrips(
+  ctx: RenderContext,
+  routeId: string,
+  directionId: string
+): string {
   const feed = ctx.session.scheduledFeed!;
   const trips = (feed.tripsByRoute.get(routeId) ?? []).filter(
-    t => (t.direction_id ?? '') === directionId,
+    (t) => (t.direction_id ?? '') === directionId
   );
-  if (trips.length === 0) return '';
+  if (trips.length === 0) {
+    return '';
+  }
 
   // Sorted on the raw clock string: GTFS times are zero-padded and may run past
   // 24:00, so lexicographic order is departure order and a Date would break it.
   const departure = (trip_id: string): string =>
     feed.stopTimesByTrip.get(trip_id)?.[0]?.departure_time ?? '';
-  const ordered = [...trips].sort((a, b) => departure(a.trip_id).localeCompare(departure(b.trip_id)));
+  const ordered = [...trips].sort((a, b) =>
+    departure(a.trip_id).localeCompare(departure(b.trip_id))
+  );
   const shown = ordered.slice(0, CONFIG.ROUTE_TRIP_LIST_MAX);
 
   // The departure moves to the second line so the badge can carry the assigned
   // tracker: which tracker runs a trip is what this app is for, and the clock
   // time is already the order the rows are in.
   const assigned = assignedTrackers(ctx);
-  const rows = shown.map(trip =>
+  const rows = shown.map((trip) =>
     entityRow(ctx, {
       state: { type: 'trip', trip_id: trip.trip_id, route_id: routeId },
       label: trip.raw.trip_short_name?.trim() || trip.headsign || trip.trip_id,
-      sublabel: formatScheduledTime(departure(trip.trip_id) || undefined, false),
-      ...(assigned.has(trip.trip_id) ? { badge: assigned.get(trip.trip_id)! } : { badgeHtml: UNASSIGNED_BADGE }),
-    }),
+      sublabel: formatScheduledTime(
+        departure(trip.trip_id) || undefined,
+        false
+      ),
+      ...(assigned.has(trip.trip_id)
+        ? { badge: assigned.get(trip.trip_id)! }
+        : { badgeHtml: UNASSIGNED_BADGE }),
+    })
   );
 
   const more =
     ordered.length > shown.length
       ? `<p class="text-xs opacity-50">${escHtml(
-          `${ordered.length - shown.length} more trips not shown.`,
+          `${ordered.length - shown.length} more trips not shown.`
         )}</p>`
       : '';
 
-  const counts = assignmentCounts(ctx.session, ordered.map(trip => trip.trip_id));
+  const counts = assignmentCounts(
+    ctx.session,
+    ordered.map((trip) => trip.trip_id)
+  );
   const unassigned = counts ? counts.total - counts.assigned : null;
 
   return rowSection(
@@ -495,9 +575,13 @@ function renderTrips(ctx: RenderContext, routeId: string, directionId: string): 
     ordered.length,
     `<div class="max-h-96 overflow-y-auto overflow-x-hidden px-2">${entityRowList(
       rows,
-      'No trips in this direction.',
+      'No trips in this direction.'
     )}</div>${more}`,
-    unassigned === null ? countBadge('—') : unassigned > 0 ? countBadge(`${unassigned} unassigned`) : '',
+    unassigned === null
+      ? countBadge('—')
+      : unassigned > 0
+        ? countBadge(`${unassigned} unassigned`)
+        : ''
   );
 }
 
@@ -510,22 +594,29 @@ function renderTrips(ctx: RenderContext, routeId: string, directionId: string): 
  */
 function renderServices(ctx: RenderContext, route: Route): string {
   const feed = ctx.session.scheduledFeed!;
-  const services = servicesForTrips(feed, feed.tripsByRoute.get(route.id) ?? []);
-  if (services.length === 0) return '';
+  const services = servicesForTrips(
+    feed,
+    feed.tripsByRoute.get(route.id) ?? []
+  );
+  if (services.length === 0) {
+    return '';
+  }
 
   const shown = services.slice(0, CONFIG.SERVICE_LIST_MAX);
-  const rows = shown.map(service =>
+  const rows = shown.map((service) =>
     entityRow(ctx, {
       label: service.id,
       sublabel: weekdaysLabel(service.days),
-      ...(service.start && service.end ? { badge: `${service.start} to ${service.end}` } : {}),
-    }),
+      ...(service.start && service.end
+        ? { badge: `${service.start} to ${service.end}` }
+        : {}),
+    })
   );
 
   return rowSection(
     'Service calendar',
     services.length,
-    `${entityRowList(rows, '')}${cappedNote(services.length, shown.length)}`,
+    `${entityRowList(rows, '')}${cappedNote(services.length, shown.length)}`
   );
 }
 
@@ -534,36 +625,39 @@ function renderServices(ctx: RenderContext, route: Route): string {
 export function renderRoutePage(
   ctx: RenderContext,
   rt: RtIndex,
-  state: Extract<PageState, { type: 'route' }>,
+  state: Extract<PageState, { type: 'route' }>
 ): string {
   const feed = ctx.session.scheduledFeed;
   const route = feed?.routes.get(state.route_id);
-  if (!feed || !route) return missing(`Route ${state.route_id}`);
+  if (!feed || !route) {
+    return missing(`Route ${state.route_id}`);
+  }
 
   const source = new GTFSScheduledRouteSource(feed);
   const directions = directionsForRoute(source, route.id);
 
-  const agency = feed.agencies.find(a => a.id === route.agency_id) ?? feed.agencies[0];
+  const agency =
+    feed.agencies.find((a) => a.id === route.agency_id) ?? feed.agencies[0];
 
   return `
     <div class="space-y-4">
       ${pageHeader(
         route.long_name || route.short_name || route.id,
         route.id,
-        routeBadge(ctx, route),
+        routeBadge(ctx, route)
       )}
 
       ${renderAlertList(ctx, feedWideAlerts(ctx.session), 'Feed-wide alerts')}
       ${renderAlertList(ctx, alertsForRoute(ctx.session, route.id), 'Route alerts')}
 
-      ${renderDirectionSections(directions, d => {
+      ${renderDirectionSections(directions, (d) => {
         const sequence = routeSequence(source, route.id, d.direction_id);
         const { placed, unplaced } = placeVehicles(
           ctx,
           rt,
           sequence,
           route.id,
-          d.direction_id,
+          d.direction_id
         );
         return `
           ${renderCoverage(sequence)}
@@ -576,11 +670,17 @@ export function renderRoutePage(
       ${section(
         'Route',
         propList([
-          prop('Mode', escHtml(ROUTE_TYPE_LABELS[route.type] ?? `route_type ${route.type}`)),
+          prop(
+            'Mode',
+            escHtml(ROUTE_TYPE_LABELS[route.type] ?? `route_type ${route.type}`)
+          ),
           agency?.name ? prop('Agency', escHtml(agency.name)) : '',
           prop('Trips', String((feed.tripsByRoute.get(route.id) ?? []).length)),
-          prop('Trackers with a fix', String((rt.vehiclesByRoute.get(route.id) ?? []).length)),
-        ]),
+          prop(
+            'Trackers with a fix',
+            String((rt.vehiclesByRoute.get(route.id) ?? []).length)
+          ),
+        ])
       )}
       ${renderRawFields('routes.txt', route.raw)}
     </div>`;

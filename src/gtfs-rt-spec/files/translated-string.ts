@@ -17,24 +17,21 @@ export const translatedStringSpec: RTMessageSpec = {
       type: 'Translation',
       presence: 'Required',
       cardinality: 'Many',
-      description:
-        'At least one translation must be provided.',
+      description: 'At least one translation must be provided.',
     },
   ],
 };
 
 export const translationSpec: RTMessageSpec = {
   name: 'Translation',
-  description:
-    'A localized string mapped to a language.',
+  description: 'A localized string mapped to a language.',
   fields: [
     {
       name: 'text',
       type: 'string',
       presence: 'Required',
       cardinality: 'One',
-      description:
-        'A UTF-8 string containing the message.',
+      description: 'A UTF-8 string containing the message.',
     },
     {
       name: 'language',

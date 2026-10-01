@@ -90,8 +90,19 @@ import {
   toLocalInput,
 } from './managed-render';
 import { parseGtfsClock } from 'gtfs-zone-web-common/gtfs/feed-time';
-import { dayLabel, isServiceDate, today, WEEKDAY_KEYS, weekdayKey } from './service-date';
-import { assignableTrips, tripLabel, tripName, tripOptions } from './trip-picker';
+import {
+  dayLabel,
+  isServiceDate,
+  today,
+  WEEKDAY_KEYS,
+  weekdayKey,
+} from './service-date';
+import {
+  assignableTrips,
+  tripLabel,
+  tripName,
+  tripOptions,
+} from './trip-picker';
 import { showModal } from 'gtfs-zone-web-common/ui/modal-utils';
 import { notify } from 'gtfs-zone-web-common/ui/notification-system';
 import { escHtml } from 'gtfs-zone-web-common/gtfs/entity-render';
@@ -113,7 +124,10 @@ interface MenuChoice {
  * `src/gtfs-rt-spec/` records. `enumLabel` is the fallback for a value the
  * reference has since dropped but a stored alert still carries.
  */
-function enumOptions(values: readonly string[], enumName: string): FieldOption[] {
+function enumOptions(
+  values: readonly string[],
+  enumName: string
+): FieldOption[] {
   const spec = rtEnum(enumName);
   return [
     { value: '', label: '—' },
@@ -133,7 +147,9 @@ function orNull(value: string): string | null {
 /** A whole number, or null for a field left empty. Never `NaN`. */
 function orNullNumber(value: string): number | null {
   const trimmed = value.trim();
-  if (!trimmed) return null;
+  if (!trimmed) {
+    return null;
+  }
   const n = Number(trimmed);
   return Number.isFinite(n) ? n : null;
 }
@@ -239,7 +255,9 @@ export class Actions {
     } catch (err) {
       // Everything reachable from a form reports its own failure inside the
       // form. This is the net under the confirmations and the reads.
-      if (err instanceof SessionExpiredError) return;
+      if (err instanceof SessionExpiredError) {
+        return;
+      }
       notify.error(err instanceof Error ? err.message : String(err));
     }
   }
@@ -248,13 +266,17 @@ export class Actions {
 
   private feedOrWarn(): Feed | null {
     const feed = this.session.feed;
-    if (!feed) notify.warning('Select a feed first.');
+    if (!feed) {
+      notify.warning('Select a feed first.');
+    }
     return feed;
   }
 
   private async editFeed(): Promise<void> {
     const feed = this.feedOrWarn();
-    if (!feed) return;
+    if (!feed) {
+      return;
+    }
 
     const updated = await showEntityForm<Feed>({
       title: `Edit ${feed.feed_name}`,
@@ -265,12 +287,16 @@ export class Actions {
           label: 'Name',
           value: feed.feed_name,
           autofocus: true,
-          tooltip: 'Appears in every public GTFS-RT URL this feed serves, so renaming it moves them.',
+          tooltip:
+            'Appears in every public GTFS-RT URL this feed serves, so renaming it moves them.',
         },
       ],
-      submit: (values) => updateFeed(feed.id, { feed_name: values.feed_name.trim() }),
+      submit: (values) =>
+        updateFeed(feed.id, { feed_name: values.feed_name.trim() }),
     });
-    if (!updated) return;
+    if (!updated) {
+      return;
+    }
 
     // Owns the hash rewrite: `feed_name` is what a shareable link carries.
     this.app.adoptFeedRow(updated);
@@ -287,7 +313,9 @@ export class Actions {
    */
   private async linkSchedule(): Promise<void> {
     const feed = this.feedOrWarn();
-    if (!feed) return;
+    if (!feed) {
+      return;
+    }
 
     const updated = await showEntityForm<Feed>({
       title: 'Load schedule from URL',
@@ -300,13 +328,20 @@ export class Actions {
           value: feed.static_feed_url,
           autofocus: true,
           placeholder: 'https://example.com/gtfs.zip',
-          tooltip: 'Changing it re-downloads the schedule, here and on the server.',
+          tooltip:
+            'Changing it re-downloads the schedule, here and on the server.',
         },
       ],
       validate: (values): Record<string, string> | null => {
         const url = values.static_feed_url.trim();
-        if (!url) return { static_feed_url: 'A linked feed needs a scheduled feed URL' };
-        if (!isHttpUrl(url)) return { static_feed_url: 'Must be a valid http or https URL' };
+        if (!url) {
+          return {
+            static_feed_url: 'A linked feed needs a scheduled feed URL',
+          };
+        }
+        if (!isHttpUrl(url)) {
+          return { static_feed_url: 'Must be a valid http or https URL' };
+        }
         return null;
       },
       submit: (values) =>
@@ -315,7 +350,9 @@ export class Actions {
           static_feed_url: values.static_feed_url.trim(),
         }),
     });
-    if (!updated) return;
+    if (!updated) {
+      return;
+    }
 
     this.app.adoptFeedRow(updated);
     notify.success(`Saved ${updated.feed_name}`);
@@ -339,7 +376,9 @@ export class Actions {
    */
   private async reloadSchedule(): Promise<void> {
     const feed = this.feedOrWarn();
-    if (!feed) return;
+    if (!feed) {
+      return;
+    }
 
     await reloadFeed(feed.id);
     notify.info(`Queued a reload of ${feed.feed_name}`);
@@ -352,7 +391,9 @@ export class Actions {
 
   private async replaceSchedule(): Promise<void> {
     const feed = this.feedOrWarn();
-    if (!feed) return;
+    if (!feed) {
+      return;
+    }
 
     const uploaded = await showEntityForm<GtfsUpload>({
       title: isHosted(feed) ? 'Replace schedule' : 'Upload a schedule',
@@ -367,9 +408,13 @@ export class Actions {
         values.file ? null : { file: 'Choose a schedule zip to upload' },
       submit: (_values, files) => putSchedule(feed.id, files.file!),
     });
-    if (!uploaded) return;
+    if (!uploaded) {
+      return;
+    }
 
-    notify.success(`Uploaded ${uploaded.original_filename} (${formatBytes(uploaded.size_bytes)})`);
+    notify.success(
+      `Uploaded ${uploaded.original_filename} (${formatBytes(uploaded.size_bytes)})`
+    );
     await this.app.refreshFeed();
     await this.app.refreshUploads();
     // Both halves re-read the new zip: the server has been asked to, and this
@@ -380,7 +425,9 @@ export class Actions {
   /** The public URL of the schedule, for pasting into whatever consumes it. */
   private async copyScheduleUrl(): Promise<void> {
     const feed = this.feedOrWarn();
-    if (!feed) return;
+    if (!feed) {
+      return;
+    }
     const url = publicScheduleUrl(feed);
     if (!url) {
       notify.warning('This feed has no schedule URL yet.');
@@ -398,9 +445,13 @@ export class Actions {
   /** Roll the feed back to an earlier upload. A pointer move *and* a re-load. */
   private async activateSchedule(uploadId: string): Promise<void> {
     const feed = this.feedOrWarn();
-    if (!feed) return;
+    if (!feed) {
+      return;
+    }
     const upload = this.session.uploads?.find((u) => u.id === uploadId);
-    if (!upload) return;
+    if (!upload) {
+      return;
+    }
 
     const confirmed = await confirmAction({
       title: 'Serve this upload',
@@ -411,7 +462,9 @@ export class Actions {
       ],
       confirmLabel: 'Serve it',
     });
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     await activateUpload(feed.id, upload.id);
     notify.success(`Now serving ${upload.original_filename}`);
@@ -423,9 +476,13 @@ export class Actions {
   /** Forget one upload. The server refuses the one being served. */
   private async removeUpload(uploadId: string): Promise<void> {
     const feed = this.feedOrWarn();
-    if (!feed) return;
+    if (!feed) {
+      return;
+    }
     const upload = this.session.uploads?.find((u) => u.id === uploadId);
-    if (!upload) return;
+    if (!upload) {
+      return;
+    }
 
     const confirmed = await confirmAction({
       title: 'Delete this upload',
@@ -433,7 +490,9 @@ export class Actions {
       consequences: ['You will not be able to roll back to it'],
       confirmLabel: 'Delete',
     });
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     await deleteUpload(feed.id, upload.id);
     notify.success(`Deleted ${upload.original_filename}`);
@@ -442,7 +501,9 @@ export class Actions {
 
   private async removeFeed(): Promise<void> {
     const feed = this.feedOrWarn();
-    if (!feed) return;
+    if (!feed) {
+      return;
+    }
 
     const trackers = this.session.trackers.size;
     const alerts = this.session.serviceAlerts.size;
@@ -457,7 +518,9 @@ export class Actions {
         'The published GTFS-RT URLs stop answering, and the name is free to be taken',
       ],
     });
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     await deleteFeed(feed.id);
     notify.success(`Deleted ${feed.feed_name}`);
@@ -466,12 +529,16 @@ export class Actions {
 
   private async transferFeed(): Promise<void> {
     const feed = this.feedOrWarn();
-    if (!feed) return;
+    if (!feed) {
+      return;
+    }
 
     // Only a member can receive it, which is the server's rule too, so the
     // form offers exactly the managers who can be chosen rather than a free
     // field that would fail on save.
-    const candidates = (this.session.members?.members ?? []).filter((m) => !m.is_owner);
+    const candidates = (this.session.members?.members ?? []).filter(
+      (m) => !m.is_owner
+    );
     if (candidates.length === 0) {
       notify.warning('Add a manager before handing it over.');
       return;
@@ -497,18 +564,24 @@ export class Actions {
       ],
       submit: (values) => transferFeed(feed.id, Number(values.new_owner_id)),
     });
-    if (!updated) return;
+    if (!updated) {
+      return;
+    }
 
     this.app.adoptFeedRow(updated);
     await this.app.refreshMembers();
-    notify.success(`${feed.feed_name} now belongs to ${updated.owner_name ?? 'them'}`);
+    notify.success(
+      `${feed.feed_name} now belongs to ${updated.owner_name ?? 'them'}`
+    );
   }
 
   // ─── Trackers ──────────────────────────────────────────────────────────────
 
   private async newTracker(): Promise<void> {
     const feed = this.feedOrWarn();
-    if (!feed) return;
+    if (!feed) {
+      return;
+    }
 
     const created = await showEntityForm<TrackerDetail>({
       title: 'New tracker',
@@ -518,13 +591,15 @@ export class Actions {
           name: 'nickname',
           label: 'Nickname',
           autofocus: true,
-          tooltip: 'The label the map and the public feed show. Unique within this feed.',
+          tooltip:
+            'The label the map and the public feed show. Unique within this feed.',
         },
         {
           name: 'device_key',
           label: 'Device key',
           placeholder: 'generated for you',
-          tooltip: 'The Traccar credential. Settable now and never again, so leave it blank unless you are matching an existing device.',
+          tooltip:
+            'The Traccar credential. Settable now and never again, so leave it blank unless you are matching an existing device.',
         },
       ],
       submit: (values) => {
@@ -535,7 +610,9 @@ export class Actions {
         });
       },
     });
-    if (!created) return;
+    if (!created) {
+      return;
+    }
 
     await this.app.refreshTrackers();
     // The create response is the detail form, so the credential is already in
@@ -550,7 +627,9 @@ export class Actions {
 
   private async editTracker(trackerId: string): Promise<void> {
     const tracker = this.session.trackers.get(trackerId);
-    if (!tracker) return;
+    if (!tracker) {
+      return;
+    }
 
     const updated = await showEntityForm<Tracker>({
       title: `Rename ${tracker.nickname}`,
@@ -558,11 +637,19 @@ export class Actions {
         'The nickname is a label, not an address: links to this tracker keep working after a rename.',
       conflictField: 'nickname',
       fields: [
-        { name: 'nickname', label: 'Nickname', value: tracker.nickname, autofocus: true },
+        {
+          name: 'nickname',
+          label: 'Nickname',
+          value: tracker.nickname,
+          autofocus: true,
+        },
       ],
-      submit: (values) => updateTracker(tracker.id, { nickname: values.nickname.trim() }),
+      submit: (values) =>
+        updateTracker(tracker.id, { nickname: values.nickname.trim() }),
     });
-    if (!updated) return;
+    if (!updated) {
+      return;
+    }
 
     await this.app.refreshTrackers();
     notify.success(`Renamed to ${updated.nickname}`);
@@ -570,7 +657,9 @@ export class Actions {
 
   private async removeTracker(trackerId: string): Promise<void> {
     const tracker = this.session.trackers.get(trackerId);
-    if (!tracker) return;
+    if (!tracker) {
+      return;
+    }
 
     const confirmed = await confirmTyped({
       title: `Delete ${tracker.nickname}`,
@@ -582,13 +671,18 @@ export class Actions {
         'Its Traccar device is retired, so the credential stops working',
       ],
     });
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     await deleteTracker(tracker.id);
     await this.app.refreshTrackers();
     notify.success(`Deleted ${tracker.nickname}`);
     // The page it was on is gone; anything else would render "not found".
-    if (this.app.focus.type === 'tracker' && this.app.focus.tracker_id === tracker.id) {
+    if (
+      this.app.focus.type === 'tracker' &&
+      this.app.focus.tracker_id === tracker.id
+    ) {
       this.app.clearFocus();
     }
   }
@@ -603,7 +697,9 @@ export class Actions {
    */
   private async showProvisioning(trackerId: string): Promise<void> {
     const tracker = this.session.trackers.get(trackerId);
-    if (!tracker) return;
+    if (!tracker) {
+      return;
+    }
 
     const provisioning = await getProvisioning(trackerId);
     await showModal({
@@ -649,7 +745,8 @@ export class Actions {
         spec: { message: 'Alert', field: 'header_text' },
         value: alert?.header_text ?? '',
         autofocus: true,
-        tooltip: 'The one line a rider sees. Shown in every consumer of this feed.',
+        tooltip:
+          'The one line a rider sees. Shown in every consumer of this feed.',
       },
       {
         name: 'description_text',
@@ -699,7 +796,8 @@ export class Actions {
         spec: { message: 'TimeRange', field: 'start' },
         type: 'datetime',
         value: toLocalInput(alert?.active_period_start),
-        tooltip: 'In your own timezone. Leave both blank to publish it for as long as it exists.',
+        tooltip:
+          'In your own timezone. Leave both blank to publish it for as long as it exists.',
       },
       {
         name: 'active_period_end',
@@ -718,7 +816,9 @@ export class Actions {
    * would otherwise reach `fromLocalInput`, come back null, and publish the
    * alert with no window at all.
    */
-  private validateAlert(values: Record<string, string>): Record<string, string> | null {
+  private validateAlert(
+    values: Record<string, string>
+  ): Record<string, string> | null {
     const errors: Record<string, string> = {};
     for (const name of ['active_period_start', 'active_period_end']) {
       if (values[name].trim() && fromLocalInput(values[name]) === null) {
@@ -744,7 +844,9 @@ export class Actions {
 
   private async newAlert(): Promise<void> {
     const feed = this.feedOrWarn();
-    if (!feed) return;
+    if (!feed) {
+      return;
+    }
 
     const created = await showEntityForm<Alert>({
       title: 'New service alert',
@@ -755,7 +857,9 @@ export class Actions {
       validate: (values) => this.validateAlert(values),
       submit: (values) => createAlert(feed.id, this.alertBody(values)),
     });
-    if (!created) return;
+    if (!created) {
+      return;
+    }
 
     await this.app.refreshServiceAlerts();
     notify.success('Published the alert');
@@ -764,7 +868,9 @@ export class Actions {
 
   private async editAlert(alertId: string): Promise<void> {
     const alert = this.session.serviceAlerts.get(alertId);
-    if (!alert) return;
+    if (!alert) {
+      return;
+    }
 
     const updated = await showEntityForm<Alert>({
       title: 'Edit alert',
@@ -772,7 +878,9 @@ export class Actions {
       validate: (values) => this.validateAlert(values),
       submit: (values) => updateAlert(alert.id, this.alertBody(values)),
     });
-    if (!updated) return;
+    if (!updated) {
+      return;
+    }
 
     await this.app.refreshServiceAlerts();
     notify.success('Saved the alert');
@@ -780,7 +888,9 @@ export class Actions {
 
   private async removeAlert(alertId: string): Promise<void> {
     const alert = this.session.serviceAlerts.get(alertId);
-    if (!alert) return;
+    if (!alert) {
+      return;
+    }
 
     const confirmed = await confirmAction({
       title: 'Delete alert',
@@ -794,12 +904,17 @@ export class Actions {
         : [],
       confirmLabel: 'Delete',
     });
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     await deleteAlert(alert.id);
     await this.app.refreshServiceAlerts();
     notify.success('Deleted the alert');
-    if (this.app.focus.type === 'alert' && this.app.focus.alert_id === alertId) {
+    if (
+      this.app.focus.type === 'alert' &&
+      this.app.focus.alert_id === alertId
+    ) {
       this.app.clearFocus();
     }
   }
@@ -904,7 +1019,9 @@ export class Actions {
 
   private async addEntity(alertId: string): Promise<void> {
     const alert = this.session.serviceAlerts.get(alertId);
-    if (!alert) return;
+    if (!alert) {
+      return;
+    }
 
     const created = await showEntityForm({
       title: 'Add informed entity',
@@ -928,7 +1045,9 @@ export class Actions {
         return createEntity(alert.id, body);
       },
     });
-    if (!created) return;
+    if (!created) {
+      return;
+    }
 
     await this.refreshAlertDetail(alert.id);
     notify.success('Added the entity');
@@ -939,14 +1058,20 @@ export class Actions {
     // which is how the server scopes the delete too.
     const [alertId, entityId] = arg.split(':');
     const alert = this.session.serviceAlerts.get(alertId);
-    if (!alert) return;
+    if (!alert) {
+      return;
+    }
 
     const confirmed = await confirmAction({
       title: 'Remove informed entity',
       question: 'Remove this entity from the alert?',
-      consequences: ['The alert stays, and applies to the whole feed if this was its last entity'],
+      consequences: [
+        'The alert stays, and applies to the whole feed if this was its last entity',
+      ],
     });
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     await deleteEntity(alert.id, Number(entityId));
     await this.refreshAlertDetail(alert.id);
@@ -977,9 +1102,13 @@ export class Actions {
    */
   private assignScopeRoute(tripId: string | null): string | null {
     const feed = this.session.scheduledFeed;
-    if (tripId) return feed?.trips.get(tripId)?.route_id ?? null;
+    if (tripId) {
+      return feed?.trips.get(tripId)?.route_id ?? null;
+    }
     const focus = this.app.focus;
-    if (focus.type === 'route') return focus.route_id;
+    if (focus.type === 'route') {
+      return focus.route_id;
+    }
     if (focus.type === 'trip') {
       return focus.route_id ?? feed?.trips.get(focus.trip_id)?.route_id ?? null;
     }
@@ -1015,7 +1144,12 @@ export class Actions {
     }
     // Too many to list, or no schedule at all: the combo filters as it is
     // typed into and takes an id typed by hand either way.
-    return { ...base, type: 'combo', options: tripOptions(feed), comboEmpty: NO_SCHEDULE };
+    return {
+      ...base,
+      type: 'combo',
+      options: tripOptions(feed),
+      comboEmpty: NO_SCHEDULE,
+    };
   }
 
   /**
@@ -1052,7 +1186,9 @@ export class Actions {
         label: 'Runs on',
         type: 'weekdays',
         value: weekdayValue(
-          WEEKDAY_KEYS.map((key) => (rule ? Boolean(rule[key]) : key === weekdayKey(startDate)))
+          WEEKDAY_KEYS.map((key) =>
+            rule ? Boolean(rule[key]) : key === weekdayKey(startDate)
+          )
         ),
         visibleWhen: { field: 'repeats', equals: 'weekly' },
       },
@@ -1082,33 +1218,50 @@ export class Actions {
         label: 'Ends',
         value: rule ? ruleTimeInput(rule.end_time) : '',
         placeholder: 'HH:MM, or 25:10 for the small hours',
-        tooltip: 'Past midnight keeps counting: a run ending at 01:10 the next morning is 25:10.',
+        tooltip:
+          'Past midnight keeps counting: a run ending at 01:10 the next morning is 25:10.',
       },
     ];
   }
 
   /** Everything the form cannot express as a field, checked before the write. */
-  private validateRule(values: Record<string, string>): Record<string, string> | null {
+  private validateRule(
+    values: Record<string, string>
+  ): Record<string, string> | null {
     const errors: Record<string, string> = {};
-    if (!values.trip_id.trim()) errors.trip_id = 'A rule needs a trip';
+    if (!values.trip_id.trim()) {
+      errors.trip_id = 'A rule needs a trip';
+    }
     // The date boxes are typeable, so the shape is this form's to check: the
     // month grid can only produce a service date, but a person can type
     // anything into the box it fills in.
     const startDate = values.start_date.trim();
     const endDate = values.end_date.trim();
-    if (!startDate) errors.start_date = 'A rule needs a first service date';
-    else if (!isServiceDate(startDate)) errors.start_date = 'A date as YYYY-MM-DD';
-    if (endDate && !isServiceDate(endDate)) errors.end_date = 'A date as YYYY-MM-DD';
+    if (!startDate) {
+      errors.start_date = 'A rule needs a first service date';
+    } else if (!isServiceDate(startDate)) {
+      errors.start_date = 'A date as YYYY-MM-DD';
+    }
+    if (endDate && !isServiceDate(endDate)) {
+      errors.end_date = 'A date as YYYY-MM-DD';
+    }
     const start_time = parseRuleTime(values.start_time);
     const end_time = parseRuleTime(values.end_time);
-    if (start_time === null) errors.start_time = 'A clock time as HH:MM';
-    if (end_time === null) errors.end_time = 'A clock time as HH:MM';
+    if (start_time === null) {
+      errors.start_time = 'A clock time as HH:MM';
+    }
+    if (end_time === null) {
+      errors.end_time = 'A clock time as HH:MM';
+    }
     if (start_time !== null && end_time !== null && end_time <= start_time) {
       errors.end_time = 'The window ends before it starts';
     }
     // `Once` is where a rule with no weekday now belongs; `Weekly` with none
     // picked is a rule that never runs.
-    if (values.repeats === 'weekly' && !weekdayBits(values.weekdays).some(Boolean)) {
+    if (
+      values.repeats === 'weekly' &&
+      !weekdayBits(values.weekdays).some(Boolean)
+    ) {
       errors.weekdays = 'Pick at least one day, or choose Once';
     }
     return Object.keys(errors).length ? errors : null;
@@ -1124,7 +1277,9 @@ export class Actions {
    */
   private ruleBody(values: Record<string, string>): RuleWrite {
     const once = isOneOff(values);
-    const days = once ? [false, false, false, false, false, false, false] : weekdayBits(values.weekdays);
+    const days = once
+      ? [false, false, false, false, false, false, false]
+      : weekdayBits(values.weekdays);
     const startDate = values.start_date.trim();
     const endDate = values.end_date.trim();
     return {
@@ -1153,11 +1308,19 @@ export class Actions {
    */
   private tripWindow(tripId: string): { start: string; end: string } | null {
     const times = this.session.scheduledFeed?.stopTimesByTrip.get(tripId);
-    if (!times || times.length === 0) return null;
-    const start = parseGtfsClock(times[0].departure_time || times[0].arrival_time || undefined);
+    if (!times || times.length === 0) {
+      return null;
+    }
+    const start = parseGtfsClock(
+      times[0].departure_time || times[0].arrival_time || undefined
+    );
     const last = times[times.length - 1];
-    const end = parseGtfsClock(last.arrival_time || last.departure_time || undefined);
-    if (start === null || end === null || end <= start) return null;
+    const end = parseGtfsClock(
+      last.arrival_time || last.departure_time || undefined
+    );
+    if (start === null || end === null || end <= start) {
+      return null;
+    }
     return { start: ruleTimeInput(start), end: ruleTimeInput(end) };
   }
 
@@ -1165,9 +1328,14 @@ export class Actions {
    * Create an assignment. `arg` is the service date the calendar was on, or a
    * trip id when the ask came from a trip page.
    */
-  async newAssignment(arg: string, presetTrip: string | null = null): Promise<void> {
+  async newAssignment(
+    arg: string,
+    presetTrip: string | null = null
+  ): Promise<void> {
     const feed = this.feedOrWarn();
-    if (!feed) return;
+    if (!feed) {
+      return;
+    }
 
     const trackers = [...this.session.trackers.values()].sort((a, b) =>
       a.nickname.localeCompare(b.nickname)
@@ -1184,7 +1352,9 @@ export class Actions {
     const tripId = presetTrip ?? '';
     const scopeRoute = this.assignScopeRoute(presetTrip);
 
-    const trip = tripId ? this.session.scheduledFeed?.trips.get(tripId) : undefined;
+    const trip = tripId
+      ? this.session.scheduledFeed?.trips.get(tripId)
+      : undefined;
     const window = tripId ? this.tripWindow(tripId) : null;
     const fields = this.ruleFields(null, tripId, startDate, scopeRoute);
     // Prefilled from the trip's own schedule, which is what the window is
@@ -1217,7 +1387,9 @@ export class Actions {
         const errors = this.validateRule(values) ?? {};
         // The select carries an empty first option, and a rule with no tracker
         // would be posted to a path with a hole in it.
-        if (!values.tracker_id) errors.tracker_id = 'Pick a tracker';
+        if (!values.tracker_id) {
+          errors.tracker_id = 'Pick a tracker';
+        }
         return Object.keys(errors).length ? errors : null;
       },
       submit: async (values) => {
@@ -1234,7 +1406,9 @@ export class Actions {
         return rule;
       },
     });
-    if (!created) return;
+    if (!created) {
+      return;
+    }
 
     await this.app.refreshCalendar();
     notify.success('Assigned');
@@ -1242,11 +1416,15 @@ export class Actions {
 
   private async editAssignment(ruleId: string): Promise<void> {
     const rule = this.session.rules?.get(Number(ruleId));
-    if (!rule) return;
+    if (!rule) {
+      return;
+    }
     const tracker = this.session.trackers.get(rule.tracker_id);
 
     const updated = await showEntityForm<TrackerRule>({
-      title: tracker ? `Edit ${tracker.nickname}\u2019s assignment` : 'Edit assignment',
+      title: tracker
+        ? `Edit ${tracker.nickname}\u2019s assignment`
+        : 'Edit assignment',
       intro:
         'Changing when a rule runs leaves its per-day exceptions alone: they name dates, and "not on the 4th" survives a change of weekday.',
       fields: this.ruleFields(
@@ -1274,12 +1452,16 @@ export class Actions {
           const stray = rule.exceptions.find(
             (e) => e.date === rule.start_date && e.exception_type === 'added'
           );
-          if (stray) await deleteRuleException(rule.id, stray.id);
+          if (stray) {
+            await deleteRuleException(rule.id, stray.id);
+          }
         }
         return saved;
       },
     });
-    if (!updated) return;
+    if (!updated) {
+      return;
+    }
 
     await this.app.refreshCalendar();
     notify.success('Saved the assignment');
@@ -1287,7 +1469,9 @@ export class Actions {
 
   private async removeAssignment(ruleId: string): Promise<void> {
     const rule = this.session.rules?.get(Number(ruleId));
-    if (!rule) return;
+    if (!rule) {
+      return;
+    }
     const tracker = this.session.trackers.get(rule.tracker_id);
 
     const confirmed = await confirmAction({
@@ -1299,7 +1483,9 @@ export class Actions {
       ],
       confirmLabel: 'Delete',
     });
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     await deleteRule(rule.id);
     await this.app.refreshCalendar();
@@ -1313,14 +1499,21 @@ export class Actions {
    * for replaces it, so the two directions are the same call and neither has
    * to delete first.
    */
-  private async exceptOneDay(arg: string, type: 'added' | 'removed'): Promise<void> {
+  private async exceptOneDay(
+    arg: string,
+    type: 'added' | 'removed'
+  ): Promise<void> {
     const [ruleId, date] = arg.split(':');
     const rule = this.session.rules?.get(Number(ruleId));
-    if (!rule || !isServiceDate(date)) return;
+    if (!rule || !isServiceDate(date)) {
+      return;
+    }
 
     await addRuleException(rule.id, { date, exception_type: type });
     await this.app.refreshCalendar();
-    notify.success(type === 'removed' ? `Skipping ${date}` : `Running on ${date}`);
+    notify.success(
+      type === 'removed' ? `Skipping ${date}` : `Running on ${date}`
+    );
   }
 
   /** Drop a date's exception, putting it back under the weekday flags. */
@@ -1328,7 +1521,9 @@ export class Actions {
     const [ruleId, date] = arg.split(':');
     const rule = this.session.rules?.get(Number(ruleId));
     const exception = rule?.exceptions.find((e) => e.date === date);
-    if (!rule || !exception) return;
+    if (!rule || !exception) {
+      return;
+    }
 
     await deleteRuleException(rule.id, exception.id);
     await this.app.refreshCalendar();
@@ -1354,13 +1549,16 @@ export class Actions {
   private async editOneDay(arg: string): Promise<void> {
     const date = arg.slice(0, 10);
     const tripId = arg.slice(11);
-    if (!isServiceDate(date) || !tripId) return;
+    if (!isServiceDate(date) || !tripId) {
+      return;
+    }
 
     const rules = [...(this.session.rules?.values() ?? [])].filter(
       (rule) => rule.trip_id === tripId
     );
     const runningIds = new Set(
-      this.session.assignmentsOn(date)
+      this.session
+        .assignmentsOn(date)
         .filter((a) => a.trip_id === tripId)
         .map((a) => a.rule_id)
     );
@@ -1369,7 +1567,8 @@ export class Actions {
     const choices: MenuChoice[] = [];
 
     for (const rule of rules) {
-      const nickname = this.session.trackers.get(rule.tracker_id)?.nickname ?? rule.tracker_id;
+      const nickname =
+        this.session.trackers.get(rule.tracker_id)?.nickname ?? rule.tracker_id;
       const exception = rule.exceptions.find((e) => e.date === date);
       const running = runningIds.has(rule.id);
 
@@ -1377,20 +1576,24 @@ export class Actions {
         // The date already differs from the recurrence, so the write that
         // matters is putting it back rather than excepting it twice.
         choices.push({
-          label: running ? `Stop running ${nickname} on this date` : `Un-skip ${nickname}`,
+          label: running
+            ? `Stop running ${nickname} on this date`
+            : `Un-skip ${nickname}`,
           detail: 'Drops the exception, so this date follows the rule again.',
           run: () => this.undoException(`${rule.id}:${date}`),
         });
       } else if (running) {
         choices.push({
           label: `Skip ${nickname} on this date`,
-          detail: 'One removed exception. Every other date the rule covers is untouched.',
+          detail:
+            'One removed exception. Every other date the rule covers is untouched.',
           run: () => this.exceptOneDay(`${rule.id}:${date}`, 'removed'),
         });
       } else {
         choices.push({
           label: `Run ${nickname} on this date`,
-          detail: 'One added exception. The rule\u2019s weekdays are untouched.',
+          detail:
+            'One added exception. The rule\u2019s weekdays are untouched.',
           run: () => this.exceptOneDay(`${rule.id}:${date}`, 'added'),
         });
       }
@@ -1410,7 +1613,9 @@ export class Actions {
     });
 
     await this.chooseAndRun(
-      trip ? `${tripName(trip)} on ${dayLabel(date)}` : `${tripId} on ${dayLabel(date)}`,
+      trip
+        ? `${tripName(trip)} on ${dayLabel(date)}`
+        : `${tripId} on ${dayLabel(date)}`,
       choices
     );
   }
@@ -1422,7 +1627,10 @@ export class Actions {
    * as the cell has rules, each carries a sentence saying what it writes, and
    * `showModal`'s footer is for confirm/cancel.
    */
-  private async chooseAndRun(title: string, choices: MenuChoice[]): Promise<void> {
+  private async chooseAndRun(
+    title: string,
+    choices: MenuChoice[]
+  ): Promise<void> {
     // A holder rather than a bare `let`: the assignment happens inside the
     // mount handler, which the compiler's flow analysis does not follow.
     const picked: { choice?: MenuChoice } = {};
@@ -1444,13 +1652,17 @@ export class Actions {
       escapeAction: 0,
       boxClassName: 'max-w-md',
       onMount: (close) => {
-        const boxes = document.querySelectorAll<HTMLElement>('.modal-open .modal-box');
+        const boxes = document.querySelectorAll<HTMLElement>(
+          '.modal-open .modal-box'
+        );
         const box = boxes[boxes.length - 1];
         box.addEventListener('click', (event) => {
-          const button = (event.target as HTMLElement | null)?.closest<HTMLElement>(
-            '[data-choice]'
-          );
-          if (!button) return;
+          const button = (
+            event.target as HTMLElement | null
+          )?.closest<HTMLElement>('[data-choice]');
+          if (!button) {
+            return;
+          }
           picked.choice = choices[Number(button.dataset.choice)];
           close();
         });
@@ -1466,7 +1678,9 @@ export class Actions {
 
   private async addManager(): Promise<void> {
     const feed = this.feedOrWarn();
-    if (!feed) return;
+    if (!feed) {
+      return;
+    }
 
     const result = await showEntityForm({
       title: 'Add manager',
@@ -1483,7 +1697,9 @@ export class Actions {
       ],
       submit: (values) => addMember(feed.id, values.email.trim()),
     });
-    if (!result) return;
+    if (!result) {
+      return;
+    }
 
     await this.app.refreshMembers();
     // The server's own wording: "manager now" and "invited for later" are
@@ -1493,16 +1709,24 @@ export class Actions {
 
   private async removeManager(userId: string): Promise<void> {
     const feed = this.feedOrWarn();
-    if (!feed) return;
-    const member = this.session.members?.members.find((m) => m.user_id === Number(userId));
-    if (!member) return;
+    if (!feed) {
+      return;
+    }
+    const member = this.session.members?.members.find(
+      (m) => m.user_id === Number(userId)
+    );
+    if (!member) {
+      return;
+    }
 
     const confirmed = await confirmAction({
       title: 'Remove manager',
       question: `Take ${personLabel(member)} off ${feed.feed_name}?`,
       consequences: ['Anything they made on this feed stays'],
     });
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     await removeMember(feed.id, member.user_id);
     await this.app.refreshMembers();
@@ -1511,9 +1735,15 @@ export class Actions {
 
   private async revokePendingInvite(inviteId: string): Promise<void> {
     const feed = this.feedOrWarn();
-    if (!feed) return;
-    const invite = this.session.members?.invites.find((i) => i.id === Number(inviteId));
-    if (!invite) return;
+    if (!feed) {
+      return;
+    }
+    const invite = this.session.members?.invites.find(
+      (i) => i.id === Number(inviteId)
+    );
+    if (!invite) {
+      return;
+    }
 
     const confirmed = await confirmAction({
       title: 'Revoke invite',
@@ -1521,7 +1751,9 @@ export class Actions {
       consequences: ['They get nothing if they sign in later'],
       confirmLabel: 'Revoke',
     });
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     await revokeInvite(feed.id, invite.id);
     await this.app.refreshMembers();

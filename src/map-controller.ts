@@ -36,7 +36,11 @@ import { vehicleLocation } from './modules/vehicle-location';
 import type { GTFSScheduled } from 'gtfs-zone-web-common/gtfs/scheduled';
 import type { VehiclePosition as RtVehiclePosition } from 'gtfs-zone-web-common/gtfs/rt-types';
 import type { PageState } from './types/page-state';
-import { BasemapControl, initialMapStyle, onBasemapChanged } from 'gtfs-zone-web-common/map/basemap-control';
+import {
+  BasemapControl,
+  initialMapStyle,
+  onBasemapChanged,
+} from 'gtfs-zone-web-common/map/basemap-control';
 import type { MapAppearance } from 'gtfs-zone-web-common/map/basemap-control';
 import { AutoZoom } from 'gtfs-zone-web-common/map/auto-zoom';
 import { MAP_MAX_ZOOM } from 'gtfs-zone-web-common/map/basemap-styles';
@@ -73,7 +77,12 @@ interface MapView {
   pitch: number;
 }
 
-const DEFAULT_VIEW: MapView = { center: [0, 30], zoom: 2, bearing: 0, pitch: 0 };
+const DEFAULT_VIEW: MapView = {
+  center: [0, 30],
+  zoom: 2,
+  bearing: 0,
+  pitch: 0,
+};
 
 /**
  * Map view and appearance live in localStorage rather than the URL: they are
@@ -127,17 +136,29 @@ function tripAccent(): string {
 }
 
 /** Bounding box of a path, or null when there is nothing to frame. */
-function boundsOf(path: [number, number][] | null): [[number, number], [number, number]] | null {
-  if (!path || path.length === 0) return null;
+function boundsOf(
+  path: [number, number][] | null
+): [[number, number], [number, number]] | null {
+  if (!path || path.length === 0) {
+    return null;
+  }
   let west = Infinity;
   let south = Infinity;
   let east = -Infinity;
   let north = -Infinity;
   for (const [lon, lat] of path) {
-    if (lon < west) west = lon;
-    if (lon > east) east = lon;
-    if (lat < south) south = lat;
-    if (lat > north) north = lat;
+    if (lon < west) {
+      west = lon;
+    }
+    if (lon > east) {
+      east = lon;
+    }
+    if (lat < south) {
+      south = lat;
+    }
+    if (lat > north) {
+      north = lat;
+    }
   }
   return [
     [west, south],
@@ -223,7 +244,8 @@ export class MapController {
 
   initialize(container: string): void {
     const view = restoreView();
-    const appearance = readStored<MapAppearance>(CONFIG.MAP_APPEARANCE_KEY) ?? {};
+    const appearance =
+      readStored<MapAppearance>(CONFIG.MAP_APPEARANCE_KEY) ?? {};
 
     // maplibre resolves its worker relative to its own module URL, which
     // breaks once Vite bundles or pre-bundles it; point it at a Vite-built copy.
@@ -242,7 +264,7 @@ export class MapController {
     this.map.addControl(new maplibregl.NavigationControl(), 'bottom-left');
 
     this.layers = new LayerManager(this.map);
-    this.layers.onSelect = target => {
+    this.layers.onSelect = (target) => {
       switch (target.kind) {
         case 'stop':
           this.onSelect?.({ type: 'stop', stop_id: target.id });
@@ -253,7 +275,7 @@ export class MapController {
         case 'vehicle': {
           // `target.id` is the feature key, never a tracker id. A vehicle whose
           // record has just gone falls back to its tracker.
-          const vehicle = this.positions.find(p => p.key === target.id);
+          const vehicle = this.positions.find((p) => p.key === target.id);
           if (vehicle) {
             this.onSelect?.(vehicleLocation(this.positions, vehicle));
           } else if (target.trackerId) {
@@ -269,7 +291,8 @@ export class MapController {
 
     new BasemapControl(this.map, {
       initial: appearance,
-      onAppearanceChange: next => writeStored(CONFIG.MAP_APPEARANCE_KEY, next),
+      onAppearanceChange: (next) =>
+        writeStored(CONFIG.MAP_APPEARANCE_KEY, next),
     });
 
     this.map.once('load', () => {
@@ -278,7 +301,9 @@ export class MapController {
       this.ready = true;
       const queued = this.pending;
       this.pending = [];
-      for (const fn of queued) fn();
+      for (const fn of queued) {
+        fn();
+      }
     });
 
     // setStyle drops every source and layer we own, so each basemap change
@@ -298,9 +323,16 @@ export class MapController {
     // current focus. Our own programmatic easeTo/fitBounds carry no
     // `originalEvent`, which is exactly what distinguishes them from a real
     // drag/scroll/rotate/pitch — so the follow ease itself never unlocks.
-    for (const type of ['dragstart', 'zoomstart', 'rotatestart', 'pitchstart'] as const) {
-      this.map.on(type, e => {
-        if ((e as { originalEvent?: unknown }).originalEvent) this.following = null;
+    for (const type of [
+      'dragstart',
+      'zoomstart',
+      'rotatestart',
+      'pitchstart',
+    ] as const) {
+      this.map.on(type, (e) => {
+        if ((e as { originalEvent?: unknown }).originalEvent) {
+          this.following = null;
+        }
       });
     }
   }
@@ -319,7 +351,9 @@ export class MapController {
   }
 
   private queueViewSave(): void {
-    if (this.viewSaveTimeout) clearTimeout(this.viewSaveTimeout);
+    if (this.viewSaveTimeout) {
+      clearTimeout(this.viewSaveTimeout);
+    }
     this.viewSaveTimeout = setTimeout(() => {
       const center = this.map.getCenter();
       writeStored(CONFIG.MAP_VIEW_KEY, {
@@ -333,8 +367,11 @@ export class MapController {
   }
 
   private whenLoaded(fn: () => void): void {
-    if (this.ready) fn();
-    else this.pending.push(fn);
+    if (this.ready) {
+      fn();
+    } else {
+      this.pending.push(fn);
+    }
   }
 
   loadScheduledFeed(feed: GTFSScheduled): void {
@@ -388,7 +425,9 @@ export class MapController {
   private followedVehicle(
     following: { trackerId: string } | { key: string }
   ): VehiclePosition | undefined {
-    if ('key' in following) return this.positions.find(p => p.key === following.key);
+    if ('key' in following) {
+      return this.positions.find((p) => p.key === following.key);
+    }
     return this.trackerVehicle(following.trackerId);
   }
 
@@ -402,8 +441,12 @@ export class MapController {
   private trackerVehicle(trackerId: string): VehiclePosition | undefined {
     let best: VehiclePosition | undefined;
     for (const p of this.positions) {
-      if (p.trackerId !== trackerId) continue;
-      if (!best || (p.timestamp ?? 0) > (best.timestamp ?? 0)) best = p;
+      if (p.trackerId !== trackerId) {
+        continue;
+      }
+      if (!best || (p.timestamp ?? 0) > (best.timestamp ?? 0)) {
+        best = p;
+      }
     }
     return best;
   }
@@ -422,7 +465,9 @@ export class MapController {
    */
   private fitFeed(): void {
     const bounds = this.layers.feedBounds();
-    if (!bounds) return;
+    if (!bounds) {
+      return;
+    }
     this.map.fitBounds(bounds, { padding: this.padding() });
   }
 
@@ -482,7 +527,9 @@ export class MapController {
 
   private applyFocus(state: PageState): void {
     // Any focus that is not a tracker or a vehicle leaves follow mode.
-    if (state.type !== 'tracker' && state.type !== 'vehicle') this.following = null;
+    if (state.type !== 'tracker' && state.type !== 'vehicle') {
+      this.following = null;
+    }
 
     switch (state.type) {
       case 'home': {
@@ -494,11 +541,15 @@ export class MapController {
         if (bounds) {
           // AutoZoom takes a real LngLatBounds; the layer manager hands back
           // the corner tuple.
-          this.autoZoom.fitBounds(this.map, new maplibregl.LngLatBounds(bounds), {
-            padding: this.padding(),
-            duration: CONFIG.FOCUS_BOUNDS_DURATION,
-            essential: true,
-          });
+          this.autoZoom.fitBounds(
+            this.map,
+            new maplibregl.LngLatBounds(bounds),
+            {
+              padding: this.padding(),
+              duration: CONFIG.FOCUS_BOUNDS_DURATION,
+              essential: true,
+            }
+          );
         }
         return;
       }
@@ -523,12 +574,16 @@ export class MapController {
         if (bounds) {
           // AutoZoom takes a real LngLatBounds; boundsOf hands back the corner
           // tuple.
-          this.autoZoom.fitBounds(this.map, new maplibregl.LngLatBounds(bounds), {
-            padding: this.padding(),
-            maxZoom: 15,
-            duration: CONFIG.FOCUS_BOUNDS_DURATION,
-            essential: true,
-          });
+          this.autoZoom.fitBounds(
+            this.map,
+            new maplibregl.LngLatBounds(bounds),
+            {
+              padding: this.padding(),
+              maxZoom: 15,
+              duration: CONFIG.FOCUS_BOUNDS_DURATION,
+              essential: true,
+            }
+          );
         }
         return;
       }
@@ -540,12 +595,16 @@ export class MapController {
         if (bounds) {
           // AutoZoom takes a real LngLatBounds; the layer manager hands back
           // the corner tuple.
-          this.autoZoom.fitBounds(this.map, new maplibregl.LngLatBounds(bounds), {
-            padding: this.padding(),
-            maxZoom: 15,
-            duration: CONFIG.FOCUS_BOUNDS_DURATION,
-            essential: true,
-          });
+          this.autoZoom.fitBounds(
+            this.map,
+            new maplibregl.LngLatBounds(bounds),
+            {
+              padding: this.padding(),
+              maxZoom: 15,
+              duration: CONFIG.FOCUS_BOUNDS_DURATION,
+              essential: true,
+            }
+          );
         }
         return;
       }
@@ -563,22 +622,30 @@ export class MapController {
         // spotlights its most recent one; the panel lists all of them.
         const vehicle = this.trackerVehicle(state.tracker_id);
         this.layers.setFocus(
-          vehicle ? { kind: 'vehicle', id: vehicle.key, trackerId: vehicle.trackerId } : null
+          vehicle
+            ? { kind: 'vehicle', id: vehicle.key, trackerId: vehicle.trackerId }
+            : null
         );
         // Re-arm follow on this tracker (a different one replaces the old).
         this.following = { trackerId: state.tracker_id };
-        if (vehicle) this.easeToPoint([vehicle.lon, vehicle.lat]);
+        if (vehicle) {
+          this.easeToPoint([vehicle.lon, vehicle.lat]);
+        }
         return;
       }
 
       case 'vehicle': {
         this.clearTrip();
-        const vehicle = this.positions.find(p => p.key === state.vehicle_key);
+        const vehicle = this.positions.find((p) => p.key === state.vehicle_key);
         this.layers.setFocus(
-          vehicle ? { kind: 'vehicle', id: vehicle.key, trackerId: vehicle.trackerId } : null
+          vehicle
+            ? { kind: 'vehicle', id: vehicle.key, trackerId: vehicle.trackerId }
+            : null
         );
         this.following = { key: state.vehicle_key };
-        if (vehicle) this.easeToPoint([vehicle.lon, vehicle.lat]);
+        if (vehicle) {
+          this.easeToPoint([vehicle.lon, vehicle.lat]);
+        }
         return;
       }
     }
@@ -594,22 +661,30 @@ export class MapController {
   private tripPath(tripId: string): [number, number][] | null {
     const feed = this.feed;
     const trip = feed?.trips.get(tripId);
-    if (!feed || !trip) return null;
+    if (!feed || !trip) {
+      return null;
+    }
 
     const shape = trip.shape_id ? feed.shapes.get(trip.shape_id) : undefined;
-    if (shape && shape.length > 1) return shape;
+    if (shape && shape.length > 1) {
+      return shape;
+    }
 
     const points: [number, number][] = [];
     for (const time of feed.stopTimesByTrip.get(tripId) ?? []) {
       const stop = feed.stops.get(time.stop_id);
-      if (stop) points.push([stop.lon, stop.lat]);
+      if (stop) {
+        points.push([stop.lon, stop.lat]);
+      }
     }
     return points.length > 1 ? points : null;
   }
 
   private clearTrip(): void {
     this.drawnTripKey = '';
-    if (this.tripShapes.length === 0) return;
+    if (this.tripShapes.length === 0) {
+      return;
+    }
     this.tripShapes = [];
     this.drawTripShape();
   }
@@ -631,7 +706,9 @@ export class MapController {
         .map((id) => this.tripPath(id))
         .filter((path): path is [number, number][] => path !== null);
       this.drawTripShape();
-      if (!changed) return;
+      if (!changed) {
+        return;
+      }
 
       const bounds = boundsOf(this.tripShapes.flat());
       if (bounds) {
@@ -649,7 +726,9 @@ export class MapController {
 
   /** Add the trip source and layers if missing, then publish the current path. */
   private drawTripShape(): void {
-    if (!this.ready) return;
+    if (!this.ready) {
+      return;
+    }
 
     if (!this.map.getSource(TRIP_SOURCE)) {
       this.map.addSource(TRIP_SOURCE, {
@@ -658,7 +737,9 @@ export class MapController {
       });
       // Under the stop and vehicle layers, over the route lines: the trip is a
       // path through the network, not a thing sitting on top of it.
-      const before = this.map.getLayer(STOP_FOCUS_HALO_LAYER) ? STOP_FOCUS_HALO_LAYER : undefined;
+      const before = this.map.getLayer(STOP_FOCUS_HALO_LAYER)
+        ? STOP_FOCUS_HALO_LAYER
+        : undefined;
       this.map.addLayer(
         {
           id: TRIP_CASING_LAYER,
@@ -702,7 +783,9 @@ export class MapController {
    * camera where it was and made a panel click feel like it did nothing.
    */
   private easeToPoint(point: [number, number] | null): void {
-    if (!point) return;
+    if (!point) {
+      return;
+    }
     this.autoZoom.easeTo(this.map, {
       center: point,
       zoom: Math.max(this.map.getZoom(), CONFIG.STOP_FOCUS_ZOOM),
@@ -724,9 +807,13 @@ export class MapController {
    * zoom so the viewport doesn't jump when the canvas changes size.
    */
   forceMapResize(): void {
-    if (!this.map) return;
+    if (!this.map) {
+      return;
+    }
 
-    if (this.resizeTimeout) clearTimeout(this.resizeTimeout);
+    if (this.resizeTimeout) {
+      clearTimeout(this.resizeTimeout);
+    }
 
     this.resizeTimeout = setTimeout(() => {
       const center = this.map.getCenter();

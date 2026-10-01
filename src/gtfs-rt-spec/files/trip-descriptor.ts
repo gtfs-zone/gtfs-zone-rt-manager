@@ -104,8 +104,7 @@ export const tripScheduleRelationshipSpec: RTEnumSpec = {
     {
       value: 'CANCELED',
       label: 'Canceled',
-      description:
-        'A trip that existed in the schedule but was removed.',
+      description: 'A trip that existed in the schedule but was removed.',
     },
     {
       value: 'REPLACEMENT',

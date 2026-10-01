@@ -13,7 +13,10 @@
 import { CONFIG } from '../config';
 import type { Me } from '../types/api';
 import { personLabel } from './managed-render';
-import { showModal, type ModalAction } from 'gtfs-zone-web-common/ui/modal-utils';
+import {
+  showModal,
+  type ModalAction,
+} from 'gtfs-zone-web-common/ui/modal-utils';
 import { escHtml } from 'gtfs-zone-web-common/gtfs/entity-render';
 
 /** Opens the account modal. Resolves when it closes. */

@@ -37,8 +37,12 @@ export function publicScheduleUrl(feed: Feed): string | null {
  * yet — a hosted feed created a moment ago, before its first upload.
  */
 export function scheduleFetchUrl(feed: Feed): string | null {
-  const hasSchedule = isHosted(feed) ? feed.current_upload !== null : feed.static_feed_url !== null;
-  return hasSchedule ? `${CONFIG.API_BASE}/feeds/${feed.id}/schedule.zip` : null;
+  const hasSchedule = isHosted(feed)
+    ? feed.current_upload !== null
+    : feed.static_feed_url !== null;
+  return hasSchedule
+    ? `${CONFIG.API_BASE}/feeds/${feed.id}/schedule.zip`
+    : null;
 }
 
 /** How the source reads in a sentence, for a label or a toast. */

@@ -19,7 +19,9 @@ import { showModal } from 'gtfs-zone-web-common/ui/modal-utils';
 import { escHtml } from 'gtfs-zone-web-common/gtfs/entity-render';
 
 function consequenceList(consequences: string[]): string {
-  if (consequences.length === 0) return '';
+  if (consequences.length === 0) {
+    return '';
+  }
   return `<ul class="list-disc pl-5 text-xs space-y-1 opacity-80">
     ${consequences.map((c) => `<li>${escHtml(c)}</li>`).join('')}
   </ul>`;
@@ -73,7 +75,9 @@ export interface ConfirmTypedOptions extends ConfirmOptions {
  * A confirmation that has to be typed out. Resolves true only if the phrase
  * matched and the confirm button was then clicked.
  */
-export async function confirmTyped(options: ConfirmTypedOptions): Promise<boolean> {
+export async function confirmTyped(
+  options: ConfirmTypedOptions
+): Promise<boolean> {
   let confirmed = false;
   const label = options.phraseLabel ?? 'name';
 
@@ -109,7 +113,8 @@ export async function confirmTyped(options: ConfirmTypedOptions): Promise<boolea
       );
       const input = inputs[inputs.length - 1];
       const box = input.closest<HTMLElement>('.modal-box')!;
-      const confirmBtn = box.querySelectorAll<HTMLButtonElement>('button[data-idx]')[1];
+      const confirmBtn =
+        box.querySelectorAll<HTMLButtonElement>('button[data-idx]')[1];
 
       confirmBtn.disabled = true;
       input.addEventListener('input', () => {

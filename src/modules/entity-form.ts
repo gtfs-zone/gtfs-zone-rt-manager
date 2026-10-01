@@ -29,7 +29,10 @@
  */
 
 import { CONFIG } from '../config';
-import { attachCalendarInput, ISO_DATE_CODEC } from 'gtfs-zone-web-common/ui/calendar-input';
+import {
+  attachCalendarInput,
+  ISO_DATE_CODEC,
+} from 'gtfs-zone-web-common/ui/calendar-input';
 import { ApiError, SessionExpiredError } from './api-client';
 import { showModal } from 'gtfs-zone-web-common/ui/modal-utils';
 import { escHtml } from 'gtfs-zone-web-common/gtfs/entity-render';
@@ -173,7 +176,9 @@ export interface EntityFormOptions<T> {
  * input like every other field: dirty tracking compares strings, and a control
  * that kept its state anywhere else would need its own path through both.
  */
-export function weekdayBits(value: string | number | null | undefined): boolean[] {
+export function weekdayBits(
+  value: string | number | null | undefined
+): boolean[] {
   const text = value === null || value === undefined ? '' : String(value);
   return WEEKDAY_KEYS.map((_, i) => text[i] === '1');
 }
@@ -184,7 +189,10 @@ export function weekdayValue(flags: readonly boolean[]): string {
 }
 
 /** The current value of every field, keyed by name. */
-function readValues(root: HTMLElement, fields: FormField[]): Record<string, string> {
+function readValues(
+  root: HTMLElement,
+  fields: FormField[]
+): Record<string, string> {
   const values: Record<string, string> = {};
   for (const field of fields) {
     if (field.type === 'radio') {
@@ -196,10 +204,12 @@ function readValues(root: HTMLElement, fields: FormField[]): Record<string, stri
       values[field.name] = checked?.value ?? '';
       continue;
     }
-    const el = root.querySelector<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(
-      `[data-field="${CSS.escape(field.name)}"]`
-    );
-    if (!el) continue;
+    const el = root.querySelector<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >(`[data-field="${CSS.escape(field.name)}"]`);
+    if (!el) {
+      continue;
+    }
     if (el instanceof HTMLInputElement && el.type === 'checkbox') {
       values[field.name] = String(el.checked);
     } else if (el instanceof HTMLInputElement && el.type === 'file') {
@@ -214,10 +224,15 @@ function readValues(root: HTMLElement, fields: FormField[]): Record<string, stri
 }
 
 /** The `File` each `file` field is holding, keyed by field name. */
-function readFiles(root: HTMLElement, fields: FormField[]): Record<string, File | null> {
+function readFiles(
+  root: HTMLElement,
+  fields: FormField[]
+): Record<string, File | null> {
   const files: Record<string, File | null> = {};
   for (const field of fields) {
-    if (field.type !== 'file') continue;
+    if (field.type !== 'file') {
+      continue;
+    }
     const el = root.querySelector<HTMLInputElement>(
       `input[data-field="${CSS.escape(field.name)}"]`
     );
@@ -237,7 +252,10 @@ const DATE_SHAPE = /^\d{4}-\d{2}-\d{2}$/;
 
 function renderInput(field: FormField): string {
   const type = field.type ?? 'text';
-  const value = field.value === null || field.value === undefined ? '' : String(field.value);
+  const value =
+    field.value === null || field.value === undefined
+      ? ''
+      : String(field.value);
   const common =
     `data-field="${escHtml(field.name)}"` +
     (field.readonly ? ' disabled' : '') +
@@ -372,8 +390,12 @@ function renderInput(field: FormField): string {
 
 /** The label's own markup: a spec entry's tooltip, this app's, or neither. */
 function labelContent(field: FormField): string {
-  if (field.spec) return specLabelContent(field.label, field.spec);
-  if (field.tooltip) return tooltipLabelContent(field.label, field.tooltip);
+  if (field.spec) {
+    return specLabelContent(field.label, field.spec);
+  }
+  if (field.tooltip) {
+    return tooltipLabelContent(field.label, field.tooltip);
+  }
   return escHtml(field.label);
 }
 
@@ -421,7 +443,9 @@ function renderField(field: FormField): string {
  * Show a form and run its write. Resolves to what `submit` returned, or null if
  * the person closed the dialog without saving.
  */
-export async function showEntityForm<T>(options: EntityFormOptions<T>): Promise<T | null> {
+export async function showEntityForm<T>(
+  options: EntityFormOptions<T>
+): Promise<T | null> {
   let result: T | null = null;
   // Assigned by `onMount`, which runs before any button can be clicked.
   let save: () => Promise<boolean> = async () => true;
@@ -457,11 +481,14 @@ export async function showEntityForm<T>(options: EntityFormOptions<T>): Promise<
     onMount: () => {
       // The innermost modal, which is the one just appended: these can stack,
       // and a form opened from a form must not read the one underneath it.
-      const forms = document.querySelectorAll<HTMLElement>('.modal-open [data-form]');
+      const forms = document.querySelectorAll<HTMLElement>(
+        '.modal-open [data-form]'
+      );
       const root = forms[forms.length - 1];
       const box = root.closest<HTMLElement>('.modal-box')!;
       const banner = box.querySelector<HTMLElement>('[data-form-error]')!;
-      const buttons = box.querySelectorAll<HTMLButtonElement>('button[data-idx]');
+      const buttons =
+        box.querySelectorAll<HTMLButtonElement>('button[data-idx]');
       const [, saveBtn] = buttons;
 
       const initial = readValues(root, options.fields);
@@ -475,14 +502,18 @@ export async function showEntityForm<T>(options: EntityFormOptions<T>): Promise<
        */
       const syncVisibility = (): void => {
         const now = readValues(root, options.fields);
-        root.querySelectorAll<HTMLElement>('[data-when-field]').forEach((el) => {
-          const on = now[el.dataset.whenField!] === el.dataset.whenEquals;
-          el.classList.toggle('hidden', !on);
-        });
-        root.querySelectorAll<HTMLElement>('[data-label-field]').forEach((el) => {
-          const on = now[el.dataset.labelField!] === el.dataset.labelEquals;
-          el.innerHTML = on ? el.dataset.labelAlt! : el.dataset.labelDefault!;
-        });
+        root
+          .querySelectorAll<HTMLElement>('[data-when-field]')
+          .forEach((el) => {
+            const on = now[el.dataset.whenField!] === el.dataset.whenEquals;
+            el.classList.toggle('hidden', !on);
+          });
+        root
+          .querySelectorAll<HTMLElement>('[data-label-field]')
+          .forEach((el) => {
+            const on = now[el.dataset.labelField!] === el.dataset.labelEquals;
+            el.innerHTML = on ? el.dataset.labelAlt! : el.dataset.labelDefault!;
+          });
       };
 
       /**
@@ -494,7 +525,9 @@ export async function showEntityForm<T>(options: EntityFormOptions<T>): Promise<
        * than two sources of truth the form has to reconcile.
        */
       for (const field of options.fields) {
-        if (field.type !== 'file') continue;
+        if (field.type !== 'file') {
+          continue;
+        }
         const zone = root.querySelector<HTMLElement>(
           `[data-drop="${CSS.escape(field.name)}"]`
         );
@@ -504,7 +537,9 @@ export async function showEntityForm<T>(options: EntityFormOptions<T>): Promise<
         const slot = root.querySelector<HTMLElement>(
           `[data-preview="${CSS.escape(field.name)}"]`
         );
-        if (!zone || !input || !slot) continue;
+        if (!zone || !input || !slot) {
+          continue;
+        }
 
         const label = zone.querySelector<HTMLElement>('[data-drop-label]')!;
         const announce = (): void => {
@@ -521,12 +556,16 @@ export async function showEntityForm<T>(options: EntityFormOptions<T>): Promise<
           e.preventDefault();
           zone.classList.add('border-primary');
         });
-        zone.addEventListener('dragleave', () => zone.classList.remove('border-primary'));
+        zone.addEventListener('dragleave', () =>
+          zone.classList.remove('border-primary')
+        );
         zone.addEventListener('drop', (e) => {
           e.preventDefault();
           zone.classList.remove('border-primary');
           const dropped = e.dataTransfer?.files?.[0];
-          if (!dropped) return;
+          if (!dropped) {
+            return;
+          }
           const transfer = new DataTransfer();
           transfer.items.add(dropped);
           input.files = transfer.files;
@@ -545,14 +584,18 @@ export async function showEntityForm<T>(options: EntityFormOptions<T>): Promise<
        * against the schedule either.
        */
       for (const field of options.fields) {
-        if (field.type !== 'combo') continue;
+        if (field.type !== 'combo') {
+          continue;
+        }
         const input = root.querySelector<HTMLInputElement>(
           `input[data-field="${CSS.escape(field.name)}"]`
         );
         const list = root.querySelector<HTMLElement>(
           `[data-combo="${CSS.escape(field.name)}"]`
         );
-        if (!input || !list) continue;
+        if (!input || !list) {
+          continue;
+        }
 
         const all = field.options ?? [];
         let shown: FieldOption[] = [];
@@ -569,7 +612,9 @@ export async function showEntityForm<T>(options: EntityFormOptions<T>): Promise<
               (option.detail ?? '').toLowerCase().includes(needle)
             ) {
               out.push(option);
-              if (out.length === CONFIG.COMBO_RESULT_LIMIT) break;
+              if (out.length === CONFIG.COMBO_RESULT_LIMIT) {
+                break;
+              }
             }
           }
           return out;
@@ -597,7 +642,9 @@ export async function showEntityForm<T>(options: EntityFormOptions<T>): Promise<
                 )
                 .join('')
             : `<li class="px-3 py-2 text-xs opacity-60">${escHtml(
-                all.length ? 'Nothing in this feed matches that.' : field.comboEmpty ?? ''
+                all.length
+                  ? 'Nothing in this feed matches that.'
+                  : (field.comboEmpty ?? '')
               )}</li>`;
         };
 
@@ -609,7 +656,9 @@ export async function showEntityForm<T>(options: EntityFormOptions<T>): Promise<
 
         const open = (): void => {
           shown = rowsFor(input.value);
-          if (!shown.length && !all.length && !field.comboEmpty) return;
+          if (!shown.length && !all.length && !field.comboEmpty) {
+            return;
+          }
           active = -1;
           paint();
           list.classList.remove('hidden');
@@ -646,7 +695,9 @@ export async function showEntityForm<T>(options: EntityFormOptions<T>): Promise<
             const slots = shown.length + 1;
             active = ((active + 1 + step + slots) % slots) - 1;
             paint();
-            list.querySelectorAll('button')[active]?.scrollIntoView({ block: 'nearest' });
+            list
+              .querySelectorAll('button')
+              [active]?.scrollIntoView({ block: 'nearest' });
           } else if (event.key === 'Enter' && isOpen && active >= 0) {
             // Stopped rather than left to bubble: the modal's own Enter
             // handling must not see the key that picked a row.
@@ -663,10 +714,12 @@ export async function showEntityForm<T>(options: EntityFormOptions<T>): Promise<
         // `mousedown` rather than `click`, prevented: a click on a row would
         // otherwise blur the input and close the list out from under it.
         list.addEventListener('mousedown', (event) => {
-          const button = (event.target as HTMLElement | null)?.closest<HTMLElement>(
-            '[data-combo-value]'
-          );
-          if (!button) return;
+          const button = (
+            event.target as HTMLElement | null
+          )?.closest<HTMLElement>('[data-combo-value]');
+          if (!button) {
+            return;
+          }
           event.preventDefault();
           choose(button.dataset.comboValue!);
         });
@@ -682,8 +735,12 @@ export async function showEntityForm<T>(options: EntityFormOptions<T>): Promise<
        * the part of its value before the `T`.
        */
       for (const field of options.fields) {
-        if (field.type !== 'date' && field.type !== 'datetime') continue;
-        if (field.readonly) continue;
+        if (field.type !== 'date' && field.type !== 'datetime') {
+          continue;
+        }
+        if (field.readonly) {
+          continue;
+        }
         const input =
           field.type === 'date'
             ? root.querySelector<HTMLInputElement>(
@@ -692,7 +749,9 @@ export async function showEntityForm<T>(options: EntityFormOptions<T>): Promise<
             : root.querySelector<HTMLInputElement>(
                 `[data-datetime="${CSS.escape(field.name)}"] [data-datetime-date]`
               );
-        if (!input) continue;
+        if (!input) {
+          continue;
+        }
         closeCalendars.push(
           attachCalendarInput(input, {
             codec: ISO_DATE_CODEC,
@@ -700,7 +759,8 @@ export async function showEntityForm<T>(options: EntityFormOptions<T>): Promise<
             allowEmpty: true,
             // Writing `.value` in script fires nothing, and an `input` event is
             // what recomposes a `datetime` and re-enables Save.
-            onPick: () => input.dispatchEvent(new Event('input', { bubbles: true })),
+            onPick: () =>
+              input.dispatchEvent(new Event('input', { bubbles: true })),
           })
         );
       }
@@ -713,19 +773,31 @@ export async function showEntityForm<T>(options: EntityFormOptions<T>): Promise<
        * already run by the time the same event reaches `syncButtons` on `root`.
        */
       for (const field of options.fields) {
-        if (field.type !== 'datetime') continue;
+        if (field.type !== 'datetime') {
+          continue;
+        }
         const wrap = root.querySelector<HTMLElement>(
           `[data-datetime="${CSS.escape(field.name)}"]`
         );
-        const hidden = wrap?.querySelector<HTMLInputElement>('input[type="hidden"]');
-        const dateInput = wrap?.querySelector<HTMLInputElement>('[data-datetime-date]');
-        const timeInput = wrap?.querySelector<HTMLInputElement>('[data-datetime-time]');
-        if (!wrap || !hidden || !dateInput || !timeInput) continue;
+        const hidden = wrap?.querySelector<HTMLInputElement>(
+          'input[type="hidden"]'
+        );
+        const dateInput = wrap?.querySelector<HTMLInputElement>(
+          '[data-datetime-date]'
+        );
+        const timeInput = wrap?.querySelector<HTMLInputElement>(
+          '[data-datetime-time]'
+        );
+        if (!wrap || !hidden || !dateInput || !timeInput) {
+          continue;
+        }
         wrap.addEventListener('input', () => {
           const date = dateInput.value.trim();
           // A whole date with no time is midnight; a time with no date is
           // nothing, since what this writes is an instant or it is empty.
-          if (DATE_SHAPE.test(date) && !timeInput.value) timeInput.value = '00:00';
+          if (DATE_SHAPE.test(date) && !timeInput.value) {
+            timeInput.value = '00:00';
+          }
           hidden.value = date ? `${date}T${timeInput.value}` : '';
         });
       }
@@ -738,19 +810,25 @@ export async function showEntityForm<T>(options: EntityFormOptions<T>): Promise<
        * them the way it reads a text field.
        */
       for (const field of options.fields) {
-        if (field.type !== 'weekdays') continue;
+        if (field.type !== 'weekdays') {
+          continue;
+        }
         const wrap = root.querySelector<HTMLElement>(
           `[data-weekdays="${CSS.escape(field.name)}"]`
         );
         const input = wrap?.querySelector<HTMLInputElement>(
           `input[data-field="${CSS.escape(field.name)}"]`
         );
-        if (!wrap || !input || field.readonly) continue;
+        if (!wrap || !input || field.readonly) {
+          continue;
+        }
         wrap.addEventListener('click', (event) => {
-          const button = (event.target as HTMLElement | null)?.closest<HTMLElement>(
-            '[data-weekday]'
-          );
-          if (!button) return;
+          const button = (
+            event.target as HTMLElement | null
+          )?.closest<HTMLElement>('[data-weekday]');
+          if (!button) {
+            return;
+          }
           const index = Number(button.dataset.weekday);
           const flags = weekdayBits(input.value);
           flags[index] = !flags[index];
@@ -780,7 +858,9 @@ export async function showEntityForm<T>(options: EntityFormOptions<T>): Promise<
 
       const showFieldErrors = (fields: Record<string, string>): void => {
         for (const [name, message] of Object.entries(fields)) {
-          const el = box.querySelector<HTMLElement>(`[data-error="${CSS.escape(name)}"]`);
+          const el = box.querySelector<HTMLElement>(
+            `[data-error="${CSS.escape(name)}"]`
+          );
           if (el) {
             el.textContent = message;
             el.classList.remove('hidden');
@@ -826,20 +906,35 @@ export async function showEntityForm<T>(options: EntityFormOptions<T>): Promise<
         }
 
         try {
-          result = await options.submit(values, readFiles(root, options.fields));
+          result = await options.submit(
+            values,
+            readFiles(root, options.fields)
+          );
           return false;
         } catch (err) {
           // The page is already reloading; there is nothing useful to show.
-          if (err instanceof SessionExpiredError) return true;
+          if (err instanceof SessionExpiredError) {
+            return true;
+          }
           const named =
-            err instanceof ApiError && err.status === 422 && Object.keys(err.fields).length > 0;
+            err instanceof ApiError &&
+            err.status === 422 &&
+            Object.keys(err.fields).length > 0;
           const unnamed = err instanceof ApiError && err.formErrors.length > 0;
           if (named || unnamed) {
-            if (named) showFieldErrors((err as ApiError).fields);
+            if (named) {
+              showFieldErrors((err as ApiError).fields);
+            }
             // A whole-object validator blames no field, so the banner is the
             // only place it can land.
-            if (unnamed) showFormError((err as ApiError).formErrors.join('; '));
-          } else if (err instanceof ApiError && err.status === 409 && options.conflictField) {
+            if (unnamed) {
+              showFormError((err as ApiError).formErrors.join('; '));
+            }
+          } else if (
+            err instanceof ApiError &&
+            err.status === 409 &&
+            options.conflictField
+          ) {
             showFieldErrors({ [options.conflictField]: err.message });
           } else {
             showFormError(err instanceof Error ? err.message : String(err));

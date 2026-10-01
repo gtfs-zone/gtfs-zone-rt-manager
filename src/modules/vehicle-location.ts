@@ -21,7 +21,11 @@ export function vehicleLocation(
   let count = 0;
   for (const other of fleet) {
     if (other.trackerId === vehicle.trackerId && ++count > 1) {
-      return { type: 'vehicle', tracker_id: vehicle.trackerId, vehicle_key: vehicle.key };
+      return {
+        type: 'vehicle',
+        tracker_id: vehicle.trackerId,
+        vehicle_key: vehicle.key,
+      };
     }
   }
   return { type: 'tracker', tracker_id: vehicle.trackerId };

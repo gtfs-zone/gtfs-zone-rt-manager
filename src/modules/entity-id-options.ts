@@ -41,16 +41,24 @@ const ROUTE_TYPE_NAMES: Record<number, string> = {
 };
 
 export function agencyOptions(feed: GTFSScheduled | null): FieldOption[] {
-  if (!feed) return [];
+  if (!feed) {
+    return [];
+  }
   // A single-agency feed may leave `agency_id` blank, and a blank id is not an
   // id: offering it would put an empty string in the request body.
   return feed.agencies
     .filter((agency) => agency.id)
-    .map((agency) => ({ value: agency.id, label: agency.id, detail: agency.name }));
+    .map((agency) => ({
+      value: agency.id,
+      label: agency.id,
+      detail: agency.name,
+    }));
 }
 
 export function routeOptions(feed: GTFSScheduled | null): FieldOption[] {
-  if (!feed) return [];
+  if (!feed) {
+    return [];
+  }
   return [...feed.routes.values()].map((route) => ({
     value: route.id,
     label: route.id,
@@ -59,7 +67,9 @@ export function routeOptions(feed: GTFSScheduled | null): FieldOption[] {
 }
 
 export function stopOptions(feed: GTFSScheduled | null): FieldOption[] {
-  if (!feed) return [];
+  if (!feed) {
+    return [];
+  }
   return [...feed.stops.values()].map((stop) => ({
     value: stop.id,
     label: stop.id,
@@ -69,7 +79,9 @@ export function stopOptions(feed: GTFSScheduled | null): FieldOption[] {
 
 /** The distinct `route_type` values this feed uses, with how many routes each. */
 export function routeTypeOptions(feed: GTFSScheduled | null): FieldOption[] {
-  if (!feed) return [];
+  if (!feed) {
+    return [];
+  }
   const counts = new Map<number, number>();
   for (const route of feed.routes.values()) {
     counts.set(route.type, (counts.get(route.type) ?? 0) + 1);
@@ -78,7 +90,9 @@ export function routeTypeOptions(feed: GTFSScheduled | null): FieldOption[] {
     .sort((a, b) => a[0] - b[0])
     .map(([type, count]) => ({
       value: String(type),
-      label: ROUTE_TYPE_NAMES[type] ? `${type} — ${ROUTE_TYPE_NAMES[type]}` : String(type),
+      label: ROUTE_TYPE_NAMES[type]
+        ? `${type} — ${ROUTE_TYPE_NAMES[type]}`
+        : String(type),
       detail: `${count} route${count === 1 ? '' : 's'}`,
     }));
 }
@@ -93,20 +107,26 @@ export function routeTypeOptions(feed: GTFSScheduled | null): FieldOption[] {
  * whole feed and a given route may use neither of them.
  */
 export function directionOptions(feed: GTFSScheduled | null): FieldOption[] {
-  if (!feed) return [];
+  if (!feed) {
+    return [];
+  }
   const counts = new Map<string, Map<string, number>>([
     ['0', new Map()],
     ['1', new Map()],
   ]);
   for (const trip of feed.trips.values()) {
     const bucket = counts.get(trip.direction_id);
-    if (!bucket || !trip.headsign) continue;
+    if (!bucket || !trip.headsign) {
+      continue;
+    }
     bucket.set(trip.headsign, (bucket.get(trip.headsign) ?? 0) + 1);
   }
   return ['0', '1'].map((direction) => {
     // The busiest three: a feed with fifty headsigns per direction is not made
     // clearer by listing them, and the rarest ones are the least recognisable.
-    const top = [...(counts.get(direction) ?? new Map<string, number>()).entries()]
+    const top = [
+      ...(counts.get(direction) ?? new Map<string, number>()).entries(),
+    ]
       .sort((a, b) => b[1] - a[1])
       .slice(0, 3)
       .map(([headsign]) => headsign);

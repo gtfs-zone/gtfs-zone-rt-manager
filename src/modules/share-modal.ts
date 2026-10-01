@@ -51,7 +51,7 @@ function managerRow(
     label: `${personLabel(member)}${isYou ? ' (you)' : ''}`,
     // Only when the label is a name: repeating the address under itself says
     // nothing.
-    sublabel: member.display_name ? member.email ?? undefined : undefined,
+    sublabel: member.display_name ? (member.email ?? undefined) : undefined,
     badgeHtml: member.is_owner
       ? '<span class="badge badge-primary badge-xs">owner</span>'
       : `<span class="text-xs opacity-50">added ${formatIsoDate(member.created_at)}</span>`,
@@ -59,12 +59,21 @@ function managerRow(
     // which is the button above this list.
     actionsHtml:
       canManage && !member.is_owner
-        ? actionButton('member:remove', String(member.user_id), 'Remove', 'btn-ghost')
+        ? actionButton(
+            'member:remove',
+            String(member.user_id),
+            'Remove',
+            'btn-ghost'
+          )
         : '',
   });
 }
 
-function inviteRow(ctx: RenderContext, invite: Invite, canManage: boolean): string {
+function inviteRow(
+  ctx: RenderContext,
+  invite: Invite,
+  canManage: boolean
+): string {
   return entityRow(ctx, {
     label: invite.email,
     badgeHtml: `<span class="text-xs opacity-50">invited ${formatIsoDate(invite.created_at)}</span>`,
@@ -75,15 +84,21 @@ function inviteRow(ctx: RenderContext, invite: Invite, canManage: boolean): stri
 }
 
 function renderShare(ctx: RenderContext, meUserId: number | null): string {
-  if (!ctx.session.feed) return `<p class="text-sm opacity-60">No feed is selected.</p>`;
+  if (!ctx.session.feed) {
+    return `<p class="text-sm opacity-60">No feed is selected.</p>`;
+  }
 
   const members = ctx.session.members;
-  if (!members) return `<p class="text-sm opacity-60">Loading the managers of this feed…</p>`;
+  if (!members) {
+    return `<p class="text-sm opacity-60">Loading the managers of this feed…</p>`;
+  }
 
   // The owner first, then everybody else by name, so the row that answers
   // "whose feed is this" is never buried in a long list.
   const managers = [...members.members].sort((a, b) => {
-    if (a.is_owner !== b.is_owner) return a.is_owner ? -1 : 1;
+    if (a.is_owner !== b.is_owner) {
+      return a.is_owner ? -1 : 1;
+    }
     return personLabel(a).localeCompare(personLabel(b));
   });
 
@@ -104,7 +119,9 @@ function renderShare(ctx: RenderContext, meUserId: number | null): string {
         'Managers',
         managers.length,
         entityRowList(
-          managers.map((m) => managerRow(ctx, m, m.user_id === meUserId, canManage)),
+          managers.map((m) =>
+            managerRow(ctx, m, m.user_id === meUserId, canManage)
+          ),
           'Nobody manages this feed.'
         )
       )}
@@ -139,7 +156,9 @@ export async function showShareModal(hooks: ShareModalHooks): Promise<void> {
   let root: HTMLElement | null = null;
 
   const draw = (): void => {
-    if (!root) return;
+    if (!root) {
+      return;
+    }
     root.innerHTML = renderShare(ctx, hooks.meUserId());
   };
 
@@ -160,8 +179,12 @@ export async function showShareModal(hooks: ShareModalHooks): Promise<void> {
       // The panel's delegation cannot see a button from here. The modal stays
       // open: a write's own form opens over it and the list redraws underneath.
       root?.addEventListener('click', (event) => {
-        const button = (event.target as HTMLElement | null)?.closest<HTMLElement>('[data-action]');
-        if (!button) return;
+        const button = (
+          event.target as HTMLElement | null
+        )?.closest<HTMLElement>('[data-action]');
+        if (!button) {
+          return;
+        }
         event.preventDefault();
         hooks.action(button.dataset.action!, button.dataset.arg ?? '');
       });

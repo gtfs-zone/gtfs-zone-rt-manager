@@ -59,7 +59,9 @@ function home(session: FeedSession): BreadcrumbItem<PageState> {
 /** Human label for a route: short name, long name, or the bare id. */
 export function routeLabel(session: FeedSession, routeId: string): string {
   const route = session.scheduledFeed?.routes.get(routeId);
-  if (!route) return routeId;
+  if (!route) {
+    return routeId;
+  }
   return route.short_name || route.long_name || route.id;
 }
 
@@ -90,7 +92,9 @@ export function vehicleLabel(session: FeedSession, key: string): string {
 
 export function alertLabel(session: FeedSession, alertId: string): string {
   const managed = session.serviceAlerts.get(alertId);
-  if (managed) return managed.header_text || `Alert ${alertId}`;
+  if (managed) {
+    return managed.header_text || `Alert ${alertId}`;
+  }
   const alert = session.alerts.get(alertId)?.alert;
   const header = alert?.headerText?.translation?.[0]?.text;
   return header ? String(header) : `Alert ${alertId}`;
@@ -104,7 +108,9 @@ export function alertLabel(session: FeedSession, alertId: string): string {
  */
 function stopAncestors(session: FeedSession, stopId: string): string[] {
   const feed = session.scheduledFeed;
-  if (!feed) return [];
+  if (!feed) {
+    return [];
+  }
 
   const chain: string[] = [];
   const seen = new Set<string>([stopId]);
@@ -119,34 +125,55 @@ function stopAncestors(session: FeedSession, stopId: string): string[] {
 
 /** The route a trip belongs to, from the state or from the parsed feed. */
 function tripRouteId(session: FeedSession, state: PageState): string | null {
-  if (state.type !== 'trip') return null;
-  return state.route_id ?? session.scheduledFeed?.trips.get(state.trip_id)?.route_id ?? null;
+  if (state.type !== 'trip') {
+    return null;
+  }
+  return (
+    state.route_id ??
+    session.scheduledFeed?.trips.get(state.trip_id)?.route_id ??
+    null
+  );
 }
 
 type AlertParent =
-  | { type: 'route'; route_id: string }
-  | { type: 'stop'; stop_id: string };
+  { type: 'route'; route_id: string } | { type: 'stop'; stop_id: string };
 
 /** The first entity an alert names that we have a page for. */
-function alertParent(session: FeedSession, alertId: string): AlertParent | null {
+function alertParent(
+  session: FeedSession,
+  alertId: string
+): AlertParent | null {
   // The managed detail is the authority when it has been fetched; the entity
   // list only exists on the detail, so a summary alone names no parent.
   for (const entity of session.alertDetails.get(alertId)?.entities ?? []) {
-    if (entity.route_id) return { type: 'route', route_id: entity.route_id };
-    if (entity.stop_id) return { type: 'stop', stop_id: entity.stop_id };
+    if (entity.route_id) {
+      return { type: 'route', route_id: entity.route_id };
+    }
+    if (entity.stop_id) {
+      return { type: 'stop', stop_id: entity.stop_id };
+    }
   }
 
   const informed = session.alerts.get(alertId)?.alert.informedEntity;
-  if (!informed) return null;
+  if (!informed) {
+    return null;
+  }
 
   for (const entity of informed) {
-    if (entity.routeId) return { type: 'route', route_id: entity.routeId };
-    if (entity.stopId) return { type: 'stop', stop_id: entity.stopId };
+    if (entity.routeId) {
+      return { type: 'route', route_id: entity.routeId };
+    }
+    if (entity.stopId) {
+      return { type: 'stop', stop_id: entity.stopId };
+    }
   }
   return null;
 }
 
-function routeCrumb(session: FeedSession, routeId: string): BreadcrumbItem<PageState> {
+function routeCrumb(
+  session: FeedSession,
+  routeId: string
+): BreadcrumbItem<PageState> {
   return {
     typeLabel: 'Route',
     label: truncate(routeLabel(session, routeId)),
@@ -154,7 +181,10 @@ function routeCrumb(session: FeedSession, routeId: string): BreadcrumbItem<PageS
   };
 }
 
-export function buildBreadcrumbs(session: FeedSession, state: PageState): BreadcrumbItem<PageState>[] {
+export function buildBreadcrumbs(
+  session: FeedSession,
+  state: PageState
+): BreadcrumbItem<PageState>[] {
   switch (state.type) {
     case 'home':
       return [];
@@ -223,11 +253,13 @@ export function buildBreadcrumbs(session: FeedSession, state: PageState): Breadc
           ? [
               {
                 typeLabel:
-                  parent.type === 'route' ? 'Route' : stopEyebrow(session, parent.stop_id),
+                  parent.type === 'route'
+                    ? 'Route'
+                    : stopEyebrow(session, parent.stop_id),
                 label: truncate(
                   parent.type === 'route'
                     ? routeLabel(session, parent.route_id)
-                    : stopLabel(session, parent.stop_id),
+                    : stopLabel(session, parent.stop_id)
                 ),
                 pageState: parent,
               },
@@ -267,9 +299,13 @@ export function validateState(session: FeedSession, state: PageState): boolean {
       return session.scheduledFeed?.trips.has(state.trip_id) ?? false;
     case 'tracker':
     case 'vehicle':
-      return session.trackers.size === 0 || session.trackers.has(state.tracker_id);
+      return (
+        session.trackers.size === 0 || session.trackers.has(state.tracker_id)
+      );
     case 'alert':
-      if (session.serviceAlerts.has(state.alert_id)) return true;
+      if (session.serviceAlerts.has(state.alert_id)) {
+        return true;
+      }
       return session.serviceAlerts.size === 0 && session.alerts.size === 0;
   }
 }

@@ -35,8 +35,16 @@ import { stopTypeLabel } from 'gtfs-zone-web-common/ui/breadcrumb-trail';
 import { zoneLabel } from 'gtfs-zone-web-common/gtfs/feed-time';
 import type { RtIndex } from '../render-context';
 import type { RenderContext } from '../render-context';
-import { TOOLTIP_TRIGGER_CLASS, tooltipContentAttr } from 'gtfs-zone-web-common/ui/field-label';
-import { cappedNote, entityRow, entityRowList, rowSection } from '../entity-row';
+import {
+  TOOLTIP_TRIGGER_CLASS,
+  tooltipContentAttr,
+} from 'gtfs-zone-web-common/ui/field-label';
+import {
+  cappedNote,
+  entityRow,
+  entityRowList,
+  rowSection,
+} from '../entity-row';
 import {
   VEHICLE_STATUS_LABELS,
   derivedClass,
@@ -57,10 +65,7 @@ import {
   stopTimeRelationshipMark,
   vehicleDisplayName,
 } from 'gtfs-zone-web-common/gtfs/entity-render';
-import {
-  servicesForTrips,
-  weekdaysLabel,
-} from '../service-catalog';
+import { servicesForTrips, weekdaysLabel } from '../service-catalog';
 import { CONFIG } from '../../config';
 import { renderAlertList } from './alert-page';
 
@@ -68,13 +73,16 @@ const MAX_DEPARTURES = 20;
 
 /** A platform's rider-facing label: platform_code, then platform_name, then id. */
 function platformLabel(stop: Stop): string {
-  return (stop.raw.platform_code || stop.raw.platform_name || stop.id).trim() || stop.id;
+  return (
+    (stop.raw.platform_code || stop.raw.platform_name || stop.id).trim() ||
+    stop.id
+  );
 }
 
 /** The muted "this came from a child stop" tag every aggregated row carries. */
 function fromChild(ctx: RenderContext, stopId: string): string {
   return `<span class="opacity-50 text-xs whitespace-nowrap">@ ${escHtml(
-    childName(ctx, stopId),
+    childName(ctx, stopId)
   )}</span>`;
 }
 
@@ -92,30 +100,38 @@ function aggregationNote(count: number): string {
 
 // ─── Routes ─────────────────────────────────────────────────────────────────
 
-function renderRoutes(ctx: RenderContext, serviceIds: string[], isStation: boolean): string {
+function renderRoutes(
+  ctx: RenderContext,
+  serviceIds: string[],
+  isStation: boolean
+): string {
   const feed = ctx.session.scheduledFeed!;
   // route_id -> the platforms that serve it
   const routePlatforms = new Map<string, Set<string>>();
   for (const id of serviceIds) {
     for (const routeId of feed.routesByStop.get(id) ?? []) {
       let set = routePlatforms.get(routeId);
-      if (!set) routePlatforms.set(routeId, (set = new Set()));
+      if (!set) {
+        routePlatforms.set(routeId, (set = new Set()));
+      }
       set.add(id);
     }
   }
-  if (routePlatforms.size === 0) return '';
+  if (routePlatforms.size === 0) {
+    return '';
+  }
 
   if (!isStation) {
     return section(
       'Routes serving this stop',
       `<div class="flex flex-wrap gap-1">${[...routePlatforms.keys()]
-        .map(id => {
+        .map((id) => {
           const route = feed.routes.get(id);
           return route
             ? routeBadge(ctx, route)
             : `<span class="badge badge-ghost badge-sm">${escHtml(id)}</span>`;
         })
-        .join('')}</div>`,
+        .join('')}</div>`
     );
   }
 
@@ -126,7 +142,7 @@ function renderRoutes(ctx: RenderContext, serviceIds: string[], isStation: boole
         ? routeBadge(ctx, route)
         : `<span class="badge badge-ghost badge-sm">${escHtml(routeId)}</span>`;
       const platformTags = [...platforms]
-        .map(id => fromChild(ctx, id))
+        .map((id) => fromChild(ctx, id))
         .join('<span class="opacity-30">-</span> ');
       return `<div class="flex items-center gap-2 flex-wrap">${badge}${platformTags}</div>`;
     })
@@ -134,7 +150,7 @@ function renderRoutes(ctx: RenderContext, serviceIds: string[], isStation: boole
 
   return section(
     'Routes serving this station',
-    `${aggregationNote(new Set(serviceIds).size)}<div class="space-y-1">${rows}</div>`,
+    `${aggregationNote(new Set(serviceIds).size)}<div class="space-y-1">${rows}</div>`
   );
 }
 
@@ -144,7 +160,7 @@ function renderDepartures(
   ctx: RenderContext,
   rt: RtIndex,
   serviceIds: string[],
-  isStation: boolean,
+  isStation: boolean
 ): string {
   const feed = ctx.session.scheduledFeed!;
   const upcoming = isStation
@@ -153,11 +169,11 @@ function renderDepartures(
   if (upcoming.length === 0) {
     return section(
       'Upcoming departures',
-      '<p class="text-xs opacity-60">No trip updates reference this stop.</p>',
+      '<p class="text-xs opacity-60">No trip updates reference this stop.</p>'
     );
   }
 
-  const rows = upcoming.map(p => {
+  const rows = upcoming.map((p) => {
     const trip = feed.trips.get(p.trip_id);
     const route = trip ? feed.routes.get(trip.route_id) : undefined;
     const ev = primaryEvent(p);
@@ -175,7 +191,7 @@ function renderDepartures(
     const times = skipped
       ? ''
       : `<span class="tabular-nums${derivedClass(ev.timeFrom)}">${escHtml(
-          ev.time === undefined ? '—' : formatEpochTime(ev.time, false),
+          ev.time === undefined ? '—' : formatEpochTime(ev.time, false)
         )}</span>
         <span class="${derivedClass(ev.delayFrom).trim()}">${formatDelay(ev.delay)}</span>`;
 
@@ -187,7 +203,7 @@ function renderDepartures(
       label: trip?.headsign || p.trip_id,
       sublabel: detail.join(' - '),
       badgeHtml: `<span class="text-xs flex items-center gap-2 whitespace-nowrap ${TOOLTIP_TRIGGER_CLASS}" tabindex="0" ${tooltipContentAttr(
-        predictionTooltip(p),
+        predictionTooltip(p)
       )}>
         ${times}${stopTimeRelationshipMark(p.scheduleRelationship)}
       </span>`,
@@ -200,7 +216,7 @@ function renderDepartures(
   return rowSection(
     'Upcoming departures',
     upcoming.length,
-    isStation ? `${aggregationNote(new Set(serviceIds).size)}${body}` : body,
+    isStation ? `${aggregationNote(new Set(serviceIds).size)}${body}` : body
   );
 }
 
@@ -210,7 +226,7 @@ function renderTrackersHere(
   ctx: RenderContext,
   rt: RtIndex,
   serviceIds: string[],
-  isStation: boolean,
+  isStation: boolean
 ): string {
   const rows: string[] = [];
   for (const id of serviceIds) {
@@ -221,18 +237,20 @@ function renderTrackersHere(
           label: vehicleDisplayName(ctx.session.scheduledFeed, v),
           sublabel: isStation ? `@ ${childName(ctx, id)}` : undefined,
           badge: VEHICLE_STATUS_LABELS[v.currentStatus ?? -1] ?? '',
-        }),
+        })
       );
     }
   }
-  if (rows.length === 0) return '';
+  if (rows.length === 0) {
+    return '';
+  }
   return rowSection(
     'Trackers here now',
     rows.length,
     `${isStation ? aggregationNote(new Set(serviceIds).size) : ''}${entityRowList(
       rows,
-      'Nothing is reporting from this stop.',
-    )}`,
+      'Nothing is reporting from this stop.'
+    )}`
   );
 }
 
@@ -244,7 +262,9 @@ function renderStationAlerts(ctx: RenderContext, ids: string[]): string {
   const records: AlertRecord[] = [];
   for (const id of ids) {
     for (const record of alertsForStop(ctx.session, id)) {
-      if (seen.has(record.id)) continue;
+      if (seen.has(record.id)) {
+        continue;
+      }
       seen.add(record.id);
       records.push(record);
     }
@@ -261,17 +281,23 @@ function renderStationAlerts(ctx: RenderContext, ids: string[]): string {
  */
 function renderPlatforms(ctx: RenderContext, stopId: string): string {
   const feed = ctx.session.scheduledFeed!;
-  const children = feed.descendants(stopId).map(id => feed.stops.get(id)!).filter(Boolean);
+  const children = feed
+    .descendants(stopId)
+    .map((id) => feed.stops.get(id)!)
+    .filter(Boolean);
   if (children.length === 0) {
-    return section('Platforms', '<p class="text-xs opacity-60">No platforms in this feed.</p>');
+    return section(
+      'Platforms',
+      '<p class="text-xs opacity-60">No platforms in this feed.</p>'
+    );
   }
 
-  const boardable = children.filter(s => s.location_type === 0);
-  const others = children.filter(s => s.location_type !== 0);
+  const boardable = children.filter((s) => s.location_type === 0);
+  const others = children.filter((s) => s.location_type !== 0);
 
   const platformRow = (s: Stop): string => {
     const badges = [...(feed.routesByStop.get(s.id) ?? [])]
-      .map(id => {
+      .map((id) => {
         const route = feed.routes.get(id);
         return route ? routeBadge(ctx, route) : '';
       })
@@ -286,7 +312,7 @@ function renderPlatforms(ctx: RenderContext, stopId: string): string {
 
   const boardableList = entityRowList(
     boardable.map(platformRow),
-    'No boardable platforms in this feed.',
+    'No boardable platforms in this feed.'
   );
 
   const otherList = others.length
@@ -295,44 +321,52 @@ function renderPlatforms(ctx: RenderContext, stopId: string): string {
            others.length === 1 ? '' : 's'
          } and generic node${others.length === 1 ? '' : 's'}</summary>
          ${entityRowList(
-           others.map(s =>
+           others.map((s) =>
              entityRow(ctx, {
                state: { type: 'stop', stop_id: s.id },
                label: s.name || s.id,
                badge: stopTypeLabel(s.location_type),
-             }),
+             })
            ),
-           '',
+           ''
          )}
        </details>`
     : '';
 
-  return rowSection('Platforms', children.length, `${boardableList}${otherList}`);
+  return rowSection(
+    'Platforms',
+    children.length,
+    `${boardableList}${otherList}`
+  );
 }
 
 /** For a platform: the parent's other platforms. Stations use renderPlatforms. */
 function renderSiblingPlatforms(ctx: RenderContext, stop: Stop): string {
   const feed = ctx.session.scheduledFeed!;
-  if (!stop.parent_station) return '';
+  if (!stop.parent_station) {
+    return '';
+  }
   const siblings = (feed.childrenByParent.get(stop.parent_station) ?? [])
-    .filter(id => id !== stop.id)
-    .map(id => feed.stops.get(id)!)
+    .filter((id) => id !== stop.id)
+    .map((id) => feed.stops.get(id)!)
     .filter(Boolean);
-  if (siblings.length === 0) return '';
+  if (siblings.length === 0) {
+    return '';
+  }
 
   return rowSection(
     'Sibling platforms',
     siblings.length,
     entityRowList(
-      siblings.map(s =>
+      siblings.map((s) =>
         entityRow(ctx, {
           state: { type: 'stop', stop_id: s.id },
           label: s.name || s.id,
           sublabel: s.id,
-        }),
+        })
       ),
-      'No sibling platforms.',
-    ),
+      'No sibling platforms.'
+    )
   );
 }
 
@@ -351,26 +385,32 @@ function renderServices(ctx: RenderContext, stopIds: string[]): string {
   for (const stopId of stopIds) {
     for (const tripId of feed.stopTrips.get(stopId) ?? []) {
       const trip = feed.trips.get(tripId);
-      if (trip) trips.push(trip);
+      if (trip) {
+        trips.push(trip);
+      }
     }
   }
 
   const services = servicesForTrips(feed, trips);
-  if (services.length === 0) return '';
+  if (services.length === 0) {
+    return '';
+  }
 
   const shown = services.slice(0, CONFIG.SERVICE_LIST_MAX);
-  const rows = shown.map(service =>
+  const rows = shown.map((service) =>
     entityRow(ctx, {
       label: service.id,
       sublabel: weekdaysLabel(service.days),
-      ...(service.start && service.end ? { badge: `${service.start} to ${service.end}` } : {}),
-    }),
+      ...(service.start && service.end
+        ? { badge: `${service.start} to ${service.end}` }
+        : {}),
+    })
   );
 
   return rowSection(
     'Service calendar',
     services.length,
-    `${entityRowList(rows, '')}${cappedNote(services.length, shown.length)}`,
+    `${entityRowList(rows, '')}${cappedNote(services.length, shown.length)}`
   );
 }
 
@@ -379,13 +419,17 @@ function renderServices(ctx: RenderContext, stopIds: string[]): string {
 export function renderStopPage(
   ctx: RenderContext,
   rt: RtIndex,
-  state: Extract<PageState, { type: 'stop' }>,
+  state: Extract<PageState, { type: 'stop' }>
 ): string {
   const feed = ctx.session.scheduledFeed;
   const stop = feed?.stops.get(state.stop_id);
-  if (!feed || !stop) return missing(`Stop ${state.stop_id}`);
+  if (!feed || !stop) {
+    return missing(`Stop ${state.stop_id}`);
+  }
 
-  const parent = stop.parent_station ? feed.stops.get(stop.parent_station) : undefined;
+  const parent = stop.parent_station
+    ? feed.stops.get(stop.parent_station)
+    : undefined;
 
   // A station aggregates over its boardable descendants; anything else answers
   // for itself. Include self in the service set so a plain stop still works and
@@ -404,7 +448,7 @@ export function renderStopPage(
             ? `<p class="text-xs">Part of ${entityLink(
                 ctx,
                 { type: 'stop', stop_id: parent.id },
-                parent.name || parent.id,
+                parent.name || parent.id
               )}</p>`
             : ''
         }
@@ -413,7 +457,11 @@ export function renderStopPage(
       ${
         isStation
           ? renderStationAlerts(ctx, alertIds)
-          : renderAlertList(ctx, alertsForStop(ctx.session, stop.id), 'Alerts at this stop')
+          : renderAlertList(
+              ctx,
+              alertsForStop(ctx.session, stop.id),
+              'Alerts at this stop'
+            )
       }
       ${renderRoutes(ctx, serviceIds, isStation)}
       ${renderDepartures(ctx, rt, serviceIds, isStation)}
@@ -424,9 +472,15 @@ export function renderStopPage(
       ${section(
         'Properties',
         propList([
-          prop('Coordinates', escHtml(`${stop.lat.toFixed(5)}, ${stop.lon.toFixed(5)}`)),
-          prop('Trips calling', String((feed.stopTrips.get(stop.id) ?? []).length)),
-        ]),
+          prop(
+            'Coordinates',
+            escHtml(`${stop.lat.toFixed(5)}, ${stop.lon.toFixed(5)}`)
+          ),
+          prop(
+            'Trips calling',
+            String((feed.stopTrips.get(stop.id) ?? []).length)
+          ),
+        ])
       )}
       ${renderRawFields('stops.txt', stop.raw)}
     </div>`;

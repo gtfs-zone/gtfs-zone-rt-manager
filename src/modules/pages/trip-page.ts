@@ -19,7 +19,11 @@ import type { PageState } from '../../types/page-state';
 import { alertsForTrip } from 'gtfs-zone-web-common/gtfs/alerts';
 import { entityRow, entityRowList, rowSection } from '../entity-row';
 import { vehicleLocation } from '../vehicle-location';
-import { actionButton, describeRecurrence, formatWindow } from '../managed-render';
+import {
+  actionButton,
+  describeRecurrence,
+  formatWindow,
+} from '../managed-render';
 import { zoneLabel } from 'gtfs-zone-web-common/gtfs/feed-time';
 import type { Prediction } from 'gtfs-zone-web-common/gtfs/rt-index';
 import type { RtIndex } from '../render-context';
@@ -66,7 +70,9 @@ function renderService(ctx: RenderContext, trip: Trip): string {
   // `calendar_dates.txt` adds and nowhere else, which "No weekly pattern"
   // already says.
   const window =
-    service.start && service.end ? `${service.start} to ${service.end}` : 'No date range';
+    service.start && service.end
+      ? `${service.start} to ${service.end}`
+      : 'No date range';
 
   return section(
     'Service',
@@ -101,14 +107,17 @@ function renderSchedule(ctx: RenderContext, rt: RtIndex, trip: Trip): string {
     if (p.stop_sequence !== undefined && !bySequence.has(p.stop_sequence)) {
       bySequence.set(p.stop_sequence, p);
     }
-    if (!byStop.has(p.stop_id)) byStop.set(p.stop_id, p);
+    if (!byStop.has(p.stop_id)) {
+      byStop.set(p.stop_id, p);
+    }
   }
   const live = predictions.length > 0;
 
   const rows = times
     .map((time) => {
       const stop = feed.stops.get(time.stop_id);
-      const prediction = bySequence.get(time.stop_sequence) ?? byStop.get(time.stop_id);
+      const prediction =
+        bySequence.get(time.stop_sequence) ?? byStop.get(time.stop_id);
       return `<tr class="${STRIP_ROW_CLASS}" data-stop-id="${escHtml(time.stop_id)}">
         <td class="opacity-50 tabular-nums text-right">${escHtml(String(time.stop_sequence))}</td>
         <td class="max-w-0 truncate">${entityLink(
@@ -158,7 +167,9 @@ function renderSchedule(ctx: RenderContext, rt: RtIndex, trip: Trip): string {
 /** Trackers reporting this trip right now, as opposed to assigned to it. */
 function renderTrackers(ctx: RenderContext, rt: RtIndex, trip: Trip): string {
   const vehicles = rt.vehiclesByTrip.get(trip.trip_id) ?? [];
-  if (vehicles.length === 0) return '';
+  if (vehicles.length === 0) {
+    return '';
+  }
   return rowSection(
     'Reporting this trip',
     vehicles.length,
@@ -199,7 +210,9 @@ function renderAssignments(ctx: RenderContext, trip: Trip): string {
   const rows = rules.map((rule) => {
     const tracker = session.trackers.get(rule.tracker_id);
     return entityRow(ctx, {
-      ...(tracker ? { state: { type: 'tracker' as const, tracker_id: tracker.id } } : {}),
+      ...(tracker
+        ? { state: { type: 'tracker' as const, tracker_id: tracker.id } }
+        : {}),
       label: tracker ? tracker.nickname : rule.tracker_id,
       sublabel: `${describeRecurrence(rule)} - ${formatWindow(rule.start_time, rule.end_time)}`,
       actionsHtml: `${actionButton('assign:edit', String(rule.id), 'Edit')}
@@ -228,7 +241,9 @@ export function renderTripPage(
 ): string {
   const feed = ctx.session.scheduledFeed;
   const trip = feed?.trips.get(state.trip_id);
-  if (!feed || !trip) return missing(`Trip ${state.trip_id}`);
+  if (!feed || !trip) {
+    return missing(`Trip ${state.trip_id}`);
+  }
 
   const route = feed.routes.get(trip.route_id);
   const shape = feed.shapes.get(trip.shape_id);

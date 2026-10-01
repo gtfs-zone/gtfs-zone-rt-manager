@@ -93,7 +93,9 @@ export class SessionExpiredError extends Error {
 
 /** True when the body is something gtfs-zone-rt-api built, rather than a login page. */
 function isJson(response: Response): boolean {
-  return (response.headers.get('Content-Type') ?? '').includes('application/json');
+  return (response.headers.get('Content-Type') ?? '').includes(
+    'application/json'
+  );
 }
 
 /**
@@ -102,13 +104,19 @@ function isJson(response: Response): boolean {
  * caller shows it in a toast.
  */
 function describeDetail(body: unknown, fallback: string): string {
-  if (!body || typeof body !== 'object') return fallback;
+  if (!body || typeof body !== 'object') {
+    return fallback;
+  }
   const detail = (body as { detail?: unknown }).detail;
-  if (typeof detail === 'string') return detail;
+  if (typeof detail === 'string') {
+    return detail;
+  }
   if (Array.isArray(detail)) {
     const lines = detail
       .map((item) => {
-        if (!item || typeof item !== 'object') return String(item);
+        if (!item || typeof item !== 'object') {
+          return String(item);
+        }
         const { loc, msg } = item as { loc?: unknown[]; msg?: string };
         const last = Array.isArray(loc) ? loc[loc.length - 1] : undefined;
         // `body` is the whole request, not a field: naming it reads as jargon.
@@ -116,7 +124,9 @@ function describeDetail(body: unknown, fallback: string): string {
         return field ? `${String(field)}: ${msg ?? ''}` : (msg ?? '');
       })
       .filter(Boolean);
-    if (lines.length) return lines.join('; ');
+    if (lines.length) {
+      return lines.join('; ');
+    }
   }
   return fallback;
 }
@@ -131,12 +141,18 @@ function describeDetail(body: unknown, fallback: string): string {
  */
 function fieldErrors(body: unknown): Record<string, string> {
   const detail = (body as { detail?: unknown } | null)?.detail;
-  if (!Array.isArray(detail)) return {};
+  if (!Array.isArray(detail)) {
+    return {};
+  }
   const fields: Record<string, string> = {};
   for (const item of detail) {
-    if (!item || typeof item !== 'object') continue;
+    if (!item || typeof item !== 'object') {
+      continue;
+    }
     const { loc, msg } = item as { loc?: unknown[]; msg?: string };
-    if (!Array.isArray(loc) || loc.length < 2 || !msg) continue;
+    if (!Array.isArray(loc) || loc.length < 2 || !msg) {
+      continue;
+    }
     const field = String(loc[loc.length - 1]);
     fields[field] ??= stripPrefix(msg);
   }
@@ -151,12 +167,18 @@ function stripPrefix(msg: string): string {
 /** A 422's whole-object messages: `loc` is `["body"]` or shorter. */
 function formErrors(body: unknown): string[] {
   const detail = (body as { detail?: unknown } | null)?.detail;
-  if (!Array.isArray(detail)) return [];
+  if (!Array.isArray(detail)) {
+    return [];
+  }
   const messages: string[] = [];
   for (const item of detail) {
-    if (!item || typeof item !== 'object') continue;
+    if (!item || typeof item !== 'object') {
+      continue;
+    }
     const { loc, msg } = item as { loc?: unknown[]; msg?: string };
-    if (!Array.isArray(loc) || loc.length >= 2 || !msg) continue;
+    if (!Array.isArray(loc) || loc.length >= 2 || !msg) {
+      continue;
+    }
     messages.push(stripPrefix(msg));
   }
   return messages;
@@ -175,7 +197,9 @@ async function request<T>(
   const headers: Record<string, string> = { Accept: 'application/json' };
   if (method !== 'GET') {
     headers[CONFIG.CSRF_HEADER] = '1';
-    if (body !== undefined && !isForm) headers['Content-Type'] = 'application/json';
+    if (body !== undefined && !isForm) {
+      headers['Content-Type'] = 'application/json';
+    }
   }
 
   const response = await fetch(`${CONFIG.API_BASE}${path}`, {
@@ -197,7 +221,9 @@ async function request<T>(
     response.status === 204 ||
     response.headers.get('Content-Length') === '0'
   ) {
-    if (!response.ok) throw new ApiError(response.status, response.statusText);
+    if (!response.ok) {
+      throw new ApiError(response.status, response.statusText);
+    }
     return undefined as T;
   }
 
@@ -238,7 +264,8 @@ export const getMe = () => api.get<Me>('/me');
  * excludes the admin bypass, so an admin's switcher lists their own feeds
  * rather than every feed on the server.
  */
-export const listFeeds = (all = false) => api.get<Feed[]>(`/feeds${all ? '?all=1' : ''}`);
+export const listFeeds = (all = false) =>
+  api.get<Feed[]>(`/feeds${all ? '?all=1' : ''}`);
 
 export const getFeed = (feedId: number) => api.get<Feed>(`/feeds/${feedId}`);
 
@@ -295,11 +322,14 @@ export const getTracker = (trackerId: string) =>
 export const listTrackerPositions = (feedId: number) =>
   api.get<VehiclePosition[]>(`/feeds/${feedId}/tracker-positions`);
 
-export const listAlerts = (feedId: number) => api.get<Alert[]>(`/feeds/${feedId}/alerts`);
+export const listAlerts = (feedId: number) =>
+  api.get<Alert[]>(`/feeds/${feedId}/alerts`);
 
-export const getAlert = (alertId: number) => api.get<AlertDetail>(`/alerts/${alertId}`);
+export const getAlert = (alertId: number) =>
+  api.get<AlertDetail>(`/alerts/${alertId}`);
 
-export const getMembers = (feedId: number) => api.get<Members>(`/feeds/${feedId}/members`);
+export const getMembers = (feedId: number) =>
+  api.get<Members>(`/feeds/${feedId}/members`);
 
 export const listRules = (feedId: number) =>
   api.get<TrackerRule[]>(`/feeds/${feedId}/rules`);
@@ -312,7 +342,10 @@ export const listAssignments = (feedId: number, from: string, to: string) =>
 
 /** The tracker is fixed at creation, so it is in the path and not the body. */
 export const createRule = (trackerId: string, body: RuleWrite) =>
-  api.post<TrackerRule>(`/trackers/${encodeURIComponent(trackerId)}/rules`, body);
+  api.post<TrackerRule>(
+    `/trackers/${encodeURIComponent(trackerId)}/rules`,
+    body
+  );
 
 /** Replaces the whole recurrence. The exceptions on it are left alone. */
 export const updateRule = (ruleId: number, body: RuleWrite) =>
@@ -356,7 +389,9 @@ export const deleteTracker = (trackerId: string) =>
 
 /** As secret as the credential itself: the QR encodes it. Panel only. */
 export const getProvisioning = (trackerId: string) =>
-  api.get<Provisioning>(`/trackers/${encodeURIComponent(trackerId)}/provisioning`);
+  api.get<Provisioning>(
+    `/trackers/${encodeURIComponent(trackerId)}/provisioning`
+  );
 
 export const createAlert = (feedId: number, body: AlertWrite) =>
   api.post<AlertDetail>(`/feeds/${feedId}/alerts`, body);
@@ -364,7 +399,8 @@ export const createAlert = (feedId: number, body: AlertWrite) =>
 export const updateAlert = (alertId: number, body: AlertWrite) =>
   api.patch<AlertDetail>(`/alerts/${alertId}`, body);
 
-export const deleteAlert = (alertId: number) => api.del<void>(`/alerts/${alertId}`);
+export const deleteAlert = (alertId: number) =>
+  api.del<void>(`/alerts/${alertId}`);
 
 export const createEntity = (alertId: number, body: InformedEntityWrite) =>
   api.post<InformedEntity>(`/alerts/${alertId}/entities`, body);

@@ -80,13 +80,19 @@ export type PageState = WithModal<PageLocation>;
 
 /** Type guard for a valid ModalState. */
 export function isModalState(value: unknown): value is ModalState {
-  if (!value || typeof value !== 'object') return false;
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
 
   const modal = value as { type?: unknown; page?: unknown };
-  if (!MODAL_TYPES.includes(modal.type as ModalType)) return false;
+  if (!MODAL_TYPES.includes(modal.type as ModalType)) {
+    return false;
+  }
 
   if (modal.type === 'help') {
-    if (modal.page !== undefined && typeof modal.page !== 'string') return false;
+    if (modal.page !== undefined && typeof modal.page !== 'string') {
+      return false;
+    }
     return Object.keys(modal).every((k) => k === 'type' || k === 'page');
   }
   return Object.keys(modal).length === 1;
@@ -98,13 +104,19 @@ function isOptionalString(value: unknown): boolean {
 
 /** Type guard for a valid PageState. */
 export function isPageState(value: unknown): value is PageState {
-  if (!value || typeof value !== 'object') return false;
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
 
   // The modal dimension is validated on its own; the checks below are about
   // the page underneath it.
   const { modal, ...state } = value as Record<string, unknown>;
-  if (modal !== undefined && !isModalState(modal)) return false;
-  if (typeof state.type !== 'string') return false;
+  if (modal !== undefined && !isModalState(modal)) {
+    return false;
+  }
+  if (typeof state.type !== 'string') {
+    return false;
+  }
 
   switch (state.type) {
     case 'home':
@@ -114,7 +126,10 @@ export function isPageState(value: unknown): value is PageState {
       return typeof state.tracker_id === 'string';
 
     case 'vehicle':
-      return typeof state.tracker_id === 'string' && typeof state.vehicle_key === 'string';
+      return (
+        typeof state.tracker_id === 'string' &&
+        typeof state.vehicle_key === 'string'
+      );
 
     case 'alert':
       return typeof state.alert_id === 'string';
@@ -126,7 +141,9 @@ export function isPageState(value: unknown): value is PageState {
       return typeof state.stop_id === 'string';
 
     case 'trip':
-      return typeof state.trip_id === 'string' && isOptionalString(state.route_id);
+      return (
+        typeof state.trip_id === 'string' && isOptionalString(state.route_id)
+      );
 
     default:
       return false;

@@ -65,7 +65,11 @@ import {
   type ServiceDate,
 } from './service-date';
 import { assignmentCounts } from './service-catalog';
-import { renderTimelineChart, weekdayFlags, type TimelineRow } from './timeline-chart';
+import {
+  renderTimelineChart,
+  weekdayFlags,
+  type TimelineRow,
+} from './timeline-chart';
 import { tripName } from './trip-picker';
 
 export interface CalendarModalHooks {
@@ -88,10 +92,14 @@ type CalendarTab = 'grid' | 'timeline';
  * running when nothing has been asked.
  */
 export function calendarBadgeCount(session: FeedSession): number | null {
-  if (!session.feed) return null;
+  if (!session.feed) {
+    return null;
+  }
   const range = session.assignmentsRange;
   const date = today();
-  if (!range || range.from > date || range.to < date) return null;
+  if (!range || range.from > date || range.to < date) {
+    return null;
+  }
   return session.assignmentsOn(date).length;
 }
 
@@ -110,7 +118,8 @@ function chipLink(
     class="${className}" style="${style}" title="${escHtml(title)}">${escHtml(label)}</a>`;
 }
 
-const CHIP_CLASS = 'block truncate rounded px-1 text-[10px] leading-4 hover:brightness-110';
+const CHIP_CLASS =
+  'block truncate rounded px-1 text-[10px] leading-4 hover:brightness-110';
 
 /**
  * One service running that day, in the accent.
@@ -180,7 +189,9 @@ function renderDayCell(
 
 function renderGrid(ctx: RenderContext, month: ServiceDate): string {
   const feed = ctx.session.scheduledFeed;
-  const services = feed ? sortByCascade([...serviceCatalog(feed).values()]) : [];
+  const services = feed
+    ? sortByCascade([...serviceCatalog(feed).values()])
+    : [];
   const days = monthGrid(month);
 
   const header = WEEKDAY_LABELS.map(
@@ -211,11 +222,16 @@ function renderGrid(ctx: RenderContext, month: ServiceDate): string {
  * rather than forever, and says so in its tooltip. Nothing in the chart is
  * infinite; a span has to name a last date.
  */
-function ruleRow(ctx: RenderContext, rule: TrackerRule, openEnd: ServiceDate): TimelineRow {
+function ruleRow(
+  ctx: RenderContext,
+  rule: TrackerRule,
+  openEnd: ServiceDate
+): TimelineRow {
   const feed = ctx.session.scheduledFeed;
   const trip = feed?.trips.get(rule.trip_id);
   const route = trip ? feed?.routes.get(trip.route_id) : undefined;
-  const nickname = ctx.session.trackers.get(rule.tracker_id)?.nickname ?? rule.tracker_id;
+  const nickname =
+    ctx.session.trackers.get(rule.tracker_id)?.nickname ?? rule.tracker_id;
   const label = `${nickname} - ${trip ? tripName(trip) : rule.trip_id}`;
   const end = rule.end_date ?? openEnd;
 
@@ -236,7 +252,9 @@ function ruleRow(ctx: RenderContext, rule: TrackerRule, openEnd: ServiceDate): T
               from: rule.start_date,
               to: end,
               tooltip: `${label} - ${formatWindow(rule.start_time, rule.end_time)} - ${
-                rule.end_date ? `${rule.start_date} to ${rule.end_date}` : `from ${rule.start_date}, no end date`
+                rule.end_date
+                  ? `${rule.start_date} to ${rule.end_date}`
+                  : `from ${rule.start_date}, no end date`
               }`,
             },
           ]
@@ -272,11 +290,17 @@ function renderRuleChart(ctx: RenderContext, month: ServiceDate): string {
 
 function unassignedLine(ctx: RenderContext): string {
   const feed = ctx.session.scheduledFeed;
-  if (!feed) return '';
+  if (!feed) {
+    return '';
+  }
   const counts = assignmentCounts(ctx.session, feed.trips.keys());
-  if (!counts) return '';
+  if (!counts) {
+    return '';
+  }
   const unassigned = counts.total - counts.assigned;
-  if (unassigned === 0) return '';
+  if (unassigned === 0) {
+    return '';
+  }
   return `<p class="text-xs opacity-50">${unassigned} of ${counts.total} trips on this feed have no
     rule assigned.</p>`;
 }
@@ -317,7 +341,11 @@ function renderHeader(month: ServiceDate, tab: CalendarTab): string {
 }
 
 /** Whether the session already holds the expansion the grid is drawing. */
-function covers(session: FeedSession, from: ServiceDate, to: ServiceDate): boolean {
+function covers(
+  session: FeedSession,
+  from: ServiceDate,
+  to: ServiceDate
+): boolean {
   const range = session.assignmentsRange;
   return range !== null && range.from <= from && range.to >= to;
 }
@@ -330,7 +358,9 @@ function covers(session: FeedSession, from: ServiceDate, to: ServiceDate): boole
  * arrives after it opened fills the grid in place rather than leaving it empty
  * until the reader clicks something.
  */
-export async function showCalendarModal(hooks: CalendarModalHooks): Promise<void> {
+export async function showCalendarModal(
+  hooks: CalendarModalHooks
+): Promise<void> {
   const { ctx } = hooks;
   const session = ctx.session;
 
@@ -339,7 +369,9 @@ export async function showCalendarModal(hooks: CalendarModalHooks): Promise<void
   let root: HTMLElement | null = null;
 
   const draw = (): void => {
-    if (!root) return;
+    if (!root) {
+      return;
+    }
     const days = monthGrid(month);
     const loading =
       session.feed && !covers(session, days[0], days[days.length - 1])
@@ -362,7 +394,9 @@ export async function showCalendarModal(hooks: CalendarModalHooks): Promise<void
 
   /** The month on screen, and the rules behind both tabs. */
   const load = (): void => {
-    if (!session.feed) return;
+    if (!session.feed) {
+      return;
+    }
     const days = monthGrid(month);
     void hooks.ensureAssignments(days[0], days[days.length - 1]);
     void hooks.ensureRules();
@@ -411,8 +445,17 @@ export async function showCalendarModal(hooks: CalendarModalHooks): Promise<void
         // A link: the panel's delegation cannot see it from here, so the modal
         // closes itself and hands the page over.
         const link = source?.closest<HTMLElement>('[data-nav]');
-        if (!link) return;
-        if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+        if (!link) {
+          return;
+        }
+        if (
+          event.metaKey ||
+          event.ctrlKey ||
+          event.shiftKey ||
+          event.button !== 0
+        ) {
+          return;
+        }
         event.preventDefault();
         const state = JSON.parse(link.dataset.nav!) as PageState;
         close();

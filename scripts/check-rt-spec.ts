@@ -21,7 +21,12 @@ import { gtfsRtSpec } from '../src/gtfs-rt-spec/index';
 import type { RTCardinality, RTPresence } from '../src/gtfs-rt-spec/types';
 
 const here = dirname(fileURLToPath(import.meta.url));
-export const REFERENCE_PATH = join(here, '..', 'reference', 'gtfs-realtime-reference.md');
+export const REFERENCE_PATH = join(
+  here,
+  '..',
+  'reference',
+  'gtfs-realtime-reference.md'
+);
 
 type Aspect =
   | 'missing-message'
@@ -61,7 +66,7 @@ export function normalizeSpecText(text: string): string {
   return text
     .replace(/<br\s*\/?>/gi, '<br>')
     .replace(/&nbsp;/gi, ' ')
-    .replace(/ /g, ' ')
+    .replace(/\u00A0/g, ' ')
     .replace(/[‘’‛]/g, "'")
     .replace(/[“”]/g, '"')
     .replace(/[`*_]/g, '')
@@ -78,14 +83,22 @@ const PRESENCE_VALUES: RTPresence[] = [
 
 /** The reference writes "Conditionally required" and "Optional" inconsistently. */
 function parsePresence(cell: string): RTPresence | null {
-  const cleaned = cell.replace(/[*_]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
+  const cleaned = cell
+    .replace(/[*_]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
   return PRESENCE_VALUES.find((p) => p.toLowerCase() === cleaned) ?? null;
 }
 
 function parseCardinality(cell: string): RTCardinality | null {
   const cleaned = cell.replace(/[*_]/g, '').trim().toLowerCase();
-  if (cleaned === 'one') return 'One';
-  if (cleaned === 'many') return 'Many';
+  if (cleaned === 'one') {
+    return 'One';
+  }
+  if (cleaned === 'many') {
+    return 'Many';
+  }
   return null;
 }
 
@@ -101,7 +114,11 @@ function parseType(cell: string): string {
  * the surrounding emphasis is stripped, since the name itself has underscores.
  */
 function parseName(cell: string): string {
-  return cell.replace(/`/g, '').replace(/^[\s*_]+/, '').replace(/[\s*_]+$/, '').trim();
+  return cell
+    .replace(/`/g, '')
+    .replace(/^[\s*_]+/, '')
+    .replace(/[\s*_]+$/, '')
+    .trim();
 }
 
 // ─── Reference parsing ────────────────────────────────────────────────────────
@@ -139,8 +156,16 @@ export interface ReferenceSection {
 function splitRow(line: string, columns: number): string[] {
   const trimmed = line.trim().replace(/^\|/, '').replace(/\|$/, '');
   const cells = trimmed.split('|').map((c) => c.trim());
-  if (cells.length <= columns) return cells;
-  return [...cells.slice(0, columns - 1), cells.slice(columns - 1).join('|').trim()];
+  if (cells.length <= columns) {
+    return cells;
+  }
+  return [
+    ...cells.slice(0, columns - 1),
+    cells
+      .slice(columns - 1)
+      .join('|')
+      .trim(),
+  ];
 }
 
 const SEPARATOR_ROW = /^\|?[\s:|-]+\|?$/;
@@ -160,7 +185,9 @@ export function parseReference(markdown: string): ReferenceSection[] {
   // Prose is kept as written, markup and all; normalization happens at compare
   // time so the stored description is still worth showing to a person.
   const flush = () => {
-    if (!current) return;
+    if (!current) {
+      return;
+    }
     current.description = prose
       .join('\n')
       .split(/\n\s*\n/)
@@ -193,7 +220,9 @@ export function parseReference(markdown: string): ReferenceSection[] {
       inTable = null;
       continue;
     }
-    if (!current) continue;
+    if (!current) {
+      continue;
+    }
 
     if (line.startsWith('## ') || line.startsWith('# ')) {
       // A heading this parser does not recognize still ends the prose block.
@@ -203,8 +232,14 @@ export function parseReference(markdown: string): ReferenceSection[] {
     }
 
     if (line.trim().startsWith('|')) {
-      if (SEPARATOR_ROW.test(line.trim())) continue;
-      const header = splitRow(line, 5).join(' ').replace(/[*_`]/g, '').trim().toLowerCase();
+      if (SEPARATOR_ROW.test(line.trim())) {
+        continue;
+      }
+      const header = splitRow(line, 5)
+        .join(' ')
+        .replace(/[*_`]/g, '')
+        .trim()
+        .toLowerCase();
       if (header.includes('field name')) {
         inTable = 'fields';
         continue;
@@ -214,11 +249,16 @@ export function parseReference(markdown: string): ReferenceSection[] {
         continue;
       }
       if (inTable === 'fields') {
-        const [nameCell, typeCell, requiredCell, cardinalityCell, descriptionCell] = splitRow(
-          line,
-          5
-        );
-        if (!nameCell) continue;
+        const [
+          nameCell,
+          typeCell,
+          requiredCell,
+          cardinalityCell,
+          descriptionCell,
+        ] = splitRow(line, 5);
+        if (!nameCell) {
+          continue;
+        }
         current.fields.push({
           name: parseName(nameCell),
           type: parseType(typeCell ?? ''),
@@ -230,7 +270,9 @@ export function parseReference(markdown: string): ReferenceSection[] {
         });
       } else if (inTable === 'values') {
         const [valueCell, commentCell] = splitRow(line, 2);
-        if (!valueCell) continue;
+        if (!valueCell) {
+          continue;
+        }
         current.values.push({
           value: parseName(valueCell),
           description: (commentCell ?? '').trim(),
@@ -240,16 +282,24 @@ export function parseReference(markdown: string): ReferenceSection[] {
     }
 
     if (!line.trim()) {
-      if (prose.length > 0) prose.push('');
+      if (prose.length > 0) {
+        prose.push('');
+      }
       continue;
     }
-    if (/^\*{2,3}(Fields|Values)\*{2,3}$/i.test(line.trim())) continue;
-    if (/^#{3,4}\s+Values\s*$/i.test(line.trim())) continue;
+    if (/^\*{2,3}(Fields|Values)\*{2,3}$/i.test(line.trim())) {
+      continue;
+    }
+    if (/^#{3,4}\s+Values\s*$/i.test(line.trim())) {
+      continue;
+    }
     if (/^\*\*Caution:\*\*/.test(line.trim())) {
       current.experimental = true;
       continue;
     }
-    if (inTable) continue; // Prose after a table belongs to nothing.
+    if (inTable) {
+      continue;
+    } // Prose after a table belongs to nothing.
     prose.push(line.trim());
   }
   flush();
@@ -269,7 +319,10 @@ interface Finding {
 
 function isKnown(finding: Finding): boolean {
   return KNOWN_DIVERGENCES.some(
-    (d) => d.owner === finding.owner && d.member === finding.member && d.aspect === finding.aspect
+    (d) =>
+      d.owner === finding.owner &&
+      d.member === finding.member &&
+      d.aspect === finding.aspect
   );
 }
 
@@ -281,8 +334,17 @@ function compareText(
   reference: string,
   local: string
 ): void {
-  if (normalizeSpecText(reference) === normalizeSpecText(local)) return;
-  findings.push({ owner, member, aspect, detail: 'differs from the reference', reference, local });
+  if (normalizeSpecText(reference) === normalizeSpecText(local)) {
+    return;
+  }
+  findings.push({
+    owner,
+    member,
+    aspect,
+    detail: 'differs from the reference',
+    reference,
+    local,
+  });
 }
 
 function findSection(
@@ -296,12 +358,17 @@ function findSection(
   );
 }
 
-export function compare(sections: ReferenceSection[], only: Set<string>): Finding[] {
+export function compare(
+  sections: ReferenceSection[],
+  only: Set<string>
+): Finding[] {
   const findings: Finding[] = [];
   const wanted = (name: string) => only.size === 0 || only.has(name);
 
   for (const message of gtfsRtSpec.messages) {
-    if (!wanted(message.name)) continue;
+    if (!wanted(message.name)) {
+      continue;
+    }
     const reference = findSection(sections, 'message', message.name, 1);
     if (!reference) {
       findings.push({
@@ -343,7 +410,9 @@ export function compare(sections: ReferenceSection[], only: Set<string>): Findin
       }
     }
     const shared = localNames.filter((n) => referenceNames.includes(n));
-    const sharedReference = referenceNames.filter((n) => localNames.includes(n));
+    const sharedReference = referenceNames.filter((n) =>
+      localNames.includes(n)
+    );
     if (shared.join(',') !== sharedReference.join(',')) {
       findings.push({
         owner: message.name,
@@ -355,8 +424,12 @@ export function compare(sections: ReferenceSection[], only: Set<string>): Findin
     }
 
     for (const field of message.fields) {
-      const referenceField = reference.fields.find((f) => f.name === field.name);
-      if (!referenceField) continue;
+      const referenceField = reference.fields.find(
+        (f) => f.name === field.name
+      );
+      if (!referenceField) {
+        continue;
+      }
       if (referenceField.type !== field.type) {
         findings.push({
           owner: message.name,
@@ -373,7 +446,9 @@ export function compare(sections: ReferenceSection[], only: Set<string>): Findin
           member: field.name,
           aspect: 'presence',
           detail: 'Required differs',
-          reference: referenceField.presence ?? `unparsed: ${referenceField.presenceRaw}`,
+          reference:
+            referenceField.presence ??
+            `unparsed: ${referenceField.presenceRaw}`,
           local: field.presence,
         });
       }
@@ -383,7 +458,9 @@ export function compare(sections: ReferenceSection[], only: Set<string>): Findin
           member: field.name,
           aspect: 'cardinality',
           detail: 'Cardinality differs',
-          reference: referenceField.cardinality ?? `unparsed: ${referenceField.cardinalityRaw}`,
+          reference:
+            referenceField.cardinality ??
+            `unparsed: ${referenceField.cardinalityRaw}`,
           local: field.cardinality,
         });
       }
@@ -399,7 +476,9 @@ export function compare(sections: ReferenceSection[], only: Set<string>): Findin
   }
 
   for (const enumSpec of gtfsRtSpec.enums) {
-    if (!wanted(enumSpec.name)) continue;
+    if (!wanted(enumSpec.name)) {
+      continue;
+    }
     const reference = findSection(
       sections,
       'enum',
@@ -455,8 +534,12 @@ export function compare(sections: ReferenceSection[], only: Set<string>): Findin
       });
     }
     for (const value of enumSpec.values) {
-      const referenceValue = reference.values.find((v) => v.value === value.value);
-      if (!referenceValue) continue;
+      const referenceValue = reference.values.find(
+        (v) => v.value === value.value
+      );
+      if (!referenceValue) {
+        continue;
+      }
       compareText(
         findings,
         enumSpec.name,
@@ -483,7 +566,9 @@ function main(): void {
 
   if (full) {
     for (const section of sections) {
-      if (only.size > 0 && !only.has(section.name)) continue;
+      if (only.size > 0 && !only.has(section.name)) {
+        continue;
+      }
       console.log(`\n── ${section.kind} ${section.name} ──`);
       console.log(section.description);
       for (const field of section.fields) {
@@ -493,13 +578,14 @@ function main(): void {
         console.log(`    ${field.description}`);
       }
       for (const value of section.values) {
-        console.log(`  ${value.value}${value.description ? ` | ${value.description}` : ''}`);
+        console.log(
+          `  ${value.value}${value.description ? ` | ${value.description}` : ''}`
+        );
       }
     }
   }
 
-  const covered =
-    gtfsRtSpec.messages.length + gtfsRtSpec.enums.length;
+  const covered = gtfsRtSpec.messages.length + gtfsRtSpec.enums.length;
   if (findings.length === 0) {
     console.log(
       `check-rt-spec: ${covered} messages and enums match the reference ` +
@@ -509,16 +595,29 @@ function main(): void {
   }
 
   for (const finding of findings) {
-    const where = finding.member ? `${finding.owner}.${finding.member}` : finding.owner;
+    const where = finding.member
+      ? `${finding.owner}.${finding.member}`
+      : finding.owner;
     console.log(`\n${where} [${finding.aspect}] ${finding.detail}`);
-    if (finding.reference !== undefined) console.log(`  reference: ${finding.reference}`);
-    if (finding.local !== undefined) console.log(`  spec:      ${finding.local}`);
+    if (finding.reference !== undefined) {
+      console.log(`  reference: ${finding.reference}`);
+    }
+    if (finding.local !== undefined) {
+      console.log(`  spec:      ${finding.local}`);
+    }
   }
-  console.log(`\ncheck-rt-spec: ${findings.length} difference(s) from the reference.`);
-  if (!full) console.log('Re-run with --full for the raw reference strings.');
+  console.log(
+    `\ncheck-rt-spec: ${findings.length} difference(s) from the reference.`
+  );
+  if (!full) {
+    console.log('Re-run with --full for the raw reference strings.');
+  }
   process.exitCode = 1;
 }
 
 const invokedDirectly =
-  process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
-if (invokedDirectly) main();
+  process.argv[1] !== undefined &&
+  resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (invokedDirectly) {
+  main();
+}

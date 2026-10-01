@@ -48,12 +48,16 @@ export const WEEKDAY_DISPLAY: readonly number[] = Array.from(
 );
 
 /** Day labels in display order, aligned with `WEEKDAY_DISPLAY`. */
-export const WEEKDAY_LABELS: readonly string[] = WEEKDAY_DISPLAY.map((i) => KEY_LABELS[i]);
+export const WEEKDAY_LABELS: readonly string[] = WEEKDAY_DISPLAY.map(
+  (i) => KEY_LABELS[i]
+);
 
 const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 export function isServiceDate(value: string | undefined): value is ServiceDate {
-  if (!value || !DATE_RE.test(value)) return false;
+  if (!value || !DATE_RE.test(value)) {
+    return false;
+  }
   // Rejects 2026-02-31, which the pattern alone happily accepts.
   return format(asUtc(value)) === value;
 }
@@ -185,6 +189,8 @@ export function monthGrid(date: ServiceDate): ServiceDate[] {
   const end = addDays(last, 6 - weekdayIndex(last));
 
   const days: ServiceDate[] = [];
-  for (let day = start; day <= end; day = addDays(day, 1)) days.push(day);
+  for (let day = start; day <= end; day = addDays(day, 1)) {
+    days.push(day);
+  }
   return days;
 }

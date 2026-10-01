@@ -32,7 +32,9 @@ function firstDeparture(feed: GTFSScheduled, trip: Trip): string | null {
 
 function routeLabel(feed: GTFSScheduled, trip: Trip): string {
   const route = feed.routes.get(trip.route_id);
-  return route ? route.short_name || route.long_name || route.id : trip.route_id;
+  return route
+    ? route.short_name || route.long_name || route.id
+    : trip.route_id;
 }
 
 /**
@@ -43,7 +45,11 @@ function routeLabel(feed: GTFSScheduled, trip: Trip): string {
  */
 export function tripLabel(feed: GTFSScheduled, trip: Trip): string {
   const departure = firstDeparture(feed, trip);
-  return [departure ? formatScheduleTime(departure) : null, routeLabel(feed, trip), tripName(trip)]
+  return [
+    departure ? formatScheduleTime(departure) : null,
+    routeLabel(feed, trip),
+    tripName(trip),
+  ]
     .filter(Boolean)
     .join(' - ');
 }
@@ -54,13 +60,20 @@ export function tripLabel(feed: GTFSScheduled, trip: Trip): string {
  * `detail` is the id, so the combo's own filter matches a typed id as well as
  * a typed name and nothing has to search twice.
  */
-export function tripOptions(feed: GTFSScheduled | null, trips?: Iterable<Trip>): FieldOption[] {
-  if (!feed) return [];
+export function tripOptions(
+  feed: GTFSScheduled | null,
+  trips?: Iterable<Trip>
+): FieldOption[] {
+  if (!feed) {
+    return [];
+  }
   const list = [...(trips ?? feed.trips.values())];
   list.sort((a, b) => {
     const at = firstDeparture(feed, a) ?? '';
     const bt = firstDeparture(feed, b) ?? '';
-    return at === bt ? tripName(a).localeCompare(tripName(b)) : at.localeCompare(bt);
+    return at === bt
+      ? tripName(a).localeCompare(tripName(b))
+      : at.localeCompare(bt);
   });
   return list.map((trip) => ({
     value: trip.trip_id,
@@ -77,17 +90,26 @@ export function tripOptions(feed: GTFSScheduled | null, trips?: Iterable<Trip>):
  * trips on those routes, because the next assignment is nearly always another
  * run of something already being tracked.
  */
-export function assignableTrips(session: FeedSession, routeId: string | null): Trip[] {
+export function assignableTrips(
+  session: FeedSession,
+  routeId: string | null
+): Trip[] {
   const feed = session.scheduledFeed;
-  if (!feed) return [];
-  if (routeId) return [...feed.trips.values()].filter((trip) => trip.route_id === routeId);
+  if (!feed) {
+    return [];
+  }
+  if (routeId) {
+    return [...feed.trips.values()].filter((trip) => trip.route_id === routeId);
+  }
 
   const named = new Set<string>();
   const routes = new Set<string>();
   for (const rule of session.rules?.values() ?? []) {
     named.add(rule.trip_id);
     const trip = feed.trips.get(rule.trip_id);
-    if (trip) routes.add(trip.route_id);
+    if (trip) {
+      routes.add(trip.route_id);
+    }
   }
   return [...feed.trips.values()].filter(
     (trip) => routes.has(trip.route_id) || named.has(trip.trip_id)

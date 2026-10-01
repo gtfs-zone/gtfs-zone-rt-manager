@@ -46,7 +46,9 @@ export function resolveSpec(ref: SpecRef | undefined): RTFieldSpec | undefined {
  * field is a mark on none.
  */
 function presenceMark(presence: RTPresence): string {
-  if (presence === 'Optional') return '';
+  if (presence === 'Optional') {
+    return '';
+  }
   const colors: Partial<Record<RTPresence, string>> = {
     Required: 'text-error',
     'Conditionally Required': 'text-warning',
@@ -65,7 +67,9 @@ function presenceMark(presence: RTPresence): string {
  */
 export function specTooltipContent(ref: SpecRef, spec: RTFieldSpec): string {
   const parts: string[] = [];
-  if (spec.description) parts.push(renderSpecDescription(spec.description));
+  if (spec.description) {
+    parts.push(renderSpecDescription(spec.description));
+  }
   parts.push(
     `<div class="opacity-70">ID: <code class="text-xs">${escHtml(ref.message)}.${escHtml(
       spec.name
@@ -76,9 +80,13 @@ export function specTooltipContent(ref: SpecRef, spec: RTFieldSpec): string {
       spec.cardinality === 'Many' ? ', repeated' : ''
     }</div>`
   );
-  parts.push(`<div class="opacity-70">Presence: ${escHtml(spec.presence)}</div>`);
+  parts.push(
+    `<div class="opacity-70">Presence: ${escHtml(spec.presence)}</div>`
+  );
   if (spec.experimental) {
-    parts.push('<div class="opacity-70">Still experimental, and subject to change.</div>');
+    parts.push(
+      '<div class="opacity-70">Still experimental, and subject to change.</div>'
+    );
   }
   return parts.join('');
 }
@@ -92,7 +100,9 @@ export function specTooltipContent(ref: SpecRef, spec: RTFieldSpec): string {
  */
 export function specLabelContent(label: string, ref?: SpecRef): string {
   const spec = resolveSpec(ref);
-  if (!ref || !spec) return escHtml(label);
+  if (!ref || !spec) {
+    return escHtml(label);
+  }
 
   const linked = `<a class="link link-hover" href="${escHtml(messageUrl(ref.message))}"
     target="_blank" rel="noopener noreferrer">${escHtml(label)}</a>`;

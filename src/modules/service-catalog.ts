@@ -16,10 +16,18 @@
  * nothing downstream sees the zip's form.
  */
 
-import type { Calendar, GTFSScheduled, Trip } from 'gtfs-zone-web-common/gtfs/scheduled';
+import type {
+  Calendar,
+  GTFSScheduled,
+  Trip,
+} from 'gtfs-zone-web-common/gtfs/scheduled';
 import type { FeedSession } from './feed-session';
 import type { ServiceDate } from './service-date';
-import { ruleWeekdayIndex, WEEKDAY_DISPLAY, WEEKDAY_LABELS } from './service-date';
+import {
+  ruleWeekdayIndex,
+  WEEKDAY_DISPLAY,
+  WEEKDAY_LABELS,
+} from './service-date';
 
 /** One service_id, with both halves of its calendar resolved. */
 export interface ServiceSummary {
@@ -38,7 +46,9 @@ export interface ServiceSummary {
 
 /** `2024-03-01` from the zip's `20240301`. Null for anything else. */
 export function toServiceDate(compact: string | undefined): ServiceDate | null {
-  if (!compact || !/^\d{8}$/.test(compact)) return null;
+  if (!compact || !/^\d{8}$/.test(compact)) {
+    return null;
+  }
   return `${compact.slice(0, 4)}-${compact.slice(4, 6)}-${compact.slice(6)}`;
 }
 
@@ -47,8 +57,12 @@ export function weekdaysLabel(days: readonly boolean[]): string {
   // `days` is Monday-first, the labels are in display order, so the flag each
   // label is about is the one `WEEKDAY_DISPLAY` points at.
   const named = WEEKDAY_LABELS.filter((_, slot) => days[WEEKDAY_DISPLAY[slot]]);
-  if (named.length === 7) return 'Every day';
-  if (named.length === 0) return 'No weekly pattern';
+  if (named.length === 7) {
+    return 'Every day';
+  }
+  if (named.length === 0) {
+    return 'No weekly pattern';
+  }
   return named.join(', ');
 }
 
@@ -63,7 +77,9 @@ export function weekdaysLabel(days: readonly boolean[]): string {
  * realtime poll and a feed has tens of thousands of trips; a caller that needs
  * the services behind a set of trips passes them to `servicesForTrips`.
  */
-export function serviceCatalog(feed: GTFSScheduled): Map<string, ServiceSummary> {
+export function serviceCatalog(
+  feed: GTFSScheduled
+): Map<string, ServiceSummary> {
   const services = new Map<string, ServiceSummary>();
 
   const ensure = (id: string): ServiceSummary => {
@@ -90,10 +106,15 @@ export function serviceCatalog(feed: GTFSScheduled): Map<string, ServiceSummary>
 
   for (const exception of feed.calendarDates) {
     const date = toServiceDate(exception.date);
-    if (!date) continue;
+    if (!date) {
+      continue;
+    }
     const service = ensure(exception.service_id);
-    if (exception.exception_type === 2) service.removed.push(date);
-    else service.added.push(date);
+    if (exception.exception_type === 2) {
+      service.removed.push(date);
+    } else {
+      service.added.push(date);
+    }
   }
 
   for (const service of services.values()) {
@@ -111,12 +132,25 @@ export function serviceCatalog(feed: GTFSScheduled): Map<string, ServiceSummary>
  * its window answer. A service with no `calendar.txt` row therefore runs on its
  * added dates and nowhere else.
  */
-export function serviceRunsOn(service: ServiceSummary, date: ServiceDate): boolean {
-  if (service.removed.includes(date)) return false;
-  if (service.added.includes(date)) return true;
-  if (!service.calendar) return false;
-  if (service.start && date < service.start) return false;
-  if (service.end && date > service.end) return false;
+export function serviceRunsOn(
+  service: ServiceSummary,
+  date: ServiceDate
+): boolean {
+  if (service.removed.includes(date)) {
+    return false;
+  }
+  if (service.added.includes(date)) {
+    return true;
+  }
+  if (!service.calendar) {
+    return false;
+  }
+  if (service.start && date < service.start) {
+    return false;
+  }
+  if (service.end && date > service.end) {
+    return false;
+  }
   return service.days[ruleWeekdayIndex(date)] === true;
 }
 
@@ -127,23 +161,36 @@ export function serviceRunsOn(service: ServiceSummary, date: ServiceDate): boole
  */
 export function sortByCascade(services: ServiceSummary[]): ServiceSummary[] {
   return services.sort((a, b) => {
-    const start = (a.start ?? '9999-99-99').localeCompare(b.start ?? '9999-99-99');
+    const start = (a.start ?? '9999-99-99').localeCompare(
+      b.start ?? '9999-99-99'
+    );
     return start !== 0 ? start : a.id.localeCompare(b.id);
   });
 }
 
 /** The services the given trips run on, deduplicated and in cascade order. */
-export function servicesForTrips(feed: GTFSScheduled, trips: Iterable<Trip>): ServiceSummary[] {
+export function servicesForTrips(
+  feed: GTFSScheduled,
+  trips: Iterable<Trip>
+): ServiceSummary[] {
   const catalog = serviceCatalog(feed);
   const ids = new Set<string>();
-  for (const trip of trips) ids.add(trip.service_id);
-  return sortByCascade([...catalog.values()].filter((service) => ids.has(service.id)));
+  for (const trip of trips) {
+    ids.add(trip.service_id);
+  }
+  return sortByCascade(
+    [...catalog.values()].filter((service) => ids.has(service.id))
+  );
 }
 
 /** Every trip a rule names, from the feed's whole rule set. */
-export function assignedTripIds(session: Pick<FeedSession, 'rules'>): Set<string> {
+export function assignedTripIds(
+  session: Pick<FeedSession, 'rules'>
+): Set<string> {
   const ids = new Set<string>();
-  for (const rule of session.rules?.values() ?? []) ids.add(rule.trip_id);
+  for (const rule of session.rules?.values() ?? []) {
+    ids.add(rule.trip_id);
+  }
   return ids;
 }
 
@@ -157,13 +204,17 @@ export function assignmentCounts(
   session: Pick<FeedSession, 'rules'>,
   tripIds: Iterable<string>
 ): { assigned: number; total: number } | null {
-  if (!session.rules) return null;
+  if (!session.rules) {
+    return null;
+  }
   const assigned = assignedTripIds(session);
   let total = 0;
   let hit = 0;
   for (const id of tripIds) {
     total++;
-    if (assigned.has(id)) hit++;
+    if (assigned.has(id)) {
+      hit++;
+    }
   }
   return { assigned: hit, total };
 }

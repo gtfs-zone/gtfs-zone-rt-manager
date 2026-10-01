@@ -58,7 +58,9 @@ export function managerShortcuts(host: ShortcutHost): ShortcutCommand[] {
       description: 'Clear the search',
       allowInInputFields: true,
       handler: () => {
-        (document.getElementById('map-search') as HTMLInputElement | null)?.blur();
+        (
+          document.getElementById('map-search') as HTMLInputElement | null
+        )?.blur();
         host.clearSearch();
       },
     },
@@ -75,7 +77,9 @@ export function managerShortcuts(host: ShortcutHost): ShortcutCommand[] {
 }
 
 function focusMapSearch(): void {
-  const mapSearch = document.getElementById('map-search') as HTMLInputElement | null;
+  const mapSearch = document.getElementById(
+    'map-search'
+  ) as HTMLInputElement | null;
   mapSearch?.focus();
   mapSearch?.select();
 }

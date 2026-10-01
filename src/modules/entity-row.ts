@@ -22,7 +22,11 @@
 
 import type { PageState } from '../types/page-state';
 import type { RenderContext } from './render-context';
-import { entityLink, escHtml, section } from 'gtfs-zone-web-common/gtfs/entity-render';
+import {
+  entityLink,
+  escHtml,
+  section,
+} from 'gtfs-zone-web-common/gtfs/entity-render';
 
 export interface EntityRow {
   /** Where the row goes. A row with no state is text, not a link. */
@@ -48,7 +52,9 @@ const ROW_CLASS =
   'flex items-center gap-2 min-w-0 px-2 py-1.5 rounded-lg transition-colors hover:bg-base-200';
 
 function dot(color: string | undefined): string {
-  if (!color) return '';
+  if (!color) {
+    return '';
+  }
   return `<span class="size-2 rounded-full shrink-0 ring-1 ring-base-content/20"
     style="background:${escHtml(color)}"></span>`;
 }
@@ -70,8 +76,12 @@ function text(row: EntityRow, linked: boolean, ctx?: RenderContext): string {
 }
 
 function trailing(row: EntityRow): string {
-  if (row.badgeHtml) return `<span class="shrink-0">${row.badgeHtml}</span>`;
-  if (row.badge === undefined) return '';
+  if (row.badgeHtml) {
+    return `<span class="shrink-0">${row.badgeHtml}</span>`;
+  }
+  if (row.badge === undefined) {
+    return '';
+  }
   return `<span class="badge badge-outline badge-xs shrink-0 tabular-nums">${escHtml(
     row.badge
   )}</span>`;
@@ -95,13 +105,17 @@ export function entityRow(ctx: RenderContext, row: EntityRow): string {
   }
 
   return `<li class="${ROW_CLASS}"${titleAttr}>${body}${text(row, true, ctx)}${trailing(row)}${
-    row.actionsHtml ? `<span class="shrink-0 flex gap-1">${row.actionsHtml}</span>` : ''
+    row.actionsHtml
+      ? `<span class="shrink-0 flex gap-1">${row.actionsHtml}</span>`
+      : ''
   }</li>`;
 }
 
 /** The list around the rows, with its own empty state. */
 export function entityRowList(rows: string[], empty: string): string {
-  if (rows.length === 0) return emptyState(empty);
+  if (rows.length === 0) {
+    return emptyState(empty);
+  }
   return `<ul class="-mx-2">${rows.join('')}</ul>`;
 }
 
@@ -129,7 +143,9 @@ export function rowSection(
 
 /** The "not everything is listed" line, shown only when something was cut. */
 export function cappedNote(total: number, shown: number): string {
-  if (total <= shown) return '';
+  if (total <= shown) {
+    return '';
+  }
   return `<p class="text-xs opacity-50 mt-2">${escHtml(
     `${total - shown} more not listed — use the search box.`
   )}</p>`;

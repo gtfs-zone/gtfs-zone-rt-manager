@@ -35,7 +35,10 @@
  */
 import { CONFIG } from '../config';
 import { GTFSScheduled } from 'gtfs-zone-web-common/gtfs/scheduled';
-import type { AlertRecord, TripUpdate } from 'gtfs-zone-web-common/gtfs/rt-types';
+import type {
+  AlertRecord,
+  TripUpdate,
+} from 'gtfs-zone-web-common/gtfs/rt-types';
 import type {
   Alert,
   AlertDetail,
@@ -52,7 +55,11 @@ import type { ServiceDate } from './service-date';
 import type { VehiclePosition } from '../map-controller';
 import { adoptFeedTimezone } from 'gtfs-zone-web-common/gtfs/feed-time';
 import { feedProgressIndicator } from 'gtfs-zone-web-common/ui/progress-indicator';
-import { downloadPercent, formatBytes, LoadCancelledError } from 'gtfs-zone-web-common/gtfs/feed-download';
+import {
+  downloadPercent,
+  formatBytes,
+  LoadCancelledError,
+} from 'gtfs-zone-web-common/gtfs/feed-download';
 
 export class FeedSession extends EventTarget {
   /** The selected feed's API row, or null when nothing is selected. */
@@ -181,7 +188,9 @@ export class FeedSession extends EventTarget {
    * repointed URL arrives through `updateFeed` instead.
    */
   setLoadStatus(load: LoadStatusRow | null): void {
-    if (!this.feed) return;
+    if (!this.feed) {
+      return;
+    }
     this.feed = { ...this.feed, load };
     this.dispatchEvent(new CustomEvent('change'));
   }
@@ -197,7 +206,9 @@ export class FeedSession extends EventTarget {
     const now = Date.now();
     this.vehicles = new Map(positions.map((v) => [v.key, v]));
     this.vehicleArrivals = new Map(positions.map((v) => [v.key, now]));
-    for (const v of positions) this.trackerArrivals.set(v.trackerId, now);
+    for (const v of positions) {
+      this.trackerArrivals.set(v.trackerId, now);
+    }
     this.dispatchEvent(new CustomEvent('vehicles'));
   }
 
@@ -228,12 +239,16 @@ export class FeedSession extends EventTarget {
     const cutoff = Date.now() - CONFIG.TRACKER_STALE_MS;
     let dropped = false;
     for (const [key, at] of this.vehicleArrivals) {
-      if (at > cutoff) continue;
+      if (at > cutoff) {
+        continue;
+      }
       this.vehicles.delete(key);
       this.vehicleArrivals.delete(key);
       dropped = true;
     }
-    if (dropped) this.dispatchEvent(new CustomEvent('vehicles'));
+    if (dropped) {
+      this.dispatchEvent(new CustomEvent('vehicles'));
+    }
     return dropped;
   }
 
@@ -249,7 +264,9 @@ export class FeedSession extends EventTarget {
   vehiclesFor(trackerId: string): VehiclePosition[] {
     const mine: VehiclePosition[] = [];
     for (const v of this.vehicles.values()) {
-      if (v.trackerId === trackerId) mine.push(v);
+      if (v.trackerId === trackerId) {
+        mine.push(v);
+      }
     }
     return mine.sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0));
   }
@@ -271,7 +288,9 @@ export class FeedSession extends EventTarget {
     // A detail fetched for a tracker that is no longer in the list is stale,
     // and it holds a credential, so it goes rather than lingering in memory.
     for (const id of this.trackerDetails.keys()) {
-      if (!this.trackers.has(id)) this.trackerDetails.delete(id);
+      if (!this.trackers.has(id)) {
+        this.trackerDetails.delete(id);
+      }
     }
     this.dispatchEvent(new CustomEvent('change'));
   }
@@ -306,8 +325,11 @@ export class FeedSession extends EventTarget {
     const byDate = new Map<ServiceDate, Assignment[]>();
     for (const row of rows) {
       const day = byDate.get(row.service_date);
-      if (day) day.push(row);
-      else byDate.set(row.service_date, [row]);
+      if (day) {
+        day.push(row);
+      } else {
+        byDate.set(row.service_date, [row]);
+      }
     }
     this.assignments = byDate;
     this.assignmentsRange = { from, to };
@@ -321,7 +343,9 @@ export class FeedSession extends EventTarget {
 
   /** Every rule naming this trip, for the trip page. Empty when unfetched. */
   rulesForTrip(tripId: string): TrackerRule[] {
-    if (!this.rules) return [];
+    if (!this.rules) {
+      return [];
+    }
     return [...this.rules.values()].filter((r) => r.trip_id === tripId);
   }
 
@@ -329,7 +353,9 @@ export class FeedSession extends EventTarget {
   setServiceAlerts(alerts: Alert[]): void {
     this.serviceAlerts = new Map(alerts.map((a) => [String(a.id), a]));
     for (const key of this.alertDetails.keys()) {
-      if (!this.serviceAlerts.has(key)) this.alertDetails.delete(key);
+      if (!this.serviceAlerts.has(key)) {
+        this.alertDetails.delete(key);
+      }
     }
     this.dispatchEvent(new CustomEvent('change'));
   }
@@ -404,7 +430,10 @@ export class FeedSession extends EventTarget {
         if (!parsing) {
           parsing = true;
           feedProgressIndicator.finishLoading('scheduled-download');
-          feedProgressIndicator.startLoading('scheduled-parse', `Parsing ${label}…`);
+          feedProgressIndicator.startLoading(
+            'scheduled-parse',
+            `Parsing ${label}…`
+          );
         }
         feedProgressIndicator.updateProgress(
           'scheduled-parse',
@@ -415,9 +444,13 @@ export class FeedSession extends EventTarget {
       signal: controller.signal,
     };
 
-    feedProgressIndicator.startLoading('scheduled-download', `Downloading ${label}…`, {
-      onCancel: () => controller.abort(),
-    });
+    feedProgressIndicator.startLoading(
+      'scheduled-download',
+      `Downloading ${label}…`,
+      {
+        onCancel: () => controller.abort(),
+      }
+    );
 
     try {
       await feed.loadFromUrl(url, hooks);
@@ -428,14 +461,18 @@ export class FeedSession extends EventTarget {
       this.scheduleLoadedAt = Date.now();
       // Separate from `change` because the map has to reload its sources on
       // this and on nothing else; `change` fires for every tracker update too.
-      this.dispatchEvent(new CustomEvent<GTFSScheduled>('scheduleloaded', { detail: feed }));
+      this.dispatchEvent(
+        new CustomEvent<GTFSScheduled>('scheduleloaded', { detail: feed })
+      );
     } catch (err) {
       // A cancel is not a feed error: the previously loaded feed stays live.
       if (!(err instanceof LoadCancelledError)) {
         this.scheduleError = err instanceof Error ? err.message : String(err);
       }
     } finally {
-      if (this.controller === controller) this.controller = null;
+      if (this.controller === controller) {
+        this.controller = null;
+      }
       feedProgressIndicator.finishLoading('scheduled-download');
       feedProgressIndicator.finishLoading('scheduled-parse');
       this.dispatchEvent(new CustomEvent('change'));

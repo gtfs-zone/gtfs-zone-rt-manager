@@ -126,8 +126,7 @@ export const alertSpec: RTMessageSpec = {
       type: 'SeverityLevel',
       presence: 'Optional',
       cardinality: 'One',
-      description:
-        'Severity of the alert.',
+      description: 'Severity of the alert.',
       enumName: 'SeverityLevel',
     },
     {
@@ -151,193 +150,162 @@ export const alertSpec: RTMessageSpec = {
 
 export const causeSpec: RTEnumSpec = {
   name: 'Cause',
-  description:
-    'Cause of this alert.',
+  description: 'Cause of this alert.',
   values: [
     {
       value: 'UNKNOWN_CAUSE',
       label: 'Unknown cause',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'OTHER_CAUSE',
       label: 'Other cause',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'TECHNICAL_PROBLEM',
       label: 'Technical problem',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'STRIKE',
       label: 'Strike',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'DEMONSTRATION',
       label: 'Demonstration',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'ACCIDENT',
       label: 'Accident',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'HOLIDAY',
       label: 'Holiday',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'WEATHER',
       label: 'Weather',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'MAINTENANCE',
       label: 'Maintenance',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'CONSTRUCTION',
       label: 'Construction',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'POLICE_ACTIVITY',
       label: 'Police activity',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'MEDICAL_EMERGENCY',
       label: 'Medical emergency',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'SPECIAL_EVENT',
       label: 'Special event',
-      description:
-        '',
+      description: '',
     },
   ],
 };
 
 export const effectSpec: RTEnumSpec = {
   name: 'Effect',
-  description:
-    'The effect of this problem on the affected entity.',
+  description: 'The effect of this problem on the affected entity.',
   values: [
     {
       value: 'NO_SERVICE',
       label: 'No service',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'REDUCED_SERVICE',
       label: 'Reduced service',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'SIGNIFICANT_DELAYS',
       label: 'Significant delays',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'DETOUR',
       label: 'Detour',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'ADDITIONAL_SERVICE',
       label: 'Additional service',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'MODIFIED_SERVICE',
       label: 'Modified service',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'OTHER_EFFECT',
       label: 'Other effect',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'UNKNOWN_EFFECT',
       label: 'Unknown effect',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'STOP_MOVED',
       label: 'Stop moved',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'NO_EFFECT',
       label: 'No effect',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'ACCESSIBILITY_ISSUE',
       label: 'Accessibility issue',
-      description:
-        '',
+      description: '',
     },
   ],
 };
 
 export const severityLevelSpec: RTEnumSpec = {
   name: 'SeverityLevel',
-  description:
-    'The severity of the alert.',
+  description: 'The severity of the alert.',
   experimental: true,
   values: [
     {
       value: 'UNKNOWN_SEVERITY',
       label: 'Unknown severity',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'INFO',
       label: 'Info',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'WARNING',
       label: 'Warning',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'SEVERE',
       label: 'Severe',
-      description:
-        '',
+      description: '',
     },
   ],
 };

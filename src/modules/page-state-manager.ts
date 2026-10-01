@@ -35,7 +35,9 @@ import { MODAL_TYPES, isPageState } from '../types/page-state';
  */
 function parseModalParams(params: URLSearchParams): ModalState | null {
   const type = params.get('modal');
-  if (type === null) return null;
+  if (type === null) {
+    return null;
+  }
   if (!MODAL_TYPES.includes(type as ModalType)) {
     console.warn(`[PageStateManager] unknown modal in hash: ${type}`);
     return null;
@@ -52,7 +54,9 @@ const pageStateCodec: PageStateCodec<PageState> = {
 
   toParams(pageState) {
     const params = new URLSearchParams();
-    if (pageState.type !== 'home') params.set('type', pageState.type);
+    if (pageState.type !== 'home') {
+      params.set('type', pageState.type);
+    }
 
     switch (pageState.type) {
       case 'home':
@@ -73,7 +77,9 @@ const pageStateCodec: PageStateCodec<PageState> = {
         break;
       case 'trip':
         params.set('trip', pageState.trip_id);
-        if (pageState.route_id) params.set('route', pageState.route_id);
+        if (pageState.route_id) {
+          params.set('route', pageState.route_id);
+        }
         break;
       case 'alert':
         params.set('alert', pageState.alert_id);
@@ -108,13 +114,16 @@ const pageStateCodec: PageStateCodec<PageState> = {
   fromParams(params) {
     const get = (key: string) => params.get(key) ?? undefined;
     const modal = parseModalParams(params);
-    const withModal = (state: PageState): PageState => (modal ? { ...state, modal } : state);
+    const withModal = (state: PageState): PageState =>
+      modal ? { ...state, modal } : state;
 
     switch (params.get('type')) {
       case 'tracker': {
         const tracker_id = get('tracker');
         return withModal(
-          tracker_id === undefined ? { type: 'home' } : { type: 'tracker', tracker_id },
+          tracker_id === undefined
+            ? { type: 'home' }
+            : { type: 'tracker', tracker_id }
         );
       }
       case 'vehicle': {
@@ -123,26 +132,42 @@ const pageStateCodec: PageStateCodec<PageState> = {
         return withModal(
           tracker_id === undefined || vehicle_key === undefined
             ? { type: 'home' }
-            : { type: 'vehicle', tracker_id, vehicle_key },
+            : { type: 'vehicle', tracker_id, vehicle_key }
         );
       }
       case 'alert': {
         const alert_id = get('alert');
-        return withModal(alert_id === undefined ? { type: 'home' } : { type: 'alert', alert_id });
+        return withModal(
+          alert_id === undefined
+            ? { type: 'home' }
+            : { type: 'alert', alert_id }
+        );
       }
       case 'route': {
         const route_id = get('route');
-        return withModal(route_id === undefined ? { type: 'home' } : { type: 'route', route_id });
+        return withModal(
+          route_id === undefined
+            ? { type: 'home' }
+            : { type: 'route', route_id }
+        );
       }
       case 'stop': {
         const stop_id = get('stop');
-        return withModal(stop_id === undefined ? { type: 'home' } : { type: 'stop', stop_id });
+        return withModal(
+          stop_id === undefined ? { type: 'home' } : { type: 'stop', stop_id }
+        );
       }
       case 'trip': {
         const trip_id = get('trip');
-        if (trip_id === undefined) return withModal({ type: 'home' });
+        if (trip_id === undefined) {
+          return withModal({ type: 'home' });
+        }
         const route_id = get('route');
-        return withModal({ type: 'trip', trip_id, ...(route_id !== undefined && { route_id }) });
+        return withModal({
+          type: 'trip',
+          trip_id,
+          ...(route_id !== undefined && { route_id }),
+        });
       }
       default:
         return withModal({ type: 'home' });
@@ -150,7 +175,10 @@ const pageStateCodec: PageStateCodec<PageState> = {
   },
 };
 
-export type AppPageStateManager = PageStateManager<PageState, BreadcrumbItem<PageState>>;
+export type AppPageStateManager = PageStateManager<
+  PageState,
+  BreadcrumbItem<PageState>
+>;
 
 /** The one manager AppState owns, synced to the hash. */
 export function createPageStateManager(): AppPageStateManager {

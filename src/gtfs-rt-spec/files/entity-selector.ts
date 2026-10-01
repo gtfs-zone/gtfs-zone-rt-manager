@@ -36,8 +36,7 @@ export const entitySelectorSpec: RTMessageSpec = {
       type: 'int32',
       presence: 'Conditionally Required',
       cardinality: 'One',
-      description:
-        'The route_type from the GTFS that this selector refers to.',
+      description: 'The route_type from the GTFS that this selector refers to.',
       gtfsField: { file: 'routes.txt', field: 'route_type' },
     },
     {

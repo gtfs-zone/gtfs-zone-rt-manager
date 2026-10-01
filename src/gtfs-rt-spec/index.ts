@@ -15,10 +15,18 @@
  */
 
 import type { RTEnumSpec, RTFieldSpec, RTMessageSpec, RTSpec } from './types';
-import { alertSpec, causeSpec, effectSpec, severityLevelSpec } from './files/alert';
+import {
+  alertSpec,
+  causeSpec,
+  effectSpec,
+  severityLevelSpec,
+} from './files/alert';
 import { entitySelectorSpec } from './files/entity-selector';
 import { timeRangeSpec } from './files/time-range';
-import { translatedStringSpec, translationSpec } from './files/translated-string';
+import {
+  translatedStringSpec,
+  translationSpec,
+} from './files/translated-string';
 import {
   congestionLevelSpec,
   occupancyStatusSpec,
@@ -26,7 +34,10 @@ import {
   vehicleStopStatusSpec,
 } from './files/vehicle-position';
 import { tripUpdateSpec } from './files/trip-update';
-import { tripDescriptorSpec, tripScheduleRelationshipSpec } from './files/trip-descriptor';
+import {
+  tripDescriptorSpec,
+  tripScheduleRelationshipSpec,
+} from './files/trip-descriptor';
 
 export const gtfsRtSpec: RTSpec = {
   version: '2.0',
@@ -58,7 +69,10 @@ export function rtMessage(name: string): RTMessageSpec | undefined {
 }
 
 /** One field of one message. */
-export function rtField(message: string, field: string): RTFieldSpec | undefined {
+export function rtField(
+  message: string,
+  field: string
+): RTFieldSpec | undefined {
   return rtMessage(message)?.fields.find((f) => f.name === field);
 }
 
@@ -74,7 +88,9 @@ export function rtEnum(name: string): RTEnumSpec | undefined {
  */
 export function rtEnumValues(name: string): readonly string[] {
   const spec = rtEnum(name);
-  if (!spec) throw new Error(`gtfs-rt-spec: no enum named ${name}`);
+  if (!spec) {
+    throw new Error(`gtfs-rt-spec: no enum named ${name}`);
+  }
   return spec.values.map((v) => v.value);
 }
 

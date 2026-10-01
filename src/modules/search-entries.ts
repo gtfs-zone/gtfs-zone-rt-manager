@@ -46,7 +46,9 @@ function haystack(...parts: (string | undefined)[]): string {
   return parts.filter(Boolean).join(' ');
 }
 
-export function buildSearchEntries(session: FeedSession): SearchEntry<PageState>[] {
+export function buildSearchEntries(
+  session: FeedSession
+): SearchEntry<PageState>[] {
   const feed = session.scheduledFeed;
   const entries: SearchEntry<PageState>[] = [];
 
@@ -56,7 +58,12 @@ export function buildSearchEntries(session: FeedSession): SearchEntry<PageState>
       icon: stopMarker(stop.location_type),
       primary: stop.name || stop.id,
       secondary: stop.raw['stop_code'] || stop.id,
-      haystack: haystack(stop.name, stop.id, stop.raw['stop_code'], stop.raw['stop_desc']),
+      haystack: haystack(
+        stop.name,
+        stop.id,
+        stop.raw['stop_code'],
+        stop.raw['stop_desc']
+      ),
       // Managed objects first, then stations, routes, and plain stops.
       priority: Number(stop.location_type) === 1 ? 2 : 4,
     });
@@ -68,17 +75,27 @@ export function buildSearchEntries(session: FeedSession): SearchEntry<PageState>
       payload: { type: 'route', route_id: route.id },
       icon: routeMarker(route.color),
       primary,
-      secondary: route.long_name && route.long_name !== primary ? route.long_name : route.id,
-      haystack: haystack(route.short_name, route.long_name, route.id, route.raw['route_desc']),
+      secondary:
+        route.long_name && route.long_name !== primary
+          ? route.long_name
+          : route.id,
+      haystack: haystack(
+        route.short_name,
+        route.long_name,
+        route.id,
+        route.raw['route_desc']
+      ),
       priority: 3,
     });
   }
 
   // Same color the map paints a vehicle: its trip's route, or unmatched grey.
   const vehicleRoute = (position: VehiclePosition | undefined) =>
-    position?.routeId || (position?.tripId ? feed?.trips.get(position.tripId)?.route_id : undefined);
+    position?.routeId ||
+    (position?.tripId ? feed?.trips.get(position.tripId)?.route_id : undefined);
   const vehicleColor = (routeId: string | undefined) =>
-    (routeId ? feed?.routes.get(routeId)?.color : undefined) ?? CONFIG.VEHICLE_UNMATCHED_COLOR;
+    (routeId ? feed?.routes.get(routeId)?.color : undefined) ??
+    CONFIG.VEHICLE_UNMATCHED_COLOR;
 
   // A tracker is searched for as itself, whether or not it is reporting: the
   // list is the API's, not the live map's. A one-vehicle tracker is that
@@ -100,21 +117,38 @@ export function buildSearchEntries(session: FeedSession): SearchEntry<PageState>
           : 'no fix',
       haystack: fleet
         ? haystack(tracker.nickname)
-        : haystack(tracker.nickname, position?.label, position?.tripId, routeId),
+        : haystack(
+            tracker.nickname,
+            position?.label,
+            position?.tripId,
+            routeId
+          ),
       priority: 0,
     });
 
-    if (!fleet) continue;
+    if (!fleet) {
+      continue;
+    }
     for (const vehicle of positions) {
       const vehicleRouteId = vehicleRoute(vehicle);
       entries.push({
         payload: vehicleLocation(positions, vehicle),
         icon: dotMarker(vehicleColor(vehicleRouteId)),
         primary: vehicle.label || vehicle.vehicleId,
-        secondary: [tracker.nickname, vehicle.tripId ? feed?.trips.get(vehicle.tripId)?.headsign : undefined]
+        secondary: [
+          tracker.nickname,
+          vehicle.tripId
+            ? feed?.trips.get(vehicle.tripId)?.headsign
+            : undefined,
+        ]
           .filter(Boolean)
           .join(' - '),
-        haystack: haystack(vehicle.label, vehicle.vehicleId, vehicle.tripId, vehicleRouteId),
+        haystack: haystack(
+          vehicle.label,
+          vehicle.vehicleId,
+          vehicle.tripId,
+          vehicleRouteId
+        ),
         priority: 0,
       });
     }

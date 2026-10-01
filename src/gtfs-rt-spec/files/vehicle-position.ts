@@ -4,8 +4,7 @@ import type { RTEnumSpec, RTMessageSpec } from '../types';
 
 export const vehiclePositionSpec: RTMessageSpec = {
   name: 'VehiclePosition',
-  description:
-    'Realtime positioning information for a given vehicle.',
+  description: 'Realtime positioning information for a given vehicle.',
   fields: [
     {
       name: 'trip',
@@ -28,8 +27,7 @@ export const vehiclePositionSpec: RTMessageSpec = {
       type: 'Position',
       presence: 'Optional',
       cardinality: 'One',
-      description:
-        'Current position of this vehicle.',
+      description: 'Current position of this vehicle.',
     },
     {
       name: 'current_stop_sequence',
@@ -70,8 +68,7 @@ export const vehiclePositionSpec: RTMessageSpec = {
       type: 'CongestionLevel',
       presence: 'Optional',
       cardinality: 'One',
-      description:
-        '',
+      description: '',
       enumName: 'CongestionLevel',
     },
     {
@@ -107,8 +104,7 @@ export const vehiclePositionSpec: RTMessageSpec = {
 
 export const vehicleStopStatusSpec: RTEnumSpec = {
   name: 'VehicleStopStatus',
-  description:
-    '',
+  description: '',
   values: [
     {
       value: 'INCOMING_AT',
@@ -119,8 +115,7 @@ export const vehicleStopStatusSpec: RTEnumSpec = {
     {
       value: 'STOPPED_AT',
       label: 'Stopped at',
-      description:
-        'The vehicle is standing at the stop.',
+      description: 'The vehicle is standing at the stop.',
     },
     {
       value: 'IN_TRANSIT_TO',
@@ -133,38 +128,32 @@ export const vehicleStopStatusSpec: RTEnumSpec = {
 
 export const congestionLevelSpec: RTEnumSpec = {
   name: 'CongestionLevel',
-  description:
-    'Congestion level that is affecting this vehicle.',
+  description: 'Congestion level that is affecting this vehicle.',
   values: [
     {
       value: 'UNKNOWN_CONGESTION_LEVEL',
       label: 'Unknown congestion level',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'RUNNING_SMOOTHLY',
       label: 'Running smoothly',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'STOP_AND_GO',
       label: 'Stop and go',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'CONGESTION',
       label: 'Congestion',
-      description:
-        '',
+      description: '',
     },
     {
       value: 'SEVERE_CONGESTION',
       label: 'Severe congestion',
-      description:
-        '',
+      description: '',
     },
   ],
 };

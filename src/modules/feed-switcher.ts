@@ -23,7 +23,9 @@ import { showNewFeedForm } from './schedule-upload';
 import type { Feed } from '../types/api';
 
 function feedRow(feed: Feed, selectedId: number | null): string {
-  const owner = feed.is_owner ? 'yours' : `shared by ${feed.owner_name ?? 'someone'}`;
+  const owner = feed.is_owner
+    ? 'yours'
+    : `shared by ${feed.owner_name ?? 'someone'}`;
   return `<button
       type="button"
       data-feed-id="${feed.id}"
@@ -87,7 +89,9 @@ export async function showFeedSwitcher(
     boxClassName: 'max-w-lg',
     onMount: (close) => {
       const list = document.getElementById('feed-list')!;
-      const showAll = document.getElementById('feed-show-all') as HTMLInputElement | null;
+      const showAll = document.getElementById(
+        'feed-show-all'
+      ) as HTMLInputElement | null;
       const newFeed = document.getElementById('new-feed') as HTMLButtonElement;
 
       const pick = (feed: Feed): void => {
@@ -110,10 +114,16 @@ export async function showFeedSwitcher(
       };
 
       list.addEventListener('click', (e) => {
-        const row = (e.target as HTMLElement).closest<HTMLElement>('[data-feed-id]');
-        if (!row) return;
+        const row = (e.target as HTMLElement).closest<HTMLElement>(
+          '[data-feed-id]'
+        );
+        if (!row) {
+          return;
+        }
         const feed = feeds.find((f) => f.id === Number(row.dataset.feedId));
-        if (feed) pick(feed);
+        if (feed) {
+          pick(feed);
+        }
       });
 
       showAll?.addEventListener('change', () => void refresh());
@@ -123,7 +133,9 @@ export async function showFeedSwitcher(
       // step: nobody makes a feed in order to then not look at it.
       newFeed.addEventListener('click', () => {
         void showNewFeedForm().then((created) => {
-          if (created) pick(created);
+          if (created) {
+            pick(created);
+          }
         });
       });
 

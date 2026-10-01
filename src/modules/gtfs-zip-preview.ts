@@ -42,8 +42,7 @@ export interface ZipSummary {
 }
 
 export type ZipPreview =
-  | { ok: true; summary: ZipSummary }
-  | { ok: false; reason: string };
+  { ok: true; summary: ZipSummary } | { ok: false; reason: string };
 
 /** `YYYYMMDD` as GTFS writes it, or null for anything that is not one. */
 function isoDate(compact: string): string | null {
@@ -59,19 +58,30 @@ function isoDate(compact: string): string | null {
  * A calendar-dates-only feed is common and entirely valid, which is why the
  * exceptions are read rather than treated as decoration on a calendar row.
  */
-function serviceRange(feed: GTFSScheduled): { start: string | null; end: string | null } {
+function serviceRange(feed: GTFSScheduled): {
+  start: string | null;
+  end: string | null;
+} {
   const dates: string[] = [];
   for (const cal of feed.calendar) {
     const start = isoDate(cal.start_date);
     const end = isoDate(cal.end_date);
-    if (start) dates.push(start);
-    if (end) dates.push(end);
+    if (start) {
+      dates.push(start);
+    }
+    if (end) {
+      dates.push(end);
+    }
   }
   for (const exception of feed.calendarDates) {
     const date = isoDate(exception.date);
-    if (date) dates.push(date);
+    if (date) {
+      dates.push(date);
+    }
   }
-  if (!dates.length) return { start: null, end: null };
+  if (!dates.length) {
+    return { start: null, end: null };
+  }
   dates.sort();
   return { start: dates[0], end: dates[dates.length - 1] };
 }
@@ -81,7 +91,9 @@ function rejectByName(names: string[]): string | null {
   const root = new Set(names);
 
   const nested = names.filter(
-    (n) => n.includes('/') && REQUIRED_FILES.includes(n.slice(n.lastIndexOf('/') + 1))
+    (n) =>
+      n.includes('/') &&
+      REQUIRED_FILES.includes(n.slice(n.lastIndexOf('/') + 1))
   );
   if (nested.length) {
     const directory = nested[0].slice(0, nested[0].lastIndexOf('/'));
@@ -89,7 +101,9 @@ function rejectByName(names: string[]): string | null {
   }
 
   const missing = REQUIRED_FILES.filter((name) => !root.has(name));
-  if (missing.length) return `That zip is missing ${missing.join(', ')}`;
+  if (missing.length) {
+    return `That zip is missing ${missing.join(', ')}`;
+  }
 
   if (!CALENDAR_FILES.some((name) => root.has(name))) {
     return 'That zip has neither calendar.txt nor calendar_dates.txt';
@@ -111,7 +125,9 @@ export async function previewGtfsZip(file: File): Promise<ZipPreview> {
     const mb = Math.round(CONFIG.UPLOAD_MAX_BYTES / (1 << 20));
     return { ok: false, reason: `That file is larger than ${mb} MB` };
   }
-  if (file.size === 0) return { ok: false, reason: 'That file is empty' };
+  if (file.size === 0) {
+    return { ok: false, reason: 'That file is empty' };
+  }
 
   await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -123,7 +139,9 @@ export async function previewGtfsZip(file: File): Promise<ZipPreview> {
   }
 
   const named = rejectByName(Object.keys(zip.files));
-  if (named) return { ok: false, reason: named };
+  if (named) {
+    return { ok: false, reason: named };
+  }
 
   const feed = new GTFSScheduled();
   try {

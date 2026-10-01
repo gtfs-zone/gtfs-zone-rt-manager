@@ -45,7 +45,9 @@ function renderPreview(slot: HTMLElement, file: File): void {
   </span>`;
 
   void previewGtfsZip(file).then((preview) => {
-    if (pending.get(slot) !== token || !slot.isConnected) return;
+    if (pending.get(slot) !== token || !slot.isConnected) {
+      return;
+    }
     if (!preview.ok) {
       slot.innerHTML = `<div class="alert alert-error alert-sm text-xs">
         <span>${escHtml(preview.reason)}</span>
@@ -58,7 +60,9 @@ function renderPreview(slot: HTMLElement, file: File): void {
       s.serviceStart && s.serviceEnd
         ? `${s.serviceStart} to ${s.serviceEnd}`
         : 'no dated service';
-    const agencies = s.agencies.length ? s.agencies.join(', ') : 'no named agency';
+    const agencies = s.agencies.length
+      ? s.agencies.join(', ')
+      : 'no named agency';
     slot.innerHTML = `<div class="rounded-lg bg-base-200 px-3 py-2 space-y-1 text-xs">
       <div class="font-semibold">${escHtml(agencies)}</div>
       <div class="opacity-70">
@@ -78,7 +82,9 @@ function renderPreview(slot: HTMLElement, file: File): void {
  * `visibleWhen` is left to the caller: the create form shows it only for a
  * hosted feed, and the replace form has nothing to hide it behind.
  */
-export function scheduleZipField(overrides: Partial<FormField> = {}): FormField {
+export function scheduleZipField(
+  overrides: Partial<FormField> = {}
+): FormField {
   return {
     name: 'file',
     label: 'Schedule zip',
@@ -87,7 +93,9 @@ export function scheduleZipField(overrides: Partial<FormField> = {}): FormField 
     tooltip: `A GTFS zip, up to ${Math.round(CONFIG.UPLOAD_MAX_BYTES / (1 << 20))} MB. It is
            stored here and published at this feed's own URL.`,
     onFile: (file, slot) => {
-      if (file) renderPreview(slot, file);
+      if (file) {
+        renderPreview(slot, file);
+      }
     },
     ...overrides,
   };
@@ -104,7 +112,10 @@ export function isHttpUrl(value: string): boolean {
 }
 
 /** Upload a zip, reporting a rejected one under the drop zone rather than in a toast. */
-export async function putSchedule(feedId: number, file: File): Promise<GtfsUpload> {
+export async function putSchedule(
+  feedId: number,
+  file: File
+): Promise<GtfsUpload> {
   return uploadSchedule(feedId, file);
 }
 

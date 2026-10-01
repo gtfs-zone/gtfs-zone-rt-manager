@@ -80,16 +80,23 @@ function mapsLink(position: VehiclePosition): string {
 }
 
 /** One of the tracker's vehicles: where it is, and what it is running. */
-export function renderVehicle(ctx: RenderContext, position: VehiclePosition): string {
+export function renderVehicle(
+  ctx: RenderContext,
+  position: VehiclePosition
+): string {
   const feed = ctx.session.scheduledFeed;
-  const routeId = position.routeId ?? (position.tripId ? feed?.trips.get(position.tripId)?.route_id : undefined);
+  const routeId =
+    position.routeId ??
+    (position.tripId ? feed?.trips.get(position.tripId)?.route_id : undefined);
   const route = routeId ? feed?.routes.get(routeId) : undefined;
   const stop = position.stopId ? feed?.stops.get(position.stopId) : undefined;
 
   return propList([
     prop('Reported', timestampWithAge(position.timestamp)),
     prop('Coordinates', mapsLink(position)),
-    position.bearing === undefined ? '' : prop('Bearing', `${escHtml(String(Math.round(position.bearing)))}°`),
+    position.bearing === undefined
+      ? ''
+      : prop('Bearing', `${escHtml(String(Math.round(position.bearing)))}°`),
     position.speed === undefined
       ? ''
       : prop('Speed', `${escHtml((position.speed * 3.6).toFixed(1))} km/h`),
@@ -98,7 +105,11 @@ export function renderVehicle(ctx: RenderContext, position: VehiclePosition): st
           'Trip',
           entityLink(
             ctx,
-            { type: 'trip', trip_id: position.tripId, ...(routeId ? { route_id: routeId } : {}) },
+            {
+              type: 'trip',
+              trip_id: position.tripId,
+              ...(routeId ? { route_id: routeId } : {}),
+            },
             feed?.trips.get(position.tripId)?.headsign || position.tripId
           )
         )
@@ -116,7 +127,11 @@ export function renderVehicle(ctx: RenderContext, position: VehiclePosition): st
     stop
       ? prop(
           `${VEHICLE_STATUS_LABELS[position.currentStatus ?? 2] ?? 'at'}`,
-          entityLink(ctx, { type: 'stop', stop_id: stop.id }, stop.name || stop.id)
+          entityLink(
+            ctx,
+            { type: 'stop', stop_id: stop.id },
+            stop.name || stop.id
+          )
         )
       : '',
     // The service date of the trip being run, when the producer reports one.
@@ -134,7 +149,10 @@ export function renderVehicle(ctx: RenderContext, position: VehiclePosition): st
  * silently hiding the other forty-nine. A fleet is a list of rows, each opening
  * that vehicle's own page; a single vehicle is the tracker and is shown inline.
  */
-function renderPosition(ctx: RenderContext, positions: VehiclePosition[]): string {
+function renderPosition(
+  ctx: RenderContext,
+  positions: VehiclePosition[]
+): string {
   if (positions.length === 0) {
     return section(
       'Position',
@@ -151,12 +169,23 @@ function renderPosition(ctx: RenderContext, positions: VehiclePosition[]): strin
 
   const feed = ctx.session.scheduledFeed;
   const rows = [...positions]
-    .sort((a, b) => (a.label || a.vehicleId).localeCompare(b.label || b.vehicleId, undefined, { numeric: true }))
+    .sort((a, b) =>
+      (a.label || a.vehicleId).localeCompare(
+        b.label || b.vehicleId,
+        undefined,
+        { numeric: true }
+      )
+    )
     .map((position) => {
-      const trip = position.tripId ? feed?.trips.get(position.tripId) : undefined;
+      const trip = position.tripId
+        ? feed?.trips.get(position.tripId)
+        : undefined;
       const routeId = position.routeId ?? trip?.route_id;
       const route = routeId ? feed?.routes.get(routeId) : undefined;
-      const sublabel = [route?.short_name || route?.long_name || routeId, trip?.headsign || position.tripId]
+      const sublabel = [
+        route?.short_name || route?.long_name || routeId,
+        trip?.headsign || position.tripId,
+      ]
         .filter(Boolean)
         .join(' - ');
       const age =
@@ -166,7 +195,11 @@ function renderPosition(ctx: RenderContext, positions: VehiclePosition[]): strin
               formatRelative(position.timestamp * 1000)
             )}</span>`;
       return entityRow(ctx, {
-        state: { type: 'vehicle', tracker_id: position.trackerId, vehicle_key: position.key },
+        state: {
+          type: 'vehicle',
+          tracker_id: position.trackerId,
+          vehicle_key: position.key,
+        },
         label: position.label || position.vehicleId,
         ...(sublabel ? { sublabel } : {}),
         badgeHtml: age,
@@ -190,14 +223,26 @@ function renderAssignments(ctx: RenderContext, trackerId: string): string {
     return section('Assignments', '<p class="text-xs opacity-60">Loading…</p>');
   }
 
-  const rules = [...session.rules.values()].filter((r) => r.tracker_id === trackerId);
+  const rules = [...session.rules.values()].filter(
+    (r) => r.tracker_id === trackerId
+  );
   const rows = rules.map((rule) => {
     const trip = session.scheduledFeed?.trips.get(rule.trip_id);
     return entityRow(ctx, {
       // A trip the loaded schedule has lost has no page, so the row is its
       // bare id rather than a link that would go nowhere.
-      ...(trip ? { state: { type: 'trip' as const, trip_id: rule.trip_id, route_id: trip.route_id } } : {}),
-      label: trip ? trip.raw.trip_short_name?.trim() || trip.headsign || rule.trip_id : rule.trip_id,
+      ...(trip
+        ? {
+            state: {
+              type: 'trip' as const,
+              trip_id: rule.trip_id,
+              route_id: trip.route_id,
+            },
+          }
+        : {}),
+      label: trip
+        ? trip.raw.trip_short_name?.trim() || trip.headsign || rule.trip_id
+        : rule.trip_id,
       sublabel: `${describeRecurrence(rule)} - ${formatWindow(rule.start_time, rule.end_time)}`,
       actionsHtml: `${actionButton('assign:edit', String(rule.id), 'Edit')}
         ${actionButton('assign:delete', String(rule.id), 'Delete', 'btn-outline btn-error')}`,

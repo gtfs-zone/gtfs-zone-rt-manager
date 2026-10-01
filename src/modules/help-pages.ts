@@ -117,7 +117,9 @@ export function setHelpRuntimeData(data: {
   helpRuntimeData = data;
 }
 
-function buildShortcutsTable(shortcuts: Array<{ key: string; description: string }>): string {
+function buildShortcutsTable(
+  shortcuts: Array<{ key: string; description: string }>
+): string {
   const rows = shortcuts
     .map((s) => {
       const keyHtml = s.key

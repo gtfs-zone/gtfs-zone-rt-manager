@@ -45,11 +45,15 @@ export function alertsBadgeCount(session: FeedSession): number {
 }
 
 function renderAlerts(ctx: RenderContext): string {
-  if (!ctx.session.feed) return `<p class="text-sm opacity-60">No feed is selected.</p>`;
+  if (!ctx.session.feed) {
+    return `<p class="text-sm opacity-60">No feed is selected.</p>`;
+  }
 
   // Newest first: an alert is written about something happening now, so the
   // most recently created one is the one being asked about.
-  const alerts = [...ctx.session.serviceAlerts.values()].sort((a, b) => b.id - a.id);
+  const alerts = [...ctx.session.serviceAlerts.values()].sort(
+    (a, b) => b.id - a.id
+  );
 
   const rows = alerts.map((alert) =>
     entityRow(ctx, {
@@ -78,7 +82,9 @@ export async function showAlertsModal(hooks: AlertsModalHooks): Promise<void> {
   let root: HTMLElement | null = null;
 
   const draw = (): void => {
-    if (!root) return;
+    if (!root) {
+      return;
+    }
     root.innerHTML = renderAlerts(ctx);
   };
 
@@ -114,8 +120,17 @@ export async function showAlertsModal(hooks: AlertsModalHooks): Promise<void> {
         // down. One path, whether the alert was reached from a row, the back
         // button or a pasted link.
         const link = source?.closest<HTMLElement>('[data-nav]');
-        if (!link) return;
-        if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+        if (!link) {
+          return;
+        }
+        if (
+          event.metaKey ||
+          event.ctrlKey ||
+          event.shiftKey ||
+          event.button !== 0
+        ) {
+          return;
+        }
         event.preventDefault();
         hooks.navigate(JSON.parse(link.dataset.nav!) as PageState);
       });

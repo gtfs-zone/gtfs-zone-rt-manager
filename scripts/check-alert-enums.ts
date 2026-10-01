@@ -16,19 +16,36 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ALERT_CAUSES, ALERT_EFFECTS, ALERT_SEVERITIES } from '../src/modules/managed-render';
+import {
+  ALERT_CAUSES,
+  ALERT_EFFECTS,
+  ALERT_SEVERITIES,
+} from '../src/modules/managed-render';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const ENUMS_PATH = resolve(repoRoot, '..', 'gtfs-zone-rt-api', 'src', 'gtfs_zone_rt_api', 'alert_enums.py');
+const ENUMS_PATH = resolve(
+  repoRoot,
+  '..',
+  'gtfs-zone-rt-api',
+  'src',
+  'gtfs_zone_rt_api',
+  'alert_enums.py'
+);
 
 /** The string members of `Name = Literal[...]`, in source order. */
 function parseLiteral(source: string, name: string): string[] | null {
   const start = source.indexOf(`${name} = Literal[`);
-  if (start === -1) return null;
+  if (start === -1) {
+    return null;
+  }
   const open = source.indexOf('[', start);
   const close = source.indexOf(']', open);
-  if (close === -1) return null;
-  return [...source.slice(open + 1, close).matchAll(/"([^"]+)"/g)].map((m) => m[1]);
+  if (close === -1) {
+    return null;
+  }
+  return [...source.slice(open + 1, close).matchAll(/"([^"]+)"/g)].map(
+    (m) => m[1]
+  );
 }
 
 interface Check {
@@ -44,7 +61,9 @@ const CHECKS: Check[] = [
 
 function main(): void {
   if (!existsSync(ENUMS_PATH)) {
-    console.log('check-alert-enums: gtfs-zone-rt-api is not checked out beside this repo, skipping.');
+    console.log(
+      'check-alert-enums: gtfs-zone-rt-api is not checked out beside this repo, skipping.'
+    );
     return;
   }
   const source = readFileSync(ENUMS_PATH, 'utf8');
@@ -53,17 +72,23 @@ function main(): void {
   for (const { literal, local } of CHECKS) {
     const remote = parseLiteral(source, literal);
     if (!remote) {
-      problems.push(`${literal}: no \`${literal} = Literal[...]\` in alert_enums.py`);
+      problems.push(
+        `${literal}: no \`${literal} = Literal[...]\` in alert_enums.py`
+      );
       continue;
     }
     for (const value of local) {
       if (!remote.includes(value)) {
-        problems.push(`${literal}: ${value} is in the spec and not in gtfs-zone-rt-api`);
+        problems.push(
+          `${literal}: ${value} is in the spec and not in gtfs-zone-rt-api`
+        );
       }
     }
     for (const value of remote) {
       if (!local.includes(value)) {
-        problems.push(`${literal}: ${value} is in gtfs-zone-rt-api and not in the spec`);
+        problems.push(
+          `${literal}: ${value} is in gtfs-zone-rt-api and not in the spec`
+        );
       }
     }
     if (remote.join(',') !== local.join(',') && problems.length === 0) {
@@ -81,7 +106,9 @@ function main(): void {
     return;
   }
 
-  for (const problem of problems) console.log(problem);
+  for (const problem of problems) {
+    console.log(problem);
+  }
   console.log(
     `\ncheck-alert-enums: ${problems.length} difference(s). The reference wins: ` +
       'change gtfs-zone-rt-api unless the spec is the one that is wrong.'

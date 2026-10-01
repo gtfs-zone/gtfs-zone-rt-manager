@@ -120,7 +120,10 @@ export interface TimelineOptions {
   today?: ServiceDate;
   columns?: readonly TimelineColumn[];
   /** Called for every cell of every row, before the ticks are laid over it. */
-  cellRenderer?: (row: TimelineRow, column: TimelineColumnRange) => TimelineCell | undefined;
+  cellRenderer?: (
+    row: TimelineRow,
+    column: TimelineColumnRange
+  ) => TimelineCell | undefined;
   /** What the chart says when it has no rows, or no dates to draw. */
   emptyMessage?: string;
 }
@@ -159,7 +162,9 @@ function tooltipTrigger(text: string, content: string, className = ''): string {
  * Seven booleans out of anything with `monday`..`sunday` on it, in display
  * order, which is what the dots and the tooltip under them are drawn in.
  */
-export function weekdayFlags(source: Partial<Record<WeekdayKey, unknown>>): boolean[] {
+export function weekdayFlags(
+  source: Partial<Record<WeekdayKey, unknown>>
+): boolean[] {
   return WEEKDAY_DISPLAY.map((i) => {
     const value = source[WEEKDAY_KEYS[i]];
     return value === true || value === 1 || value === '1';
@@ -169,13 +174,19 @@ export function weekdayFlags(source: Partial<Record<WeekdayKey, unknown>>): bool
 /** `Mon, Wed, Fri`, or the whole week said once. */
 function weekdaysTooltip(flags: readonly boolean[]): string {
   const days = WEEKDAY_LABELS.filter((_, i) => flags[i]);
-  if (days.length === 7) return 'Every day';
-  if (days.length === 0) return 'No regular days';
+  if (days.length === 7) {
+    return 'Every day';
+  }
+  if (days.length === 0) {
+    return 'No regular days';
+  }
   return days.join(', ');
 }
 
 function weekdayDots(flags: readonly boolean[] | undefined): string {
-  if (!flags) return '';
+  if (!flags) {
+    return '';
+  }
   const dots = WEEKDAY_LABELS.map((_, i) => (flags[i] ? '●' : '○')).join('');
   return tooltipTrigger(
     weekdaysTooltip(flags),
@@ -184,12 +195,18 @@ function weekdayDots(flags: readonly boolean[] | undefined): string {
 }
 
 /** The extent of everything the rows draw, or null when they draw nothing. */
-function rowsExtent(rows: readonly TimelineRow[]): { from: ServiceDate; to: ServiceDate } | null {
+function rowsExtent(
+  rows: readonly TimelineRow[]
+): { from: ServiceDate; to: ServiceDate } | null {
   let from: ServiceDate | null = null;
   let to: ServiceDate | null = null;
   const widen = (date: ServiceDate): void => {
-    if (from === null || date < from) from = date;
-    if (to === null || date > to) to = date;
+    if (from === null || date < from) {
+      from = date;
+    }
+    if (to === null || date > to) {
+      to = date;
+    }
   };
   for (const row of rows) {
     for (const span of row.spans) {
@@ -198,7 +215,11 @@ function rowsExtent(rows: readonly TimelineRow[]): { from: ServiceDate; to: Serv
     }
     // A removed tick never widens the range: it marks a day the row does not
     // run, so on its own it is not something to scroll to.
-    for (const tick of row.ticks ?? []) if (tick.kind === 'added') widen(tick.date);
+    for (const tick of row.ticks ?? []) {
+      if (tick.kind === 'added') {
+        widen(tick.date);
+      }
+    }
   }
   return from === null || to === null ? null : { from, to };
 }
@@ -223,29 +244,40 @@ function buildColumns(
 }
 
 /** Month header cells, each spanning the columns that fall in that month. */
-function monthSpans(columns: readonly TimelineColumnRange[]): Array<{ label: string; span: number }> {
+function monthSpans(
+  columns: readonly TimelineColumnRange[]
+): Array<{ label: string; span: number }> {
   const spans: Array<{ label: string; span: number }> = [];
   for (const column of columns) {
     const label = monthShortLabel(column.start);
     const previous = spans[spans.length - 1];
-    if (previous && previous.label === label) previous.span++;
-    else spans.push({ label, span: 1 });
+    if (previous && previous.label === label) {
+      previous.span++;
+    } else {
+      spans.push({ label, span: 1 });
+    }
   }
   return spans;
 }
 
 /** Where in a column today's hairline falls, or -1 when it is not in it. */
 function todayOffset(column: TimelineColumnRange, today: ServiceDate): number {
-  if (today < column.start || today > column.end) return -1;
+  if (today < column.start || today > column.end) {
+    return -1;
+  }
   let days = 0;
-  for (let day = column.start; day < today; day = addDays(day, 1)) days++;
+  for (let day = column.start; day < today; day = addDays(day, 1)) {
+    days++;
+  }
   return days;
 }
 
 function cellTicks(row: TimelineRow, column: TimelineColumnRange): string {
   const ticks: string[] = [];
   for (const tick of row.ticks ?? []) {
-    if (tick.date < column.start || tick.date > column.end) continue;
+    if (tick.date < column.start || tick.date > column.end) {
+      continue;
+    }
     const added = tick.kind === 'added';
     ticks.push(
       tooltipTrigger(
@@ -259,8 +291,13 @@ function cellTicks(row: TimelineRow, column: TimelineColumnRange): string {
 }
 
 /** The span covering a column, if any. Spans are inclusive at both ends. */
-function coveringSpan(row: TimelineRow, column: TimelineColumnRange): TimelineSpan | undefined {
-  return row.spans.find((span) => span.from <= column.end && span.to >= column.start);
+function coveringSpan(
+  row: TimelineRow,
+  column: TimelineColumnRange
+): TimelineSpan | undefined {
+  return row.spans.find(
+    (span) => span.from <= column.end && span.to >= column.start
+  );
 }
 
 function emptyChart(message: string): string {
@@ -280,17 +317,24 @@ export function renderTimelineChart(
   options: TimelineOptions = {}
 ): string {
   const empty = options.emptyMessage ?? 'Nothing to show on the timeline.';
-  if (rows.length === 0) return emptyChart(empty);
+  if (rows.length === 0) {
+    return emptyChart(empty);
+  }
 
   const unit = options.unit ?? 'week';
   const extent = rowsExtent(rows);
   const from = options.from ?? extent?.from;
   const to = options.to ?? extent?.to;
-  if (!from || !to || from > to) return emptyChart(empty);
+  if (!from || !to || from > to) {
+    return emptyChart(empty);
+  }
 
   const { columns, truncated } = buildColumns(unit, from, to);
   const today = options.today ?? todayDate();
-  const cellPx = unit === 'week' ? CONFIG.TIMELINE_WEEK_CELL_PX : CONFIG.TIMELINE_DAY_CELL_PX;
+  const cellPx =
+    unit === 'week'
+      ? CONFIG.TIMELINE_WEEK_CELL_PX
+      : CONFIG.TIMELINE_DAY_CELL_PX;
   const extraColumns = options.columns ?? [];
   const hasDots = rows.some((row) => row.weekdays);
 
@@ -298,7 +342,8 @@ export function renderTimelineChart(
     CONFIG.TIMELINE_LABEL_MAX_PX,
     Math.max(
       CONFIG.TIMELINE_LABEL_MIN_PX,
-      Math.max(...rows.map((row) => row.label.length)) * CONFIG.TIMELINE_LABEL_CHAR_PX +
+      Math.max(...rows.map((row) => row.label.length)) *
+        CONFIG.TIMELINE_LABEL_CHAR_PX +
         CONFIG.TIMELINE_LABEL_PAD_PX
     )
   );
@@ -317,7 +362,9 @@ export function renderTimelineChart(
       let style = '';
       for (let i = 0; i < span; i++) {
         const day = todayOffset(columns[spanStart + i], today);
-        if (day < 0) continue;
+        if (day < 0) {
+          continue;
+        }
         style = todayLineStyle(((i + (day + 0.5) / columnDays) / span) * 100);
         break;
       }
@@ -366,16 +413,22 @@ export function renderTimelineChart(
           const color = cell?.color ?? (span ? row.color : undefined);
 
           const styles: string[] = [];
-          if (color) styles.push(shade(color));
+          if (color) {
+            styles.push(shade(color));
+          }
           const day = todayOffset(column, today);
-          if (day >= 0) styles.push(todayLineStyle(((day + 0.5) / columnDays) * 100));
+          if (day >= 0) {
+            styles.push(todayLineStyle(((day + 0.5) / columnDays) * 100));
+          }
 
           // Every column of a span carries the same tooltip, so the whole span
           // reads as one. A column outside every span says nothing at all: a
           // week is not a meaningful unit here, since a span can start or end
           // mid-week.
           const tooltip = cell?.tooltip ?? span?.tooltip;
-          const tooltipAttr = tooltip ? ` data-tooltip-content="${escHtml(tooltip)}"` : '';
+          const tooltipAttr = tooltip
+            ? ` data-tooltip-content="${escHtml(tooltip)}"`
+            : '';
           const conflict = cell?.conflict
             ? ' ring-1 ring-inset ring-warning outline-none'
             : '';
@@ -438,4 +491,3 @@ export function renderTimelineChart(
     </div>
   </div>`;
 }
-

@@ -26,8 +26,19 @@
 import { CONFIG } from '../../config';
 import type { Feed, GtfsUpload } from '../../types/api';
 import type { RenderContext } from '../render-context';
-import { escHtml, prop, propList, routeBadge, section } from 'gtfs-zone-web-common/gtfs/entity-render';
-import { cappedNote, entityRow, entityRowList, rowSection } from '../entity-row';
+import {
+  escHtml,
+  prop,
+  propList,
+  routeBadge,
+  section,
+} from 'gtfs-zone-web-common/gtfs/entity-render';
+import {
+  cappedNote,
+  entityRow,
+  entityRowList,
+  rowSection,
+} from '../entity-row';
 import {
   actionButton,
   isoWithAge,
@@ -43,8 +54,10 @@ import { routeSortKey } from 'gtfs-zone-web-common/gtfs/route-sort';
 import { assignmentCounts } from '../service-catalog';
 
 /** Where a section heading's `(?)` sends a reader who wants the whole thing. */
-const SCHEDULE_REFERENCE_URL = 'https://gtfs.org/documentation/schedule/reference/';
-const REALTIME_REFERENCE_URL = 'https://gtfs.org/documentation/realtime/reference/';
+const SCHEDULE_REFERENCE_URL =
+  'https://gtfs.org/documentation/schedule/reference/';
+const REALTIME_REFERENCE_URL =
+  'https://gtfs.org/documentation/realtime/reference/';
 
 /** The reference's own words, so this app is not paraphrasing the spec. */
 const SCHEDULE_TOOLTIP = `The General Transit Feed Specification (GTFS) is a standardized format
@@ -145,18 +158,32 @@ function renderTrackers(ctx: RenderContext): string {
  */
 function renderRoutes(ctx: RenderContext): string {
   const feed = ctx.session.scheduledFeed;
-  if (!feed) return rowSection('Routes', 0, renderScheduledStatus(ctx));
+  if (!feed) {
+    return rowSection('Routes', 0, renderScheduledStatus(ctx));
+  }
 
   const routes = [...feed.routes.values()].sort((a, b) => {
-    const keyA = routeSortKey(a.raw.route_type, (feed.tripsByRoute.get(a.id) ?? []).length);
-    const keyB = routeSortKey(b.raw.route_type, (feed.tripsByRoute.get(b.id) ?? []).length);
-    if (keyA !== keyB) return keyB - keyA;
-    return (a.short_name || a.long_name || a.id).localeCompare(b.short_name || b.long_name || b.id);
+    const keyA = routeSortKey(
+      a.raw.route_type,
+      (feed.tripsByRoute.get(a.id) ?? []).length
+    );
+    const keyB = routeSortKey(
+      b.raw.route_type,
+      (feed.tripsByRoute.get(b.id) ?? []).length
+    );
+    if (keyA !== keyB) {
+      return keyB - keyA;
+    }
+    return (a.short_name || a.long_name || a.id).localeCompare(
+      b.short_name || b.long_name || b.id
+    );
   });
 
   const shown = routes.slice(0, CONFIG.ROUTE_LIST_MAX);
   const rows = shown.map((route) => {
-    const tripIds = (feed.tripsByRoute.get(route.id) ?? []).map((t) => t.trip_id);
+    const tripIds = (feed.tripsByRoute.get(route.id) ?? []).map(
+      (t) => t.trip_id
+    );
     const counts = assignmentCounts(ctx.session, tripIds);
     return entityRow(ctx, {
       state: { type: 'route', route_id: route.id },
@@ -164,7 +191,9 @@ function renderRoutes(ctx: RenderContext): string {
       // say the same thing twice.
       leadHtml: routeBadge(ctx, route),
       label: route.long_name || route.short_name || route.id,
-      badge: counts ? `${counts.assigned}/${counts.total} assigned` : `${tripIds.length} trip${tripIds.length === 1 ? '' : 's'}`,
+      badge: counts
+        ? `${counts.assigned}/${counts.total} assigned`
+        : `${tripIds.length} trip${tripIds.length === 1 ? '' : 's'}`,
     });
   });
 
@@ -181,7 +210,9 @@ function renderRoutes(ctx: RenderContext): string {
 /** Who uploaded it, if the members list happens to name them. */
 function uploaderLabel(ctx: RenderContext, upload: GtfsUpload): string {
   const id = upload.uploaded_by_user_id;
-  if (id === null) return 'someone no longer on this feed';
+  if (id === null) {
+    return 'someone no longer on this feed';
+  }
   const member = ctx.session.members?.members.find((m) => m.user_id === id);
   return member ? personLabel(member) : `user ${id}`;
 }
@@ -203,7 +234,13 @@ function uploadLine(ctx: RenderContext, upload: GtfsUpload): string {
  */
 function reloadButton(feed: Feed): string {
   const running = feed.load?.status === 'running';
-  return actionButton('feed:reload', '', running ? 'Reloading…' : 'Reload', 'btn-outline', running);
+  return actionButton(
+    'feed:reload',
+    '',
+    running ? 'Reloading…' : 'Reload',
+    'btn-outline',
+    running
+  );
 }
 
 /**
@@ -223,7 +260,9 @@ function reloadButton(feed: Feed): string {
 function renderHistory(ctx: RenderContext, feed: Feed): string {
   const uploads = ctx.session.uploads;
   if (uploads === undefined) {
-    return isHosted(feed) ? '<p class="text-xs opacity-60">Loading upload history…</p>' : '';
+    return isHosted(feed)
+      ? '<p class="text-xs opacity-60">Loading upload history…</p>'
+      : '';
   }
   if (uploads === null) {
     return `
@@ -232,7 +271,9 @@ function renderHistory(ctx: RenderContext, feed: Feed): string {
         ${actionButton('feed:retry-uploads', '', 'Retry', 'btn-ghost btn-xs')}
       </p>`;
   }
-  if (uploads.length === 0) return '';
+  if (uploads.length === 0) {
+    return '';
+  }
 
   const shown = uploads.slice(0, CONFIG.UPLOAD_HISTORY_MAX);
   const rows = shown.map((upload) =>
@@ -284,18 +325,29 @@ function renderScheduled(ctx: RenderContext, feed: Feed): string {
   const rows = [prop('Source', escHtml(sourceLabel(feed)))];
   if (scheduledFeed) {
     const counts = assignmentCounts(ctx.session, scheduledFeed.trips.keys());
-    rows.push(prop('Trips assigned', counts ? `${counts.assigned} of ${counts.total}` : '—'));
+    rows.push(
+      prop(
+        'Trips assigned',
+        counts ? `${counts.assigned} of ${counts.total}` : '—'
+      )
+    );
   }
   if (hosted) {
     rows.push(
       published
         ? urlRow('Published at', published)
-        : prop('Published at', '<span class="opacity-40">nothing uploaded yet</span>')
+        : prop(
+            'Published at',
+            '<span class="opacity-40">nothing uploaded yet</span>'
+          )
     );
     rows.push(
       current
         ? prop('Serving', uploadLine(ctx, current))
-        : prop('Serving', '<span class="opacity-40">nothing uploaded yet</span>')
+        : prop(
+            'Serving',
+            '<span class="opacity-40">nothing uploaded yet</span>'
+          )
     );
   } else {
     rows.push(urlRow('Downloaded from', feed.static_feed_url ?? '—'));
@@ -308,7 +360,9 @@ function renderScheduled(ctx: RenderContext, feed: Feed): string {
     // are driven by the panel's own ticker, so a running load shows itself
     // running without the stream having to say anything.
     rows.push(prop('Started', isoWithAge(load.started_at)));
-    if (load.next_retry_at) rows.push(prop('Next retry', isoWithAge(load.next_retry_at)));
+    if (load.next_retry_at) {
+      rows.push(prop('Next retry', isoWithAge(load.next_retry_at)));
+    }
     rows.push(prop('Feed timezone', escHtml(load.timezone ?? '—')));
   }
 

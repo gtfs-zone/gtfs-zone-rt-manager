@@ -16,7 +16,10 @@ import { MapController } from './map-controller';
 import type { GTFSScheduled } from 'gtfs-zone-web-common/gtfs/scheduled';
 import type { ModalState, PageState } from './types/page-state';
 import { notify } from 'gtfs-zone-web-common/ui/notification-system';
-import { PanelResizer, restorePanelWidth } from 'gtfs-zone-web-common/ui/panel-resizer';
+import {
+  PanelResizer,
+  restorePanelWidth,
+} from 'gtfs-zone-web-common/ui/panel-resizer';
 import { BottomSheetController } from 'gtfs-zone-web-common/ui/bottom-sheet';
 import { ThemeController } from 'gtfs-zone-web-common/ui/theme-controller';
 import { FeedSession } from './modules/feed-session';
@@ -31,20 +34,29 @@ import { PanelRenderer } from './modules/panel-renderer';
 import { Actions } from './modules/actions';
 import { addDays, startOfWeek, today } from './modules/service-date';
 import { initFieldTooltipPortal } from 'gtfs-zone-web-common/util/tooltip-position';
-import { setHelpPages, showHelpModal } from 'gtfs-zone-web-common/ui/help-modal';
+import {
+  setHelpPages,
+  showHelpModal,
+} from 'gtfs-zone-web-common/ui/help-modal';
 import {
   HELP_GROUP_ORDER,
   HELP_PAGES,
   setHelpRuntimeData,
 } from './modules/help-pages';
-import { calendarBadgeCount, showCalendarModal } from './modules/calendar-modal';
+import {
+  calendarBadgeCount,
+  showCalendarModal,
+} from './modules/calendar-modal';
 import { alertsBadgeCount, showAlertsModal } from './modules/alerts-modal';
 import { showShareModal } from './modules/share-modal';
 import { personLabel } from './modules/managed-render';
 import { renderNavbarActions } from 'gtfs-zone-web-common/ui/navbar-actions';
 import { NAVBAR_ACTIONS } from './modules/navbar-action-list';
 import { createModalRouter } from 'gtfs-zone-web-common/ui/modal-router';
-import { KeyboardShortcuts, describeShortcuts } from 'gtfs-zone-web-common/ui/keyboard-shortcuts';
+import {
+  KeyboardShortcuts,
+  describeShortcuts,
+} from 'gtfs-zone-web-common/ui/keyboard-shortcuts';
 import { managerShortcuts } from './modules/shortcut-list';
 import { configureSpecMarkup } from 'gtfs-zone-web-common/gtfs/spec-markup';
 
@@ -60,7 +72,9 @@ configureSpecMarkup({
 renderNavbarActions(document.getElementById('navbar-actions')!, NAVBAR_ACTIONS);
 
 const version = document.getElementById('app-version');
-if (version) version.textContent = __APP_VERSION__;
+if (version) {
+  version.textContent = __APP_VERSION__;
+}
 
 const appContainer = document.querySelector<HTMLElement>('.app-container')!;
 restorePanelWidth(appContainer);
@@ -120,7 +134,9 @@ session.addEventListener('vehicles', showVehicles);
 
 // ─── Focus and selection ──────────────────────────────────────────────────────
 const panelContent = document.getElementById('panel-content')!;
-const feedSwitcherBtn = document.getElementById('feed-switcher-btn') as HTMLButtonElement;
+const feedSwitcherBtn = document.getElementById(
+  'feed-switcher-btn'
+) as HTMLButtonElement;
 const feedSwitcherLabel = document.getElementById('feed-switcher-label')!;
 const userBtn = document.getElementById('user-btn') as HTMLButtonElement;
 const userLabel = document.getElementById('user-label')!;
@@ -129,6 +145,7 @@ userBtn.classList.add('hidden');
 
 // Declared before AppState so the focus hook can name it; the hooks on both
 // sides are only ever called after this block has run.
+// eslint-disable-next-line prefer-const -- assigned once, below
 let panel: PanelRenderer;
 
 const appState = new AppState(session, {
@@ -141,8 +158,11 @@ const appState = new AppState(session, {
     }
     // Selecting a feed is what gives the sheet something to show; dropping one
     // takes it away again.
-    if (feed) bottomSheet.open('half');
-    else bottomSheet.close();
+    if (feed) {
+      bottomSheet.open('half');
+    } else {
+      bottomSheet.close();
+    }
     // This week, so the calendar button can say how much is running today
     // before anybody opens it.
     if (feed) {
@@ -158,8 +178,11 @@ const appState = new AppState(session, {
     // is the only way into an object with no map feature to tap. A closed
     // sheet hides its own drag handle, so closing it here would strand a phone
     // with no way back to the feed.
-    if (session.feed) bottomSheet.open('half');
-    else bottomSheet.close();
+    if (session.feed) {
+      bottomSheet.open('half');
+    } else {
+      bottomSheet.close();
+    }
     // After the sheet moves, so the camera knows how much of the map is covered.
     mapCtrl.focus(state);
   },
@@ -184,7 +207,7 @@ modalRouter.register('alerts', () =>
     ctx: { session, href: (state) => appState.hrefFor(state) },
     navigate: (state) => appState.setFocus(state),
     action: (action, arg) => void actions.run(action, arg),
-  }),
+  })
 );
 modalRouter.register('help', (modal) => showHelpModal(modal.page));
 
@@ -199,7 +222,9 @@ panel.initialize();
 // The trail is rebuilt from the session, so a crumb whose object only just
 // arrived stops showing its bare id. The page itself re-renders on the same
 // event, inside the renderer.
-session.addEventListener('change', () => panel.setBreadcrumbs(appState.breadcrumbs));
+session.addEventListener('change', () =>
+  panel.setBreadcrumbs(appState.breadcrumbs)
+);
 panel.show(appState.focus, appState.breadcrumbs);
 
 // Clicking a stop, route or tracker on the map focuses it in the panel; the
@@ -214,10 +239,14 @@ mapCtrl.onEmptySelect = () => appState.clearFocus();
 // only moves the map.
 const searchController = new SearchController<PageState | PlacePayload>({
   getEntries: () => buildSearchEntries(session),
-  getRemoteEntries: (query, signal) => searchPlaces(query, mapCtrl.getCenter(), signal),
+  getRemoteEntries: (query, signal) =>
+    searchPlaces(query, mapCtrl.getCenter(), signal),
   onSelect: (payload) => {
-    if ('kind' in payload) mapCtrl.focusPlace(payload);
-    else appState.setFocus(payload);
+    if ('kind' in payload) {
+      mapCtrl.focusPlace(payload);
+    } else {
+      appState.setFocus(payload);
+    }
   },
 });
 searchController.initialize();
@@ -228,7 +257,9 @@ async function openFeedSwitcher(): Promise<void> {
     selected: session.feed,
     isAdmin: appState.me?.is_admin ?? false,
   });
-  if (feed) await appState.selectFeed(feed);
+  if (feed) {
+    await appState.selectFeed(feed);
+  }
 }
 
 feedSwitcherBtn.addEventListener('click', () => void openFeedSwitcher());
@@ -244,7 +275,8 @@ document.getElementById('calendar-btn')?.addEventListener('click', () => {
     ctx: { session, href: (state) => appState.hrefFor(state) },
     navigate: (state) => appState.setFocus(state),
     ensureAssignments: (from, to) => appState.ensureAssignments(from, to),
-    ensureRules: () => (session.rules ? Promise.resolve() : appState.refreshRules()),
+    ensureRules: () =>
+      session.rules ? Promise.resolve() : appState.refreshRules(),
   });
 });
 
@@ -281,7 +313,9 @@ document
 // ─── Guide ────────────────────────────────────────────────────────────────────
 document
   .getElementById('help-btn')
-  ?.addEventListener('click', () => appState.openModal({ type: 'help', page: 'about' }));
+  ?.addEventListener('click', () =>
+    appState.openModal({ type: 'help', page: 'about' })
+  );
 
 // ─── Keyboard shortcuts ───────────────────────────────────────────────────────
 // The guide's shortcut table is built from the same list that is bound, so a
@@ -292,7 +326,10 @@ const shortcuts = managerShortcuts({
   clearSearch: () => searchController.clearSearch(),
 });
 new KeyboardShortcuts(shortcuts).initialize();
-setHelpRuntimeData({ version: __APP_VERSION__, shortcuts: describeShortcuts(shortcuts) });
+setHelpRuntimeData({
+  version: __APP_VERSION__,
+  shortcuts: describeShortcuts(shortcuts),
+});
 
 /** The badge: the feed's managed alerts, hidden while there are none. */
 function syncAlertsBadge(): void {
@@ -302,7 +339,6 @@ function syncAlertsBadge(): void {
 }
 
 session.addEventListener('change', syncAlertsBadge);
-
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 void appState.boot().then(() => {
@@ -330,5 +366,7 @@ void appState.boot().then(() => {
   // because a failed boot has already said so and a modal would bury it, and
   // only when the link did not ask for a modal of its own, which the router has
   // already opened and which the switcher would land on top of.
-  if (appState.me && !session.feed && !appState.focus.modal) void openFeedSwitcher();
+  if (appState.me && !session.feed && !appState.focus.modal) {
+    void openFeedSwitcher();
+  }
 });
