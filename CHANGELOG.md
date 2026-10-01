@@ -1,3 +1,9 @@
+## v0.7.1 (2026-10-01)
+
+### Fix
+
+- link the About page to the renamed GitHub repo
+
 ## v0.7.0 (2026-10-01)
 
 ### BREAKING CHANGE
