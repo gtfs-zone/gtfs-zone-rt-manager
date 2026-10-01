@@ -102,7 +102,7 @@ describes the realtime one. There is nothing to re-sync and nothing to diff, so
 `vendor-check` is told about none of it. What holds it honest instead is
 `scripts/check-rt-spec.ts` against `reference/gtfs-realtime-reference.md`, and
 `scripts/check-alert-enums.ts` against gtfs-zone-rt-api's `alert_enums.py`. Both run
-from `.githooks/pre-commit`.
+from `pnpm check`, which the pre-commit hook runs.
 
 Run `pnpm vendor:check` to diff every `verbatim` entry against its recorded SHA
 in the repo its `Source repo` column names, and to report every `verbatim` and
