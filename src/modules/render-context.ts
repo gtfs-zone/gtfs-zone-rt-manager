@@ -11,6 +11,7 @@
 
 import type { RenderContext as SharedRenderContext } from 'gtfs-zone-web-common/gtfs/entity-render';
 import type { RtIndex as SharedRtIndex } from 'gtfs-zone-web-common/gtfs/rt-index';
+import type { RtPageHooks } from 'gtfs-zone-web-common/gtfs/rt-page';
 import type { PageState } from '../types/page-state';
 import type { VehiclePosition } from '../map-controller';
 import type { FeedSession } from './feed-session';
@@ -19,3 +20,9 @@ export type RenderContext = SharedRenderContext<PageState, FeedSession>;
 
 /** The live index, over this app's vehicles rather than the bare GTFS-RT ones. */
 export type RtIndex = SharedRtIndex<VehiclePosition>;
+
+/** How the shared route and stop pages link and name a vehicle: by its tracker. */
+export const RT_PAGE_HOOKS: RtPageHooks<PageState, VehiclePosition> = {
+  vehicleLink: (v) => ({ type: 'tracker', tracker_id: v.trackerId }),
+  vehicleNoun: 'tracker',
+};

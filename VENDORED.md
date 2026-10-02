@@ -71,7 +71,7 @@ that reason, and its row stays until a second wave takes it.
 `src/modules/pages/trip-page.ts`, `src/modules/share-modal.ts`,
 `src/modules/alerts-modal.ts`,
 `src/modules/managed-render.ts`, `src/modules/service-date.ts`,
-`src/modules/entity-row.ts`, `src/modules/trip-picker.ts` and `src/shell.ts`
+`src/modules/trip-picker.ts` and `src/shell.ts`
 (this app's options to the shared shell markup: its brand and no dock) are in neither
 tier and deliberately absent from the table: they are gtfs-zone-rt-manager's own files
 with no upstream at all. gtfs-zone-rt-viewer browses route, stop, vehicle and alert, and
@@ -85,10 +85,6 @@ upstream has an object to put in them. `navbar-action-list.ts`
 and `shortcut-list.ts` are in neither tier for a third reason: they are the two
 descriptor lists the shared renderers are parameterized over, and a list of this
 app's own actions and keys is the app itself, not a copy of anything.
-`entity-row.ts` is the same
-kind of file for a different reason: gtfs-zone-editor's
-`utils/entity-references.ts` is its visual model and nothing else, so there is
-no upstream to diff it against and nothing about it is checked.
 
 `src/gtfs-rt-spec/` is not vendored and is not in the table. Its *shape* is
 gtfs-zone-editor's `src/gtfs-spec/` — the same `types.ts` / `files/*.ts` /
@@ -111,7 +107,4 @@ without it on purpose, so a sibling's commit cannot break a commit here.
 | Local path | Source repo | Source path | SHA | Status | Note |
 |---|---|---|---|---|---|
 | `src/map-controller.ts` | `gtfs-zone-rt-viewer` | `src/map-controller.ts` | 8f8ffd5 | modified | MapLibre setup, camera moves and focus. Navigation-driven moves go through `auto-zoom.ts` as of `dc25c3a`; `fitFeed` and the follow ease stay ungated, matching upstream. See the banner's `@changes`: the `vehicle` PageState variant became `tracker`, `VehiclePosition` carries a `trackerId`, follow tracks a tracker rather than one of its vehicles, and the two extra gated moves are the `trip` and `showTrips` fits, which are focus kinds upstream does not have |
-| `src/modules/pages/alert-page.ts` | `gtfs-zone-rt-viewer` | `src/modules/pages/alert-page.ts` | 6b6442e | modified | `renderAlertList`, which the route, stop and trip pages all embed, plus both alert pages. The header is `pageHeader` and the status, level and active window are properties, both taken from upstream. See the banner's `@changes`: the page renders the managed `Alert` from the API, gtfs-zone-rt-viewer's decoded-entity page is kept underneath it as the fallback for an alert that is only in the live payload, and the embedded list is drawn on `entity-row.ts` |
-| `src/modules/pages/route-page.ts` | `gtfs-zone-rt-viewer` | `src/modules/pages/route-page.ts` | 8f8ffd5 | modified | The route strip, headed by `pageHeader` with the route badge, with the mode and agency as properties. See the banner's `@changes`: `vehicle` links became `tracker` links, the wording follows, a Trips section lists the direction's trips, and the page's two lists render through `entity-row.ts`. The strip itself is untouched |
-| `src/modules/pages/stop-page.ts` | `gtfs-zone-rt-viewer` | `src/modules/pages/stop-page.ts` | 6b6442e | modified | The stop and station page, headed by `pageHeader`; the location type is the crumb's eyebrow through `stopTypeLabel` rather than a line of its own. See the banner's `@changes`: `vehicle` links became `tracker` links, a departure's headsign links to its trip page, and every list on the page — departures included, which was a `<table>` — renders through `entity-row.ts` |
 | `scripts/vendor-check.ts` | — | — | — | origin | Not vendored: written here, and the one file the flow runs backwards for. gtfs-zone-rt-viewer adopted this table's `Source repo`-aware form in its Phase 1 and vendors the script from here `modified` at `5dc61ef`, differing only in its doc comment. Listed so the table is the whole map of what is shared |

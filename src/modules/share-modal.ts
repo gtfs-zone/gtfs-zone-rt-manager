@@ -29,7 +29,11 @@
 
 import type { Invite, Member } from '../types/api';
 import type { RenderContext } from './render-context';
-import { entityRow, entityRowList, rowSection } from './entity-row';
+import {
+  entityRow,
+  entityRowList,
+  rowSection,
+} from 'gtfs-zone-web-common/gtfs/entity-row';
 import { actionButton, formatIsoDate, personLabel } from './managed-render';
 import { showModal } from 'gtfs-zone-web-common/ui/modal-utils';
 

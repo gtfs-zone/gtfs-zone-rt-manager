@@ -17,7 +17,11 @@
 import type { Trip } from 'gtfs-zone-web-common/gtfs/scheduled';
 import type { PageState } from '../../types/page-state';
 import { alertsForTrip } from 'gtfs-zone-web-common/gtfs/alerts';
-import { entityRow, entityRowList, rowSection } from '../entity-row';
+import {
+  entityRow,
+  entityRowList,
+  rowSection,
+} from 'gtfs-zone-web-common/gtfs/entity-row';
 import { vehicleLocation } from '../vehicle-location';
 import {
   actionButton,
@@ -44,7 +48,7 @@ import {
   vehicleDisplayName,
 } from 'gtfs-zone-web-common/gtfs/entity-render';
 import { serviceCatalog, weekdaysLabel } from '../service-catalog';
-import { renderAlertList } from './alert-page';
+import { renderAlertList } from 'gtfs-zone-web-common/gtfs/alert-page';
 
 /**
  * When this trip runs: three read-only lines off the service it points at.

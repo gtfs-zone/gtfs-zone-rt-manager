@@ -38,7 +38,7 @@ import {
   entityRow,
   entityRowList,
   rowSection,
-} from '../entity-row';
+} from 'gtfs-zone-web-common/gtfs/entity-row';
 import {
   actionButton,
   isoWithAge,

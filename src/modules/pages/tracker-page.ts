@@ -21,7 +21,11 @@ import type { Tracker } from '../../types/api';
 import type { PageState } from '../../types/page-state';
 import type { VehiclePosition } from '../../map-controller';
 import type { RenderContext } from '../render-context';
-import { entityRow, entityRowList, rowSection } from '../entity-row';
+import {
+  entityRow,
+  entityRowList,
+  rowSection,
+} from 'gtfs-zone-web-common/gtfs/entity-row';
 import {
   actionButton,
   describeRecurrence,

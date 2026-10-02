@@ -25,7 +25,7 @@
  */
 
 import type { PageState } from '../types/page-state';
-import { entityRow, entityRowList } from './entity-row';
+import { entityRow, entityRowList } from 'gtfs-zone-web-common/gtfs/entity-row';
 import type { FeedSession } from './feed-session';
 import { actionButton } from './managed-render';
 import { showModal } from 'gtfs-zone-web-common/ui/modal-utils';
