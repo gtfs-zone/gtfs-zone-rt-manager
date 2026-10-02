@@ -24,7 +24,7 @@
  * app came to find. Entries are rebuilt per query, so nothing goes stale.
  */
 
-import { CONFIG } from '../config';
+import { VEHICLE_UNMATCHED_COLOR } from 'gtfs-zone-web-common/map/layer-manager';
 import type { PageState } from '../types/page-state';
 import type { FeedSession } from './feed-session';
 import type { VehiclePosition } from '../map-controller';
@@ -95,7 +95,7 @@ export function buildSearchEntries(
     (position?.tripId ? feed?.trips.get(position.tripId)?.route_id : undefined);
   const vehicleColor = (routeId: string | undefined) =>
     (routeId ? feed?.routes.get(routeId)?.color : undefined) ??
-    CONFIG.VEHICLE_UNMATCHED_COLOR;
+    VEHICLE_UNMATCHED_COLOR;
 
   // A tracker is searched for as itself, whether or not it is reporting: the
   // list is the API's, not the live map's. A one-vehicle tracker is that

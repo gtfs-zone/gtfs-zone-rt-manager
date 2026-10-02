@@ -47,8 +47,10 @@ import { MAP_MAX_ZOOM } from 'gtfs-zone-web-common/map/basemap-styles';
 import { fitPadding } from 'gtfs-zone-web-common/map/fit-padding';
 import { SearchPlaceMarker } from 'gtfs-zone-web-common/map/place-search';
 import type { PlacePayload } from 'gtfs-zone-web-common/map/place-search';
-import { LayerManager } from './modules/layer-manager';
-import type { MapDataIssues } from './modules/layer-manager';
+import {
+  LayerManager,
+  type MapDataIssues,
+} from 'gtfs-zone-web-common/map/layer-manager';
 import { STOP_FOCUS_HALO_LAYER } from 'gtfs-zone-web-common/map/stop-layer-style';
 import { resolveThemeColor } from 'gtfs-zone-web-common/util/theme-color';
 
@@ -168,7 +170,7 @@ function boundsOf(
 
 export class MapController {
   private map!: maplibregl.Map;
-  private layers!: LayerManager;
+  private layers!: LayerManager<VehiclePosition, { trackerId: string }>;
   /** Rings the place picked from search until the next map click. */
   private placeMarker!: SearchPlaceMarker;
   private resizeTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -263,7 +265,12 @@ export class MapController {
     // and the basemap FAB owns bottom-right.
     this.map.addControl(new maplibregl.NavigationControl(), 'bottom-left');
 
-    this.layers = new LayerManager(this.map);
+    // `trackerId` rides on the feature so a click still resolves the tracker
+    // after its vehicle has dropped out of `positions`.
+    this.layers = new LayerManager(this.map, {
+      properties: (v) => ({ tracker_id: v.trackerId }),
+      target: (props) => ({ trackerId: String(props.tracker_id ?? '') }),
+    });
     this.layers.onSelect = (target) => {
       switch (target.kind) {
         case 'stop':
@@ -622,9 +629,7 @@ export class MapController {
         // spotlights its most recent one; the panel lists all of them.
         const vehicle = this.trackerVehicle(state.tracker_id);
         this.layers.setFocus(
-          vehicle
-            ? { kind: 'vehicle', id: vehicle.key, trackerId: vehicle.trackerId }
-            : null
+          vehicle ? { kind: 'vehicle', id: vehicle.key } : null
         );
         // Re-arm follow on this tracker (a different one replaces the old).
         this.following = { trackerId: state.tracker_id };
@@ -638,9 +643,7 @@ export class MapController {
         this.clearTrip();
         const vehicle = this.positions.find((p) => p.key === state.vehicle_key);
         this.layers.setFocus(
-          vehicle
-            ? { kind: 'vehicle', id: vehicle.key, trackerId: vehicle.trackerId }
-            : null
+          vehicle ? { kind: 'vehicle', id: vehicle.key } : null
         );
         this.following = { key: state.vehicle_key };
         if (vehicle) {

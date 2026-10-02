@@ -43,48 +43,6 @@ export const CONFIG = {
   // Debounce for persisting the map view on moveend.
   MAP_VIEW_SAVE_DEBOUNCE: 400,
 
-  // Zoom range over which plain stops fade in/out. Shared between
-  // LayerManager's fade-opacity expression and its click-area hit radius so
-  // hidden stops are never hoverable/clickable. Changing one without the other
-  // produces ghost clicks on invisible stops.
-  STOP_FADE_ZOOM_MIN: 10.5,
-  STOP_FADE_ZOOM_MAX: 12.5,
-
-  // The same fade applied to stations and child nodes, pitched lower. Must sit
-  // below STOP_FADE_ZOOM_MIN or the two bands overlap and stations fade back
-  // out as plain stops fade in.
-  STATION_FADE_ZOOM_MIN: 7.5,
-  STATION_FADE_ZOOM_MAX: 9.5,
-
-  // Below this many stops the zoom fade is skipped and every stop draws at
-  // full opacity. The fade exists to stop thousands of dots piling up; a small
-  // feed has no pile to avoid, and the tracker being watched needs its one
-  // nearby stop visible at any zoom.
-  STOP_FADE_MIN_STOPS: 50,
-
-  // Zoom range over which the direction arrows on the single spotlighted route
-  // fade in, and their opacity once faded in. Sits above STOP_FADE_ZOOM_MAX so
-  // arrows are the last thing to appear as you zoom in.
-  ROUTE_ARROW_FADE_ZOOM_MIN: 12,
-  ROUTE_ARROW_FADE_ZOOM_MAX: 13.5,
-  ROUTE_ARROW_OPACITY: 0.85,
-
-  // Spotlight treatment when a route (and its stops) is focused. Non-matching
-  // routes and stops dim; the matched route's line and casing get a width bump.
-  SPOTLIGHT_STOP_DIM: 0.15,
-  SPOTLIGHT_ROUTE_DIM: 0.2,
-  SPOTLIGHT_LINE_BUMP: 1.35,
-  SPOTLIGHT_CASING_BUMP: 1.3,
-
-  // Opacity for vehicles not on the focused route. Higher than the route dim:
-  // a vehicle is a small mark and needs more opacity than a long line to read
-  // at the same visual weight.
-  SPOTLIGHT_VEHICLE_DIM: 0.25,
-
-  // line-sort-key applied to the focused route so it paints above every other
-  // route. Far above any natural key (max ~90999).
-  SPOTLIGHT_SORT_KEY: 1_000_000,
-
   // Trips listed on a route page before the list is capped. A busy route has
   // thousands; the page says how many it left out.
   ROUTE_TRIP_LIST_MAX: 200,
@@ -111,10 +69,6 @@ export const CONFIG = {
   // is Sunday. Display only: `WEEKDAY_KEYS` stays Monday-first because it
   // names the rule columns the API writes.
   WEEK_START: 0,
-
-  // Neutral fill for a vehicle whose trip/route cannot be resolved against the
-  // scheduled feed.
-  VEHICLE_UNMATCHED_COLOR: '#94a3b8',
 
   // Weeks listed on the assignments page, and so the window its expansion is
   // fetched over. Six is a month and a half of planning without asking the
