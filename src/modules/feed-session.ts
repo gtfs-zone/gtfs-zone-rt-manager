@@ -1,16 +1,11 @@
-/* @vendored-from gtfs-zone-rt-viewer:src/feed-session.ts
-   @sha b5d2903
-   @status adopted */
 /**
  * Owns whatever is currently selected: the parsed scheduled GTFS, and the live
  * payloads the map and the panel read.
  *
- * Adopted, not copied. gtfs-zone-rt-viewer's `feed-session.ts` is built around a GTFS-RT
- * poller it owns; here the managed objects come from the API and the live half
- * arrives on the SSE channel, so only the shape the vendored modules read
- * (`scheduledFeed`, `vehicles`, `alerts`, `tripUpdates`) is deliberately the same.
- * Every module that takes a `FeedSession` reads it through that surface, which
- * is what lets them stay verbatim.
+ * The schedule download and the four members the shared realtime modules
+ * read (`scheduledFeed`, `vehicles`, `alerts`, `tripUpdates`) come from
+ * `gtfs-zone-web-common`'s `FeedSessionBase`. Here the managed objects come
+ * from the API and the live half arrives on the SSE channel.
  *
  * The selected feed and its managed objects live here alongside the scheduled
  * half, and the two are deliberately independent: `feed` and `trackers` are
@@ -22,7 +17,11 @@
  * whole live fleet, fetched once on selection, and every fix after that,
  * pushed one at a time down the event channel. gtfs-zone-rt-api builds both with one
  * function, so neither this class nor anything reading it needs to know which
- * a vehicle came through.
+ * a vehicle came through. It is keyed by `VehiclePosition.key`, the surrogate
+ * `Tracker.id` plus the vehicle's own id, which the map feature is keyed by too.
+ * Not by tracker: one tracker can run several concurrent vehicles, and
+ * `vehiclesFor` is how a tracker's vehicles are asked for. Not by trip either,
+ * so a vehicle that changes trip replaces its own entry.
  *
  * **Nothing tells this app a vehicle has gone away.** A position record expires
  * out of Redis after 60s and an expiry is not an event, so a vehicle that is
@@ -34,11 +33,7 @@
  * would otherwise be either immortal or invisible.
  */
 import { CONFIG } from '../config';
-import { GTFSScheduled } from 'gtfs-zone-web-common/gtfs/scheduled';
-import type {
-  AlertRecord,
-  TripUpdate,
-} from 'gtfs-zone-web-common/gtfs/rt-types';
+import { FeedSessionBase } from 'gtfs-zone-web-common/gtfs/feed-session';
 import type {
   Alert,
   AlertDetail,
@@ -53,15 +48,8 @@ import type {
 } from '../types/api';
 import type { ServiceDate } from './service-date';
 import type { VehiclePosition } from '../map-controller';
-import { adoptFeedTimezone } from 'gtfs-zone-web-common/gtfs/feed-time';
-import { feedProgressIndicator } from 'gtfs-zone-web-common/ui/progress-indicator';
-import {
-  downloadPercent,
-  formatBytes,
-  LoadCancelledError,
-} from 'gtfs-zone-web-common/gtfs/feed-download';
 
-export class FeedSession extends EventTarget {
+export class FeedSession extends FeedSessionBase<VehiclePosition> {
   /** The selected feed's API row, or null when nothing is selected. */
   feed: Feed | null = null;
 
@@ -124,24 +112,6 @@ export class FeedSession extends EventTarget {
   /** The window `assignments` covers, inclusive, or null if none is loaded. */
   assignmentsRange: { from: ServiceDate; to: ServiceDate } | null = null;
 
-  scheduledFeed: GTFSScheduled | null = null;
-  scheduleError: string | null = null;
-  scheduleLoadedAt: number | null = null;
-
-  /**
-   * Every vehicle currently reporting, keyed by `VehiclePosition.key` — the
-   * surrogate `Tracker.id` plus the vehicle's own id, which is what the map
-   * feature is keyed by too.
-   *
-   * Not keyed by tracker: one tracker can be running several concurrent
-   * vehicles, and keying by tracker would silently keep only the last one to
-   * arrive. `vehiclesFor` is how a tracker's vehicles are asked for.
-   *
-   * The key is the vehicle's, not the trip's, so a vehicle that changes trip
-   * replaces its own entry instead of adding a second one beside it.
-   */
-  vehicles = new Map<string, VehiclePosition>();
-
   /** When each vehicle's latest fix reached this browser, by the same key. */
   private vehicleArrivals = new Map<string, number>();
 
@@ -153,11 +123,6 @@ export class FeedSession extends EventTarget {
    * has been watching it.
    */
   private trackerArrivals = new Map<string, number>();
-
-  alerts = new Map<string, AlertRecord>();
-  tripUpdates: TripUpdate[] = [];
-
-  private controller: AbortController | null = null;
 
   /**
    * Select a feed, discarding everything belonging to the previous one.
@@ -407,81 +372,11 @@ export class FeedSession extends EventTarget {
    * throwing at the caller.
    */
   async loadScheduled(url: string, label: string): Promise<void> {
-    this.cancelLoad();
-    const controller = new AbortController();
-    this.controller = controller;
-
-    const feed = new GTFSScheduled();
-
-    // Download and parse are separate operations so the bar shows real byte
-    // progress first, then per-file parse progress.
-    let parsing = false;
-    const hooks = {
-      onDownload: (loaded: number, total: number | null) => {
-        feedProgressIndicator.updateProgress(
-          'scheduled-download',
-          downloadPercent(loaded, total) ?? 0,
-          total
-            ? `Downloading ${label} - ${formatBytes(loaded)} of ${formatBytes(total)}`
-            : `Downloading ${label} - ${formatBytes(loaded)}`
-        );
-      },
-      onParse: (fileName: string, done: number, total: number) => {
-        if (!parsing) {
-          parsing = true;
-          feedProgressIndicator.finishLoading('scheduled-download');
-          feedProgressIndicator.startLoading(
-            'scheduled-parse',
-            `Parsing ${label}…`
-          );
-        }
-        feedProgressIndicator.updateProgress(
-          'scheduled-parse',
-          Math.round((done / total) * 100),
-          `Parsing ${label} - ${fileName}`
-        );
-      },
-      signal: controller.signal,
-    };
-
-    feedProgressIndicator.startLoading(
-      'scheduled-download',
-      `Downloading ${label}…`,
-      {
-        onCancel: () => controller.abort(),
-      }
-    );
-
     try {
-      await feed.loadFromUrl(url, hooks);
-      this.scheduledFeed = feed;
-      // Every transit time rendered from here on is anchored to this feed's zone.
-      adoptFeedTimezone(feed);
-      this.scheduleError = null;
-      this.scheduleLoadedAt = Date.now();
-      // Separate from `change` because the map has to reload its sources on
-      // this and on nothing else; `change` fires for every tracker update too.
-      this.dispatchEvent(
-        new CustomEvent<GTFSScheduled>('scheduleloaded', { detail: feed })
-      );
-    } catch (err) {
-      // A cancel is not a feed error: the previously loaded feed stays live.
-      if (!(err instanceof LoadCancelledError)) {
-        this.scheduleError = err instanceof Error ? err.message : String(err);
-      }
-    } finally {
-      if (this.controller === controller) {
-        this.controller = null;
-      }
-      feedProgressIndicator.finishLoading('scheduled-download');
-      feedProgressIndicator.finishLoading('scheduled-parse');
-      this.dispatchEvent(new CustomEvent('change'));
+      await this.loadSchedule({ url }, label);
+    } catch {
+      // Recorded in `scheduleError`; a cancel keeps the previous feed.
     }
-  }
-
-  cancelLoad(): void {
-    this.controller?.abort();
-    this.controller = null;
   }
 
   /** Drop everything, including the selection. */
