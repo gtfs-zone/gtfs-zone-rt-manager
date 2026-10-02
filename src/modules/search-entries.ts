@@ -1,17 +1,3 @@
-/* @vendored-from gtfs-zone-rt-viewer:src/modules/search-entries.ts
-   @sha 6b6442e
-   @status modified
-   @changes
-   - The vehicle loop became a tracker loop over the API's tracker list rather
-     than the live vehicle map, so a tracker that has never reported a fix is
-     still findable. The payload is a `tracker` PageState keyed by `Tracker.id`,
-     which is the key both maps use.
-   - A tracker running several vehicles also gets one entry per live vehicle,
-     payload from `vehicleLocation`, beside the tracker's own entry, which then
-     reads as the fleet ("N vehicles") rather than as one of them.
-   - A managed service alert loop added, keyed by `String(Alert.id)`.
-   - Priorities rebucketed so managed objects sort ahead of GTFS objects:
-     trackers 0, alerts 1, stations 2, routes 3, plain stops 4. */
 /**
  * Turns the loaded session into search entries for `SearchController`.
  *
@@ -29,11 +15,16 @@ import type { PageState } from '../types/page-state';
 import type { FeedSession } from './feed-session';
 import type { VehiclePosition } from '../map-controller';
 import { vehicleLocation } from './vehicle-location';
-import { vehicleDisplayName } from 'gtfs-zone-web-common/gtfs/entity-render';
+import {
+  vehicleDisplayName,
+  vehicleRouteId,
+} from 'gtfs-zone-web-common/gtfs/entity-render';
+import {
+  scheduleSearchEntries,
+  searchHaystack,
+} from 'gtfs-zone-web-common/gtfs/search-entries';
 import {
   dotMarker,
-  routeMarker,
-  stopMarker,
   type SearchEntry,
 } from 'gtfs-zone-web-common/ui/search-controller';
 
@@ -41,58 +32,20 @@ import {
 // warning it is against every basemap.
 const ALERT_MARKER_COLOR = '#f59e0b';
 
-/** Non-empty values only, so the haystack has no runs of blanks to match into. */
-function haystack(...parts: (string | undefined)[]): string {
-  return parts.filter(Boolean).join(' ');
-}
-
 export function buildSearchEntries(
   session: FeedSession
 ): SearchEntry<PageState>[] {
   const feed = session.scheduledFeed;
-  const entries: SearchEntry<PageState>[] = [];
-
-  for (const stop of feed?.stops.values() ?? []) {
-    entries.push({
-      payload: { type: 'stop', stop_id: stop.id },
-      icon: stopMarker(stop.location_type),
-      primary: stop.name || stop.id,
-      secondary: stop.raw['stop_code'] || stop.id,
-      haystack: haystack(
-        stop.name,
-        stop.id,
-        stop.raw['stop_code'],
-        stop.raw['stop_desc']
-      ),
-      // Managed objects first, then stations, routes, and plain stops.
-      priority: Number(stop.location_type) === 1 ? 2 : 4,
-    });
-  }
-
-  for (const route of feed?.routes.values() ?? []) {
-    const primary = route.short_name || route.long_name || route.id;
-    entries.push({
-      payload: { type: 'route', route_id: route.id },
-      icon: routeMarker(route.color),
-      primary,
-      secondary:
-        route.long_name && route.long_name !== primary
-          ? route.long_name
-          : route.id,
-      haystack: haystack(
-        route.short_name,
-        route.long_name,
-        route.id,
-        route.raw['route_desc']
-      ),
-      priority: 3,
-    });
-  }
+  // Managed objects first, then stations, routes, and plain stops.
+  const entries: SearchEntry<PageState>[] = scheduleSearchEntries(feed, {
+    station: 2,
+    route: 3,
+    stop: 4,
+  });
 
   // Same color the map paints a vehicle: its trip's route, or unmatched grey.
   const vehicleRoute = (position: VehiclePosition | undefined) =>
-    position?.routeId ||
-    (position?.tripId ? feed?.trips.get(position.tripId)?.route_id : undefined);
+    position ? vehicleRouteId(feed, position) : undefined;
   const vehicleColor = (routeId: string | undefined) =>
     (routeId ? feed?.routes.get(routeId)?.color : undefined) ??
     VEHICLE_UNMATCHED_COLOR;
@@ -116,8 +69,8 @@ export function buildSearchEntries(
           ? vehicleDisplayName(feed, position)
           : 'no fix',
       haystack: fleet
-        ? haystack(tracker.nickname)
-        : haystack(
+        ? searchHaystack(tracker.nickname)
+        : searchHaystack(
             tracker.nickname,
             position?.label,
             position?.tripId,
@@ -143,7 +96,7 @@ export function buildSearchEntries(
         ]
           .filter(Boolean)
           .join(' - '),
-        haystack: haystack(
+        haystack: searchHaystack(
           vehicle.label,
           vehicle.vehicleId,
           vehicle.tripId,
@@ -160,7 +113,7 @@ export function buildSearchEntries(
       icon: dotMarker(ALERT_MARKER_COLOR),
       primary: alert.header_text || `Alert ${alert.id}`,
       secondary: alert.effect ?? alert.cause ?? undefined,
-      haystack: haystack(
+      haystack: searchHaystack(
         alert.header_text,
         alert.description_text,
         alert.cause ?? undefined,
