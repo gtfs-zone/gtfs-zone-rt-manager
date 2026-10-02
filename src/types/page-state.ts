@@ -1,45 +1,4 @@
-/* @vendored-from gtfs-zone-rt-viewer:src/types/page-state.ts
-   @sha 8f8ffd5
-   @status modified
-   @changes
-   - Variants replaced wholesale. gtfs-zone-rt-manager browses a hierarchy neither
-     upstream has: `tracker` is a managed object from the API, `route`, `stop`
-     and `trip` come from the in-browser GTFS. Dropped `vehicle`; kept `alert`,
-     which here is a managed object rather than a decoded GTFS-RT entity.
-     `vehicle` came back later as this repo's own: one live vehicle of a
-     tracker carrying several, keyed by `VehiclePosition.key`.
-   - `home` is the feed itself: its own properties, its children, and the facts
-     about it. There is no separate `feed` variant.
-   - Seven variants and a maximum depth of three. There are no list variants: a
-     list is a scrollbox on the page of the object that owns it, never a page,
-     so no crumb is ever a category.
-   - `MODAL_TYPES` is `alerts` and `help`, this repo's two of upstream's editor
-     list. They are the navbar modals worth linking to: an alert list over
-     whatever page you are on, and a guide page. The calendar and sharing stay
-     unrouted — each carries state the hash would not (the calendar's month and
-     tab), and neither is a view to send somebody. The feed switcher stays
-     unrouted for upstream's load-modal reason: it edits the selection, and the
-     selection is already in the hash as `feed`.
-   - No `TimetableModalState`/`PaneModalState` split: neither modal here needs
-     more than one optional selector, and only `help` needs any.
-   - `page` names the guide page the modal *opens* on, not the one showing:
-     `sidebar-modal.ts` has no hook for a pane change and is `verbatim`, so
-     teaching it one is an upstream change rather than a local edit.
-   - `tracker` is keyed by `Tracker.id`, the surrogate. It is not the Traccar
-     credential (that is `device_key`, which never leaves the properties panel)
-     and it is genuinely unique, which nickname is not.
-   - `trip` added, with `route_id` alongside `trip_id` so a trip page can render
-     its breadcrumb before the zip has finished parsing.
-   - `isPageState` no longer counts keys per variant; the optional members make
-     an exact-count check say nothing useful, so each field is checked by type.
-     The modal is destructured out and validated on its own, which is the whole
-     of what the modal dimension costs the guard here.
-   - What is generic over the union (`NavigationEvent`, `StateValidator`,
-     `pageStatesEqual`, `sameLocation`) lives in `gtfs-zone-web-common`'s
-     `ui/page-state-manager.ts`, as it does upstream, and `BreadcrumbItem` in
-     its `ui/breadcrumb-trail.ts`.
-   - `ModalStateOf` follows upstream's drop: `modal-router.ts` narrows an
-     opener's argument itself now. */
+import type { WithModal } from 'gtfs-zone-web-common/ui/page-state-schema';
 
 /**
  * Union of every page gtfs-zone-rt-manager can display. Each variant carries the minimal
@@ -48,6 +7,11 @@
  * `home` is the no-feed-selected state. Everything else is scoped to the
  * feed named by the hash's `feed` param, which is not part of PageState: the
  * feed is selection, not focus, and `PageStateManager.setFeedParams()` owns it.
+ *
+ * `tracker` is keyed by `Tracker.id`, never the `device_key` credential.
+ * `vehicle` is one live vehicle of a tracker carrying several, keyed by
+ * `VehiclePosition.key`. `trip` carries `route_id` so its breadcrumb renders
+ * before the zip has finished parsing.
  */
 export type PageLocation =
   | { type: 'home' }
@@ -62,90 +26,10 @@ export type PageLocation =
  * The modals that live in the URL hash. The calendar, sharing and the feed
  * switcher are deliberately absent: the first two hold state the hash does not
  * carry, and the third edits the feed selection, which is in the hash already.
- */
-export const MODAL_TYPES = ['alerts', 'help'] as const;
-
-export type ModalType = (typeof MODAL_TYPES)[number];
-
-/**
+ *
  * A modal is orthogonal to the page beneath it: closing one returns to that
  * page rather than to a separate page state.
  */
 export type ModalState = { type: 'alerts' } | { type: 'help'; page?: string };
 
-/** Distributed so that narrowing on `type` still works through the modal field. */
-type WithModal<T> = T extends unknown ? T & { modal?: ModalState } : never;
-
-export type PageState = WithModal<PageLocation>;
-
-/** Type guard for a valid ModalState. */
-export function isModalState(value: unknown): value is ModalState {
-  if (!value || typeof value !== 'object') {
-    return false;
-  }
-
-  const modal = value as { type?: unknown; page?: unknown };
-  if (!MODAL_TYPES.includes(modal.type as ModalType)) {
-    return false;
-  }
-
-  if (modal.type === 'help') {
-    if (modal.page !== undefined && typeof modal.page !== 'string') {
-      return false;
-    }
-    return Object.keys(modal).every((k) => k === 'type' || k === 'page');
-  }
-  return Object.keys(modal).length === 1;
-}
-
-function isOptionalString(value: unknown): boolean {
-  return value === undefined || typeof value === 'string';
-}
-
-/** Type guard for a valid PageState. */
-export function isPageState(value: unknown): value is PageState {
-  if (!value || typeof value !== 'object') {
-    return false;
-  }
-
-  // The modal dimension is validated on its own; the checks below are about
-  // the page underneath it.
-  const { modal, ...state } = value as Record<string, unknown>;
-  if (modal !== undefined && !isModalState(modal)) {
-    return false;
-  }
-  if (typeof state.type !== 'string') {
-    return false;
-  }
-
-  switch (state.type) {
-    case 'home':
-      return true;
-
-    case 'tracker':
-      return typeof state.tracker_id === 'string';
-
-    case 'vehicle':
-      return (
-        typeof state.tracker_id === 'string' &&
-        typeof state.vehicle_key === 'string'
-      );
-
-    case 'alert':
-      return typeof state.alert_id === 'string';
-
-    case 'route':
-      return typeof state.route_id === 'string';
-
-    case 'stop':
-      return typeof state.stop_id === 'string';
-
-    case 'trip':
-      return (
-        typeof state.trip_id === 'string' && isOptionalString(state.route_id)
-      );
-
-    default:
-      return false;
-  }
-}
+export type PageState = WithModal<PageLocation, ModalState>;
