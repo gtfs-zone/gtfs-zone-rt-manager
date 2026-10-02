@@ -1,44 +1,3 @@
-/* @vendored-from gtfs-zone-rt-viewer:src/modules/app-state.ts
-   @sha 6b6442e
-   @status modified
-   @changes
-   - Selection is a feed row from the API, not a `FeedSelection` of URLs, so
-     `feed-url.ts` and `isComplete` are gone and the hash's feed half is one
-     `feed=<feed_name>` param. `findFeed` resolves that name against
-     `GET /feeds`, falling back to the admin-only server-wide list.
-   - `boot()` fetches `/api/me` first, and falls back to the last feed in
-     localStorage when the hash names none.
-   - `selectFeed()` added: it does not await the schedule download, because the
-     managed half of the app is usable without it and an unreachable
-     `static_feed_url` must not make the tree unusable.
-   - Neither half of upstream's boot-modal machinery is taken. `f9d3e2c`'s
-     `bootSeed` carried a half-filled `FeedSelection` out of `boot()` so the
-     load modal could be seeded with it, and `f1ee0ff` replaced it and `boot()`
-     with `bootRequest()` / `finishBoot()` / `bootEmpty()`, moving the load and
-     its error reporting to `index.ts` so a failed link can reopen the modal.
-     There is no such modal and no `FeedSelection` here — a feed is one of your
-     own rows, named in the hash by `feed_name` — so `boot()` stays one call
-     that resolves that name and loads it.
-   - A pending focus is held rather than resolved once. gtfs-zone-rt-viewer can decide
-     immediately because it awaits the load; here a `route`/`stop`/`trip` link
-     cannot resolve until the zip parses, so `applyPendingFocus` runs at each
-     stage and only the last one is entitled to call a link dead.
-   - `onFeedChange` added to the hooks, and `refreshFeed`/`clearFeed` with it.
-   - `emit` is overridden to put `loadPageData` on the focus side of the
-     split: opening the guide over a tracker page must not re-fetch the
-     tracker any more than it re-renders the panel.
-   - `loadPageData` added: a managed page may need an object the list requests
-     do not carry (a tracker's `device_key`, an alert's informed entities), so
-     every focus change asks for what the page it opened needs.
-   - The refreshers are public: a write in `actions.ts` re-reads the list it
-     changed rather than patching the session by hand, so the panel can never
-     show a row the server did not confirm. `adoptFeedRow` is the same idea for
-     the feed itself, and owns the hash rewrite a rename needs.
-   - The feed's event stream is owned here, because this is the one module that
-     knows when a feed starts and stops being the selected one.
-   - The live fleet with it: the bootstrap fetch on selection, the pushed
-     fixes, and the sweep that expires a vehicle whose fix has aged out. Only
-     this module knows a feed is selected *and* holds a timer. */
 /**
  * Feed selection, on top of focus changes.
  *
@@ -62,11 +21,8 @@ import { CONFIG } from '../config';
 import type { PageState } from '../types/page-state';
 import type { BreadcrumbItem } from 'gtfs-zone-web-common/ui/breadcrumb-trail';
 import type { FocusHooks } from 'gtfs-zone-web-common/ui/focus-controller';
-import { FocusController } from 'gtfs-zone-web-common/ui/focus-controller';
-import {
-  homeWithModal,
-  sameLocation,
-} from 'gtfs-zone-web-common/ui/page-state-manager';
+import { ValidatedFocusController } from 'gtfs-zone-web-common/ui/focus-controller';
+import { sameLocation } from 'gtfs-zone-web-common/ui/page-state-manager';
 import type { Feed, LoadStatus, Me } from '../types/api';
 import type { VehiclePosition } from '../map-controller';
 import { buildBreadcrumbs, validateState } from './breadcrumbs';
@@ -97,7 +53,7 @@ export interface AppStateHooks extends FocusHooks<PageState> {
   onFeedChange: (feed: Feed | null) => void;
 }
 
-export class AppState extends FocusController<
+export class AppState extends ValidatedFocusController<
   PageState,
   BreadcrumbItem<PageState>
 > {
@@ -106,13 +62,6 @@ export class AppState extends FocusController<
 
   /** The signed-in person. Null until `boot()` has answered. */
   me: Me | null = null;
-
-  /**
-   * A focus from a link that has not resolved yet, because the object it names
-   * lives in a zip that is still downloading. Cleared once it resolves, or once
-   * the load finishes without it.
-   */
-  private pendingFocus: PageState | null = null;
 
   /**
    * Detail requests already in flight, keyed by the page that asked. The panel
@@ -156,13 +105,11 @@ export class AppState extends FocusController<
   private assignmentLoad: Promise<void> | null = null;
 
   constructor(session: FeedSession, hooks: AppStateHooks) {
-    super(createPageStateManager(), hooks);
+    super(createPageStateManager(), hooks, {
+      breadcrumbs: (state) => buildBreadcrumbs(session, state),
+      validate: (state) => validateState(session, state),
+    });
     this.session = session;
-
-    this.pages.setBreadcrumbBuilder((state) =>
-      buildBreadcrumbs(session, state)
-    );
-    this.pages.setStateValidator((state) => validateState(session, state));
 
     // The parsed feed is the last thing a linked route/stop/trip was waiting
     // for, and the first thing that can invalidate a focus carried over from
@@ -280,11 +227,13 @@ export class AppState extends FocusController<
     this.startPruning();
     this.chasedTrackers.clear();
 
+    // A link's focus may name an object in a zip that is still downloading,
+    // so it is held until it resolves, or until the load finishes without it.
     this.pendingFocus = restore.type === 'home' ? null : restore;
-    this.applyPendingFocus({ reportMiss: false });
+    this.resolvePendingFocus(false);
 
     await this.loadManagedObjects(feed);
-    this.applyPendingFocus({ reportMiss: false });
+    this.resolvePendingFocus(false);
 
     // Not awaited: the tree above is already usable, and a feed whose zip is
     // slow or unreachable must not hold it hostage. `loadScheduled` reports its
@@ -757,48 +706,9 @@ export class AppState extends FocusController<
   private onScheduleLoaded(): void {
     // A focus carried over from a previous feed almost never names an object in
     // this one, and rendering an object page for something the feed does not
-    // describe is worse than going home.
-    const current = this.focus;
-    if (current.type !== 'home' && !validateState(this.session, current)) {
-      this.clearFocus();
-    }
-    this.applyPendingFocus({ reportMiss: true });
-  }
-
-  /**
-   * Apply a focus from a link once the session can resolve it, without
-   * dispatching navigation history.
-   *
-   * `reportMiss` is what separates "not loaded yet" from "not in this feed":
-   * only the last attempt, after the zip has parsed, is entitled to call a link
-   * dead.
-   */
-  private applyPendingFocus(options: { reportMiss: boolean }): void {
-    const pending = this.pendingFocus;
-    if (!pending) {
-      return;
-    }
-
-    if (validateState(this.session, pending)) {
-      this.pendingFocus = null;
-      this.pages.adoptState(pending);
-      // `adoptState` is silent, and the feed params were written around it, so
-      // the focus half of the hash has to be put back.
-      this.pages.syncHash();
-      this.repaint();
-      return;
-    }
-
-    if (options.reportMiss) {
-      this.pendingFocus = null;
-      notify.warning(
-        `Nothing in this feed matches the linked ${pending.type}.`
-      );
-      // The modal outlives the page it was linked over: it names no object.
-      this.pages.adoptState(homeWithModal(pending));
-      this.pages.syncHash();
-      this.repaint();
-    }
+    // describe is worse than going home. Only now may a link be called dead.
+    this.dropInvalidFocus();
+    this.resolvePendingFocus(true);
   }
 }
 
