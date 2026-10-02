@@ -1,31 +1,3 @@
-/* @vendored-from gtfs-zone-rt-viewer:src/modules/breadcrumbs.ts
-   @sha 8f8ffd5
-   @status modified
-   @changes
-   - The variant set is gtfs-zone-rt-manager's. `vehicle` became `tracker` and resolves
-     against `session.trackers` (the API list) rather than only against the
-     live map, so a tracker that has never reported a fix still has a label.
-   - `trip` added, with its route as the parent when the feed names one.
-   - Every crumb is a real ancestor and never a category: there are no list
-     pages, so a tracker and a route both hang straight off the feed, a trip
-     hangs off its route, a stop off its `parent_station` chain and an alert off
-     the entity it informs. Three crumbs is the deepest trail in the app.
-   - HOME is the feed root rather than gtfs-zone-rt-viewer's "Feed status" page, and it
-     is labelled with the selected feed's name.
-   - `alertLabel` reads the managed `serviceAlerts` map first, since an
-     `alert` PageState names a row in the API rather than a decoded entity, and
-     falls back to the live payload for one that is only there.
-   - `validateState` answers true for the managed variants while the API list
-     is still loading: an empty `trackers` map means "not fetched yet" as often
-     as it means "no such tracker", and falling back to home on a slow request
-     would drop a perfectly good link.
-   - `vehicle` added as this repo's own: one live vehicle of a tracker carrying
-     several, hung off its tracker. Its label is read from the live record and
-     falls back to a plain "Vehicle" once that record has expired, and
-     `validateState` checks only the tracker: the vehicle page itself says a
-     vehicle has stopped reporting, which a fallback to home would hide.
-   - Skipped `4114ea3`'s catalog-name lookup for the feed crumb: a feed here
-     is an API row with its own name, not a `FeedSelection` URL. */
 /**
  * Synchronous breadcrumb building and focus validation against the session.
  *
@@ -36,42 +8,24 @@
 
 import type { PageState } from '../types/page-state';
 import type { BreadcrumbItem } from 'gtfs-zone-web-common/ui/breadcrumb-trail';
-import { stopTypeLabel } from 'gtfs-zone-web-common/ui/breadcrumb-trail';
+import type { StopPageRef } from 'gtfs-zone-web-common/gtfs/breadcrumbs';
+import {
+  alertParentCrumb,
+  routeCrumb,
+  rtAlertHeader,
+  rtAlertParent,
+  stopCrumbs,
+  truncateCrumb,
+} from 'gtfs-zone-web-common/gtfs/breadcrumbs';
+import type { RoutePageRef } from 'gtfs-zone-web-common/gtfs/entity-render';
 import type { FeedSession } from './feed-session';
-
-/**
- * Cap a breadcrumb label's length. Some GTFS-RT producers put full sentences
- * in an alert's `header_text` rather than a short title, which wraps a crumb
- * across several lines and reads as body copy instead of a breadcrumb.
- */
-function truncate(text: string, max = 40): string {
-  return text.length > max ? `${text.slice(0, max - 3)}...` : text;
-}
 
 function home(session: FeedSession): BreadcrumbItem<PageState> {
   return {
     typeLabel: 'Feed',
-    label: truncate(session.feed?.feed_name ?? 'Feed'),
+    label: truncateCrumb(session.feed?.feed_name ?? 'Feed'),
     pageState: { type: 'home' },
   };
-}
-
-/** Human label for a route: short name, long name, or the bare id. */
-export function routeLabel(session: FeedSession, routeId: string): string {
-  const route = session.scheduledFeed?.routes.get(routeId);
-  if (!route) {
-    return routeId;
-  }
-  return route.short_name || route.long_name || route.id;
-}
-
-export function stopLabel(session: FeedSession, stopId: string): string {
-  return session.scheduledFeed?.stops.get(stopId)?.name || stopId;
-}
-
-/** The crumb eyebrow for a stop: its `location_type`, or a plain stop. */
-function stopEyebrow(session: FeedSession, stopId: string): string {
-  return stopTypeLabel(session.scheduledFeed?.stops.get(stopId)?.location_type);
 }
 
 export function tripLabel(session: FeedSession, tripId: string): string {
@@ -95,32 +49,7 @@ export function alertLabel(session: FeedSession, alertId: string): string {
   if (managed) {
     return managed.header_text || `Alert ${alertId}`;
   }
-  const alert = session.alerts.get(alertId)?.alert;
-  const header = alert?.headerText?.translation?.[0]?.text;
-  return header ? String(header) : `Alert ${alertId}`;
-}
-
-/**
- * The chain of parents leading to a stop, outermost first.
- *
- * `parent_station` is a single edge in practice, but the loop guards against a
- * feed with a cycle rather than hanging on one.
- */
-function stopAncestors(session: FeedSession, stopId: string): string[] {
-  const feed = session.scheduledFeed;
-  if (!feed) {
-    return [];
-  }
-
-  const chain: string[] = [];
-  const seen = new Set<string>([stopId]);
-  let parent = feed.stops.get(stopId)?.parent_station;
-  while (parent && !seen.has(parent) && feed.stops.has(parent)) {
-    chain.unshift(parent);
-    seen.add(parent);
-    parent = feed.stops.get(parent)?.parent_station;
-  }
-  return chain;
+  return rtAlertHeader(session.alerts, alertId) ?? `Alert ${alertId}`;
 }
 
 /** The route a trip belongs to, from the state or from the parsed feed. */
@@ -135,14 +64,11 @@ function tripRouteId(session: FeedSession, state: PageState): string | null {
   );
 }
 
-type AlertParent =
-  { type: 'route'; route_id: string } | { type: 'stop'; stop_id: string };
-
 /** The first entity an alert names that we have a page for. */
 function alertParent(
   session: FeedSession,
   alertId: string
-): AlertParent | null {
+): RoutePageRef | StopPageRef | null {
   // The managed detail is the authority when it has been fetched; the entity
   // list only exists on the detail, so a summary alone names no parent.
   for (const entity of session.alertDetails.get(alertId)?.entities ?? []) {
@@ -154,37 +80,14 @@ function alertParent(
     }
   }
 
-  const informed = session.alerts.get(alertId)?.alert.informedEntity;
-  if (!informed) {
-    return null;
-  }
-
-  for (const entity of informed) {
-    if (entity.routeId) {
-      return { type: 'route', route_id: entity.routeId };
-    }
-    if (entity.stopId) {
-      return { type: 'stop', stop_id: entity.stopId };
-    }
-  }
-  return null;
-}
-
-function routeCrumb(
-  session: FeedSession,
-  routeId: string
-): BreadcrumbItem<PageState> {
-  return {
-    typeLabel: 'Route',
-    label: truncate(routeLabel(session, routeId)),
-    pageState: { type: 'route', route_id: routeId },
-  };
+  return rtAlertParent(session.alerts, alertId);
 }
 
 export function buildBreadcrumbs(
   session: FeedSession,
   state: PageState
 ): BreadcrumbItem<PageState>[] {
+  const feed = session.scheduledFeed;
   switch (state.type) {
     case 'home':
       return [];
@@ -194,7 +97,7 @@ export function buildBreadcrumbs(
         home(session),
         {
           typeLabel: 'Tracker',
-          label: truncate(trackerLabel(session, state.tracker_id)),
+          label: truncateCrumb(trackerLabel(session, state.tracker_id)),
           pageState: state,
         },
       ];
@@ -204,42 +107,30 @@ export function buildBreadcrumbs(
         home(session),
         {
           typeLabel: 'Tracker',
-          label: truncate(trackerLabel(session, state.tracker_id)),
+          label: truncateCrumb(trackerLabel(session, state.tracker_id)),
           pageState: { type: 'tracker', tracker_id: state.tracker_id },
         },
         {
           typeLabel: 'Vehicle',
-          label: truncate(vehicleLabel(session, state.vehicle_key)),
+          label: truncateCrumb(vehicleLabel(session, state.vehicle_key)),
           pageState: state,
         },
       ];
 
     case 'route':
-      return [home(session), routeCrumb(session, state.route_id)];
+      return [home(session), routeCrumb(feed, state.route_id)];
 
     case 'stop':
-      return [
-        home(session),
-        ...stopAncestors(session, state.stop_id).map((id) => ({
-          typeLabel: stopEyebrow(session, id),
-          label: truncate(stopLabel(session, id)),
-          pageState: { type: 'stop' as const, stop_id: id },
-        })),
-        {
-          typeLabel: stopEyebrow(session, state.stop_id),
-          label: truncate(stopLabel(session, state.stop_id)),
-          pageState: state,
-        },
-      ];
+      return [home(session), ...stopCrumbs(feed, state.stop_id)];
 
     case 'trip': {
       const routeId = tripRouteId(session, state);
       return [
         home(session),
-        ...(routeId ? [routeCrumb(session, routeId)] : []),
+        ...(routeId ? [routeCrumb(feed, routeId)] : []),
         {
           typeLabel: 'Trip',
-          label: truncate(tripLabel(session, state.trip_id)),
+          label: truncateCrumb(tripLabel(session, state.trip_id)),
           pageState: state,
         },
       ];
@@ -249,25 +140,10 @@ export function buildBreadcrumbs(
       const parent = alertParent(session, state.alert_id);
       return [
         home(session),
-        ...(parent
-          ? [
-              {
-                typeLabel:
-                  parent.type === 'route'
-                    ? 'Route'
-                    : stopEyebrow(session, parent.stop_id),
-                label: truncate(
-                  parent.type === 'route'
-                    ? routeLabel(session, parent.route_id)
-                    : stopLabel(session, parent.stop_id)
-                ),
-                pageState: parent,
-              },
-            ]
-          : []),
+        ...(parent ? [alertParentCrumb(feed, parent)] : []),
         {
           typeLabel: 'Service alert',
-          label: truncate(alertLabel(session, state.alert_id)),
+          label: truncateCrumb(alertLabel(session, state.alert_id)),
           pageState: state,
         },
       ];
