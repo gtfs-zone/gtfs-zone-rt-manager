@@ -85,12 +85,6 @@ export const CONFIG = {
   // A rule with no end_date runs forever; a chart has to stop somewhere.
   CALENDAR_OPEN_END_DAYS: 180,
 
-  // Realtime poll interval. Per-device, so it is
-  // deliberately not in the hash.
-  RT_INTERVAL_KEY: 'ym.rt.interval',
-  RT_INTERVAL_DEFAULT_MS: 15000,
-  RT_INTERVAL_OPTIONS_MS: [5000, 10000, 15000, 30000, 60000],
-
   // Tracker liveness. Positions carry a 60s TTL in Redis, so anything older
   // than that is not "stale", it is gone.
   TRACKER_STALE_MS: 60_000,
