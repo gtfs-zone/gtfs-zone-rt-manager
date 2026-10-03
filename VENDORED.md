@@ -106,5 +106,4 @@ without it on purpose, so a sibling's commit cannot break a commit here.
 
 | Local path | Source repo | Source path | SHA | Status | Note |
 |---|---|---|---|---|---|
-| `src/map-controller.ts` | `gtfs-zone-rt-viewer` | `src/map-controller.ts` | 8f8ffd5 | modified | MapLibre setup, camera moves and focus. Navigation-driven moves go through `auto-zoom.ts` as of `dc25c3a`; `fitFeed` and the follow ease stay ungated, matching upstream. See the banner's `@changes`: the `vehicle` PageState variant became `tracker`, `VehiclePosition` carries a `trackerId`, follow tracks a tracker rather than one of its vehicles, and the two extra gated moves are the `trip` and `showTrips` fits, which are focus kinds upstream does not have |
 | `scripts/vendor-check.ts` | — | — | — | origin | Not vendored: written here, and the one file the flow runs backwards for. gtfs-zone-rt-viewer adopted this table's `Source repo`-aware form in its Phase 1 and vendors the script from here `modified` at `5dc61ef`, differing only in its doc comment. Listed so the table is the whole map of what is shared |

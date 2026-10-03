@@ -1,64 +1,19 @@
-/* @vendored-from gtfs-zone-rt-viewer:src/map-controller.ts
-   @sha 8f8ffd5
-   @status modified
-   @changes
-   - The `vehicle` PageState variant became `tracker`, keyed by `Tracker.id`. The
-     LayerManager target kind stays `vehicle` — that is the map layer's own
-     vocabulary — but carries the `trackerId` a click has to navigate by.
-   - `applyFocus` covers gtfs-zone-rt-manager's variant set. `alert` clears the focus
-     without moving the camera, since a managed alert has no geometry of its
-     own; `home` reframes the whole feed.
-   - `trip` draws the trip's own geometry on a source this file owns, spotlights
-     its route and frames it. LayerManager has no `trip` focus kind, so the
-     shape lives here instead. The same source takes a whole
-     day's assigned trips at once, which is what a selected day in the
-     assignments calendar draws.
-   - `VehiclePosition` extends gtfs-zone-web-common's with a `trackerId`. A tracker can
-     carry several concurrent vehicles, so `key` is the tracker *plus* the
-     vehicle id and something else has to say which tracker they belong to;
-     upstream's feeds have no such object.
-   - The last pushed positions are kept here so a `tracker` focus can resolve
-     the tracker's vehicles. LayerManager's layer is keyed by `key`, so it
-     cannot answer "which of these is this tracker's".
-   - Two extra camera moves go through `AutoZoom`, both of them focus kinds
-     upstream does not have: the `trip` case's fit and `showTrips`'s fit for a
-     whole assigned day. Every gate upstream has is gated the same way here, and
-     the two ungated moves are ungated here too — `fitFeed` and the follow ease
-     in `showVehicles`, which is upstream's vehicle follow.
-   - `vehicle` focus is back, as this repo's own: one vehicle of a tracker
-     carrying several. A vehicle click goes through `vehicleLocation`, so it
-     opens the tracker for a one-vehicle tracker and that vehicle's page for a
-     fleet, and follow tracks either a tracker or a single vehicle key. */
-import * as maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import { CONFIG } from './config';
 import { vehicleLocation } from './modules/vehicle-location';
-import type { GTFSScheduled } from 'gtfs-zone-web-common/gtfs/scheduled';
 import type { VehiclePosition as RtVehiclePosition } from 'gtfs-zone-web-common/gtfs/rt-types';
 import type { PageState } from './types/page-state';
-import {
-  BasemapControl,
-  initialMapStyle,
-  onBasemapChanged,
-} from 'gtfs-zone-web-common/map/basemap-control';
-import type { MapAppearance } from 'gtfs-zone-web-common/map/basemap-control';
-import { AutoZoom } from 'gtfs-zone-web-common/map/auto-zoom';
-import { MAP_MAX_ZOOM } from 'gtfs-zone-web-common/map/basemap-styles';
-import { fitPadding } from 'gtfs-zone-web-common/map/fit-padding';
-import { SearchPlaceMarker } from 'gtfs-zone-web-common/map/place-search';
-import type { PlacePayload } from 'gtfs-zone-web-common/map/place-search';
-import {
-  LayerManager,
-  type MapDataIssues,
-} from 'gtfs-zone-web-common/map/layer-manager';
+import type { MapFocusTarget } from 'gtfs-zone-web-common/map/layer-manager';
+import { RtMapController } from 'gtfs-zone-web-common/map/rt-map-controller';
 import { STOP_FOCUS_HALO_LAYER } from 'gtfs-zone-web-common/map/stop-layer-style';
 import { resolveThemeColor } from 'gtfs-zone-web-common/util/theme-color';
 
 /**
  * gtfs-zone-web-common's vehicle, plus the tracker it is reporting under.
  *
- * `key` is the tracker's surrogate id plus the vehicle's own id — the
- * `vehicle:*` Redis key without its prefix — so it is unique even when one
+ * `key` is the tracker's surrogate id plus the vehicle's own id (the
+ * `vehicle:*` Redis key without its prefix), so it is unique even when one
  * tracker is carrying several concurrent vehicles, which is why `trackerId`
  * has to be carried beside it. It identifies the vehicle, not the trip it
  * happens to be on: a vehicle that finishes one trip and starts another keeps
@@ -72,59 +27,7 @@ export interface VehiclePosition extends RtVehiclePosition {
   trackerId: string;
 }
 
-interface MapView {
-  center: [number, number];
-  zoom: number;
-  bearing: number;
-  pitch: number;
-}
-
-const DEFAULT_VIEW: MapView = {
-  center: [0, 30],
-  zoom: 2,
-  bearing: 0,
-  pitch: 0,
-};
-
-/**
- * Map view and appearance live in localStorage rather than the URL: they are
- * per-device preferences, not part of what a shared link describes (Plan 03).
- */
-function readStored<T>(key: string): Partial<T> | null {
-  try {
-    const raw = window.localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as Partial<T>) : null;
-  } catch {
-    return null;
-  }
-}
-
-function writeStored(key: string, value: unknown): void {
-  try {
-    window.localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    // Private browsing / quota — appearance simply won't persist.
-  }
-}
-
-function restoreView(): MapView {
-  const stored = readStored<MapView>(CONFIG.MAP_VIEW_KEY);
-  if (
-    !stored ||
-    !Array.isArray(stored.center) ||
-    stored.center.length !== 2 ||
-    !stored.center.every(Number.isFinite) ||
-    typeof stored.zoom !== 'number'
-  ) {
-    return DEFAULT_VIEW;
-  }
-  return {
-    center: stored.center as [number, number],
-    zoom: stored.zoom,
-    bearing: stored.bearing ?? 0,
-    pitch: stored.pitch ?? 0,
-  };
-}
+type TrackerExtra = { trackerId: string };
 
 /** The trip overlay's own source and layers, owned here rather than by LayerManager. */
 const TRIP_SOURCE = 'ym-trip-shape';
@@ -168,60 +71,39 @@ function boundsOf(
   ];
 }
 
-export class MapController {
-  private map!: maplibregl.Map;
-  private layers!: LayerManager<VehiclePosition, { trackerId: string }>;
-  /** Rings the place picked from search until the next map click. */
-  private placeMarker!: SearchPlaceMarker;
-  private resizeTimeout: ReturnType<typeof setTimeout> | null = null;
-  private viewSaveTimeout: ReturnType<typeof setTimeout> | null = null;
-  /** Height of the mobile bottom sheet, kept out of the camera's way. */
-  private bottomPadding = 0;
+/**
+ * A tracker's most recently reported vehicle, or undefined when it has none.
+ *
+ * Most recent rather than first: scan order is not the fleet's order, and a
+ * tracker running several vehicles should be followed on the one that just
+ * moved.
+ */
+function trackerVehicle(
+  positions: VehiclePosition[],
+  trackerId: string
+): VehiclePosition | undefined {
+  let best: VehiclePosition | undefined;
+  for (const p of positions) {
+    if (p.trackerId !== trackerId) {
+      continue;
+    }
+    if (!best || (p.timestamp ?? 0) > (best.timestamp ?? 0)) {
+      best = p;
+    }
+  }
+  return best;
+}
 
-  /** The parsed feed, for the geometry LayerManager does not hold: trip paths. */
-  private feed: GTFSScheduled | null = null;
-
-  /**
-   * Flips true exactly once, on the first `load`, and never back. Work issued
-   * before that point is queued and flushed in order; nothing else consults
-   * `map.loaded()`, which goes false on every dirty frame and would silently
-   * drop map updates issued mid-repaint (see Plan 06 Root cause A).
-   */
-  private ready = false;
-  private pending: Array<() => void> = [];
-
-  /**
-   * What is being followed, or null. Focusing a tracker or a vehicle enters
-   * follow mode; each positions push re-centres on its fix until the user takes
-   * the camera back (see the gesture listeners in `initialize`). Focusing
-   * anything else, including home and alert, leaves follow mode.
-   *
-   * A tracker follows its newest vehicle, so a tracker page keeps following
-   * when the vehicle the camera latched onto stops reporting. A vehicle page
-   * follows that one key and stops when it expires.
-   */
-  private following: { trackerId: string } | { key: string } | null = null;
-
-  /**
-   * The last positions handed to `showVehicles`. LayerManager holds these too
-   * but is keyed by `key` alone, and this file needs to ask which of them
-   * belong to one tracker.
-   */
-  private positions: VehiclePosition[] = [];
-
-  /**
-   * The focus the camera is currently showing. Kept so the auto-zoom refit can
-   * re-run the camera move for it the moment the toggle goes back on.
-   */
-  private currentFocus: PageState = { type: 'home' };
-
-  /**
-   * Navigation-driven camera moves are suppressed while this is off. The feed
-   * fit and the follow ease bypass it deliberately: see `fitFeed` and
-   * `showVehicles`.
-   */
-  private autoZoom = new AutoZoom(() => this.focus(this.currentFocus));
-
+/**
+ * The shared realtime map with gtfs-zone-rt-manager's focus kinds: a tracker
+ * follows its newest vehicle, a vehicle follows its own key, and a trip draws
+ * its geometry on a source this file owns.
+ */
+export class MapController extends RtMapController<
+  PageState,
+  VehiclePosition,
+  TrackerExtra
+> {
   /**
    * The drawn trip geometry, held so it can be re-added after a `setStyle`.
    * Empty when nothing is focused, or when nothing focused has a drawable path.
@@ -238,334 +120,79 @@ export class MapController {
    */
   private drawnTripKey = '';
 
-  /** Called when the user clicks a stop, route, or vehicle on the map. */
-  onSelect: ((state: PageState) => void) | null = null;
+  constructor() {
+    super(
+      {
+        viewKey: CONFIG.MAP_VIEW_KEY,
+        appearanceKey: CONFIG.MAP_APPEARANCE_KEY,
+        workerUrl: maplibreWorkerUrl,
+        // `trackerId` rides on the feature so a click still resolves the
+        // tracker after its vehicle has dropped out of `positions`.
+        vehicleExtra: {
+          properties: (v) => ({ tracker_id: v.trackerId }),
+          target: (props) => ({ trackerId: String(props.tracker_id ?? '') }),
+        },
+      },
+      { type: 'home' }
+    );
+  }
 
-  /** Called when the user clicks the map away from any feature. */
-  onEmptySelect: (() => void) | null = null;
-
-  initialize(container: string): void {
-    const view = restoreView();
-    const appearance =
-      readStored<MapAppearance>(CONFIG.MAP_APPEARANCE_KEY) ?? {};
-
-    // maplibre resolves its worker relative to its own module URL, which
-    // breaks once Vite bundles or pre-bundles it; point it at a Vite-built copy.
-    maplibregl.setWorkerUrl(maplibreWorkerUrl);
-    this.map = new maplibregl.Map({
-      container,
-      style: initialMapStyle(appearance),
-      center: view.center,
-      zoom: view.zoom,
-      bearing: view.bearing,
-      pitch: view.pitch,
-      maxZoom: MAP_MAX_ZOOM,
-    });
-    // Bottom-left is the only free corner: `#map-controls` covers the top strip
-    // and the basemap FAB owns bottom-right.
-    this.map.addControl(new maplibregl.NavigationControl(), 'bottom-left');
-
-    // `trackerId` rides on the feature so a click still resolves the tracker
-    // after its vehicle has dropped out of `positions`.
-    this.layers = new LayerManager(this.map, {
-      properties: (v) => ({ tracker_id: v.trackerId }),
-      target: (props) => ({ trackerId: String(props.tracker_id ?? '') }),
-    });
-    this.layers.onSelect = (target) => {
-      switch (target.kind) {
-        case 'stop':
-          this.onSelect?.({ type: 'stop', stop_id: target.id });
-          break;
-        case 'route':
-          this.onSelect?.({ type: 'route', route_id: target.id });
-          break;
-        case 'vehicle': {
-          // `target.id` is the feature key, never a tracker id. A vehicle whose
-          // record has just gone falls back to its tracker.
-          const vehicle = this.positions.find((p) => p.key === target.id);
-          if (vehicle) {
-            this.onSelect?.(vehicleLocation(this.positions, vehicle));
-          } else if (target.trackerId) {
-            this.onSelect?.({ type: 'tracker', tracker_id: target.trackerId });
-          }
-          break;
+  protected targetState(
+    target: MapFocusTarget<TrackerExtra>
+  ): PageState | null {
+    switch (target.kind) {
+      case 'stop':
+        return { type: 'stop', stop_id: target.id };
+      case 'route':
+        return { type: 'route', route_id: target.id };
+      case 'vehicle': {
+        // `target.id` is the feature key, never a tracker id. A vehicle whose
+        // record has just gone falls back to its tracker.
+        const vehicle = this.positions.find((p) => p.key === target.id);
+        if (vehicle) {
+          return vehicleLocation(this.positions, vehicle);
         }
+        return target.trackerId
+          ? { type: 'tracker', tracker_id: target.trackerId }
+          : null;
       }
-    };
-    this.layers.onEmptySelect = () => this.onEmptySelect?.();
-    this.placeMarker = new SearchPlaceMarker(this.map);
-    this.map.on('click', () => this.placeMarker.clear());
-
-    new BasemapControl(this.map, {
-      initial: appearance,
-      onAppearanceChange: (next) =>
-        writeStored(CONFIG.MAP_APPEARANCE_KEY, next),
-    });
-
-    this.map.once('load', () => {
-      this.layers.rebuild();
-      this.layers.attachInteraction();
-      this.ready = true;
-      const queued = this.pending;
-      this.pending = [];
-      for (const fn of queued) {
-        fn();
-      }
-    });
-
-    // setStyle drops every source and layer we own, so each basemap change
-    // has to re-add them. This is the single highest-risk path in the map:
-    // without it, switching basemaps blanks all GTFS data.
-    onBasemapChanged(this.map, () => {
-      this.layers.rebuild();
-      // setStyle dropped the trip source along with LayerManager's, so it has
-      // to be re-added and re-filled here too.
-      this.drawTripShape();
-      this.placeMarker.redraw();
-    });
-
-    this.map.on('moveend', () => this.queueViewSave());
-
-    // A user-initiated camera gesture unlocks follow permanently for the
-    // current focus. Our own programmatic easeTo/fitBounds carry no
-    // `originalEvent`, which is exactly what distinguishes them from a real
-    // drag/scroll/rotate/pitch — so the follow ease itself never unlocks.
-    for (const type of [
-      'dragstart',
-      'zoomstart',
-      'rotatestart',
-      'pitchstart',
-    ] as const) {
-      this.map.on(type, (e) => {
-        if ((e as { originalEvent?: unknown }).originalEvent) {
-          this.following = null;
-        }
-      });
     }
   }
 
-  getAutoZoom(): AutoZoom {
-    return this.autoZoom;
-  }
-
-  isAutoZoomEnabled(): boolean {
-    return this.autoZoom.isEnabled();
-  }
-
-  /** Feed problems the map found, for the status page. */
-  get issues(): MapDataIssues {
-    return this.layers.issues;
-  }
-
-  private queueViewSave(): void {
-    if (this.viewSaveTimeout) {
-      clearTimeout(this.viewSaveTimeout);
-    }
-    this.viewSaveTimeout = setTimeout(() => {
-      const center = this.map.getCenter();
-      writeStored(CONFIG.MAP_VIEW_KEY, {
-        center: [center.lng, center.lat],
-        zoom: this.map.getZoom(),
-        bearing: this.map.getBearing(),
-        pitch: this.map.getPitch(),
-      } satisfies MapView);
-      this.viewSaveTimeout = null;
-    }, CONFIG.MAP_VIEW_SAVE_DEBOUNCE);
-  }
-
-  private whenLoaded(fn: () => void): void {
-    if (this.ready) {
-      fn();
-    } else {
-      this.pending.push(fn);
-    }
-  }
-
-  loadScheduledFeed(feed: GTFSScheduled): void {
-    this.feed = feed;
-    this.whenLoaded(() => {
-      this.layers.setScheduledFeed(feed);
-      this.fitFeed();
-    });
+  protected onStyleRebuilt(): void {
+    // setStyle dropped the trip source along with LayerManager's, so it has
+    // to be re-added and re-filled here too.
+    this.drawTripShape();
   }
 
   clearScheduledFeed(): void {
-    this.feed = null;
+    super.clearScheduledFeed();
     this.tripShapes = [];
     this.drawnTripKey = '';
-    this.whenLoaded(() => {
-      this.layers.setScheduledFeed(null);
-      this.drawTripShape();
-    });
+    this.whenLoaded(() => this.drawTripShape());
   }
 
-  showVehicles(positions: VehiclePosition[]): void {
-    // Held outside `whenLoaded` so a focus that lands before the style is up
-    // can still resolve a tracker's vehicles.
-    this.positions = positions;
-    this.whenLoaded(() => {
-      this.layers.setVehicles(positions);
-      // Follow: re-centre on the followed tracker's new position. If it has
-      // stopped reporting, leave the camera where it is — the tracker page
-      // says so in words rather than the map lying with a stale dot. Ungated by
-      // auto-zoom, matching gtfs-zone-rt-viewer's vehicle follow: pressing Follow is a
-      // request for camera movement, not a navigation.
-      if (this.following) {
-        const v = this.followedVehicle(this.following);
-        if (v) {
-          this.map.easeTo({
-            center: [v.lon, v.lat],
-            duration: CONFIG.FOLLOW_DURATION,
-            essential: true,
-          });
-        }
-      }
-    });
-  }
-
-  clearVehicles(): void {
-    this.positions = [];
-    this.whenLoaded(() => this.layers.setVehicles([]));
-  }
-
-  /** The vehicle a follow resolves to right now, or undefined when it has gone. */
-  private followedVehicle(
-    following: { trackerId: string } | { key: string }
-  ): VehiclePosition | undefined {
-    if ('key' in following) {
-      return this.positions.find((p) => p.key === following.key);
-    }
-    return this.trackerVehicle(following.trackerId);
-  }
-
-  /**
-   * A tracker's most recently reported vehicle, or undefined when it has none.
-   *
-   * Most recent rather than first: scan order is not the fleet's order, and a
-   * tracker running several vehicles should be followed on the one that just
-   * moved.
-   */
-  private trackerVehicle(trackerId: string): VehiclePosition | undefined {
-    let best: VehiclePosition | undefined;
-    for (const p of this.positions) {
-      if (p.trackerId !== trackerId) {
-        continue;
-      }
-      if (!best || (p.timestamp ?? 0) > (best.timestamp ?? 0)) {
-        best = p;
-      }
-    }
-    return best;
-  }
-
-  /**
-   * Frame the loaded feed. Every schedule load refits, reloads included: the old
-   * "camera is already inside the bbox" bail-out skipped the fit whenever the
-   * stored view happened to sit in the new feed's box, and the only thing that
-   * framed the feed after that was a click-in/click-out returning focus to home.
-   *
-   * Instant, with no duration: on the boot path a deep link's focus ease runs
-   * right after this and would visibly interrupt an animated fit.
-   *
-   * Ungated by auto-zoom, matching gtfs-zone-editor's feed-load exemption: a
-   * freshly loaded feed has to frame itself or the map opens on nothing.
-   */
-  private fitFeed(): void {
-    const bounds = this.layers.feedBounds();
-    if (!bounds) {
-      return;
-    }
-    this.map.fitBounds(bounds, { padding: this.padding() });
-  }
-
-  private padding(): maplibregl.PaddingOptions {
-    return fitPadding(this.map, 40, this.bottomPadding);
-  }
-
-  /**
-   * Reserve space at the bottom of the map for the mobile bottom sheet, so a
-   * focused feature isn't hidden behind it.
-   */
-  setBottomPadding(px: number): void {
-    this.bottomPadding = px;
-  }
-
-  // ── Focus ──────────────────────────────────────────────────────────────────
-
-  /** Move to a place picked from search and ring it. */
-  focusPlace(place: PlacePayload): void {
-    this.whenLoaded(() => this.placeMarker.focus(place, this.padding()));
-  }
-
-  /** Biases the place search towards what is on screen. */
-  getCenter(): { lng: number; lat: number } {
-    return this.map.getCenter();
-  }
-
-  /**
-   * Highlight the focused object and move the camera to it. Called for every
-   * focus change, including one restored from a link.
-   */
-  focus(state: PageState): void {
-    this.currentFocus = state;
-    this.whenLoaded(() => this.applyFocus(state));
-  }
-
-  /**
-   * Light up a stop the pointer is over elsewhere in the app (a route strip
-   * row). Purely visual: no camera move, no focus change, no spotlight. Not
-   * wrapped in `whenLoaded` - a hover queued behind style load would fire long
-   * after the pointer left.
-   */
-  hoverStop(stop_id: string | null): void {
-    this.layers?.setHoveredStop(stop_id);
-  }
-
-  /**
-   * Repaint the accent-colored map layers against the now-active theme. The
-   * accent is resolved from the DaisyUI palette, so it only changes here.
-   */
   refreshAccentColor(): void {
-    this.layers?.refreshAccentColor();
+    super.refreshAccentColor();
     if (this.map?.getLayer(TRIP_LINE_LAYER)) {
       this.map.setPaintProperty(TRIP_LINE_LAYER, 'line-color', tripAccent());
     }
   }
 
-  private applyFocus(state: PageState): void {
-    // Any focus that is not a tracker or a vehicle leaves follow mode.
-    if (state.type !== 'tracker' && state.type !== 'vehicle') {
-      this.following = null;
+  protected applyFocus(state: PageState): void {
+    if (state.type !== 'trip') {
+      this.clearTrip();
     }
 
     switch (state.type) {
-      case 'home': {
-        this.clearTrip();
-        this.layers.setFocus(null);
-        // Unfocusing frames the whole feed again, mirroring how focusing a
-        // route frames that route.
-        const bounds = this.layers.feedBounds();
-        if (bounds) {
-          // AutoZoom takes a real LngLatBounds; the layer manager hands back
-          // the corner tuple.
-          this.autoZoom.fitBounds(
-            this.map,
-            new maplibregl.LngLatBounds(bounds),
-            {
-              padding: this.padding(),
-              duration: CONFIG.FOCUS_BOUNDS_DURATION,
-              essential: true,
-            }
-          );
-        }
+      case 'home':
+        this.focusHome();
         return;
-      }
 
       case 'alert':
-        // A page with no geometry of its own. Nothing to highlight or fly to;
-        // the camera stays where the reader left it.
-        this.clearTrip();
-        this.layers.setFocus(null);
+        // A managed alert has no geometry of its own. Nothing to highlight or
+        // fly to; the camera stays where the reader left it.
+        this.focusNone();
         return;
 
       case 'trip': {
@@ -576,81 +203,32 @@ export class MapController {
         // No route-wide spotlight here: dimming every stop but the route's
         // would leave only whichever of them fall in the trip's own tight
         // bounds looking highlighted, which reads as one stop lit at random.
-        this.layers.setFocus(null);
-        const bounds = boundsOf(path);
-        if (bounds) {
-          // AutoZoom takes a real LngLatBounds; boundsOf hands back the corner
-          // tuple.
-          this.autoZoom.fitBounds(
-            this.map,
-            new maplibregl.LngLatBounds(bounds),
-            {
-              padding: this.padding(),
-              maxZoom: 15,
-              duration: CONFIG.FOCUS_BOUNDS_DURATION,
-              essential: true,
-            }
-          );
-        }
+        this.focusNone();
+        this.fitFocusBounds(boundsOf(path));
         return;
       }
 
-      case 'route': {
-        this.clearTrip();
-        this.layers.setFocus({ kind: 'route', id: state.route_id });
-        const bounds = this.layers.routeBounds(state.route_id);
-        if (bounds) {
-          // AutoZoom takes a real LngLatBounds; the layer manager hands back
-          // the corner tuple.
-          this.autoZoom.fitBounds(
-            this.map,
-            new maplibregl.LngLatBounds(bounds),
-            {
-              padding: this.padding(),
-              maxZoom: 15,
-              duration: CONFIG.FOCUS_BOUNDS_DURATION,
-              essential: true,
-            }
-          );
-        }
+      case 'route':
+        this.focusRoute(state.route_id);
         return;
-      }
 
-      case 'stop': {
-        this.clearTrip();
-        this.layers.setFocus({ kind: 'stop', id: state.stop_id });
-        this.easeToPoint(this.layers.focusPosition(state.stop_id));
+      case 'stop':
+        this.focusStop(state.stop_id);
         return;
-      }
 
-      case 'tracker': {
-        this.clearTrip();
+      case 'tracker':
         // The layer is keyed by `key`, so a tracker running several vehicles
         // spotlights its most recent one; the panel lists all of them.
-        const vehicle = this.trackerVehicle(state.tracker_id);
-        this.layers.setFocus(
-          vehicle ? { kind: 'vehicle', id: vehicle.key } : null
+        this.focusVehicle((positions) =>
+          trackerVehicle(positions, state.tracker_id)
         );
-        // Re-arm follow on this tracker (a different one replaces the old).
-        this.following = { trackerId: state.tracker_id };
-        if (vehicle) {
-          this.easeToPoint([vehicle.lon, vehicle.lat]);
-        }
         return;
-      }
 
-      case 'vehicle': {
-        this.clearTrip();
-        const vehicle = this.positions.find((p) => p.key === state.vehicle_key);
-        this.layers.setFocus(
-          vehicle ? { kind: 'vehicle', id: vehicle.key } : null
+      case 'vehicle':
+        this.focusVehicle((positions) =>
+          positions.find((p) => p.key === state.vehicle_key)
         );
-        this.following = { key: state.vehicle_key };
-        if (vehicle) {
-          this.easeToPoint([vehicle.lon, vehicle.lat]);
-        }
         return;
-      }
     }
   }
 
@@ -659,7 +237,7 @@ export class MapController {
   /**
    * The path to draw for a trip: its `shapes.txt` polyline where the feed has
    * one, and otherwise the straight line through its stops in `stop_sequence`
-   * order. The fallback is a real approximation and is drawn dashed to say so.
+   * order.
    */
   private tripPath(tripId: string): [number, number][] | null {
     const feed = this.feed;
@@ -709,20 +287,8 @@ export class MapController {
         .map((id) => this.tripPath(id))
         .filter((path): path is [number, number][] => path !== null);
       this.drawTripShape();
-      if (!changed) {
-        return;
-      }
-
-      const bounds = boundsOf(this.tripShapes.flat());
-      if (bounds) {
-        // AutoZoom takes a real LngLatBounds; boundsOf hands back the corner
-        // tuple.
-        this.autoZoom.fitBounds(this.map, new maplibregl.LngLatBounds(bounds), {
-          padding: this.padding(),
-          maxZoom: 15,
-          duration: CONFIG.FOCUS_BOUNDS_DURATION,
-          essential: true,
-        });
+      if (changed) {
+        this.fitFocusBounds(boundsOf(this.tripShapes.flat()));
       }
     });
   }
@@ -778,55 +344,5 @@ export class MapController {
         geometry: { type: 'LineString', coordinates: path },
       })),
     });
-  }
-
-  /**
-   * Ease to a point whenever auto-zoom allows it. Focusing something moves the
-   * camera to it — unlike the earlier "already visible" bail-out, which left the
-   * camera where it was and made a panel click feel like it did nothing.
-   */
-  private easeToPoint(point: [number, number] | null): void {
-    if (!point) {
-      return;
-    }
-    this.autoZoom.easeTo(this.map, {
-      center: point,
-      zoom: Math.max(this.map.getZoom(), CONFIG.STOP_FOCUS_ZOOM),
-      padding: { top: 0, left: 0, right: 0, bottom: this.bottomPadding },
-      duration: CONFIG.FOCUS_POINT_DURATION,
-      essential: true,
-    });
-  }
-
-  // ── Sizing ─────────────────────────────────────────────────────────────────
-
-  /** Immediate resize — called on every frame of a panel drag. */
-  resizeNow(): void {
-    this.map?.resize();
-  }
-
-  /**
-   * Deferred resize for after a CSS transition settles. Restores center and
-   * zoom so the viewport doesn't jump when the canvas changes size.
-   */
-  forceMapResize(): void {
-    if (!this.map) {
-      return;
-    }
-
-    if (this.resizeTimeout) {
-      clearTimeout(this.resizeTimeout);
-    }
-
-    this.resizeTimeout = setTimeout(() => {
-      const center = this.map.getCenter();
-      const zoom = this.map.getZoom();
-
-      this.map.resize();
-      this.map.setCenter(center);
-      this.map.setZoom(zoom);
-
-      this.resizeTimeout = null;
-    }, 350);
   }
 }

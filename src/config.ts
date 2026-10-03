@@ -31,18 +31,6 @@ export const CONFIG = {
   MAP_APPEARANCE_KEY: 'ym.map.appearance',
   SELECTED_FEED_KEY: 'ym.feed',
 
-  // Map navigation.
-  STOP_FOCUS_ZOOM: 16,
-  FOCUS_POINT_DURATION: 1500,
-  FOCUS_BOUNDS_DURATION: 2000,
-
-  // Camera ease used while following a moving tracker. Short so it never
-  // queues behind the next position push.
-  FOLLOW_DURATION: 300,
-
-  // Debounce for persisting the map view on moveend.
-  MAP_VIEW_SAVE_DEBOUNCE: 400,
-
   // Trips listed on a route page before the list is capped. A busy route has
   // thousands; the page says how many it left out.
   ROUTE_TRIP_LIST_MAX: 200,
