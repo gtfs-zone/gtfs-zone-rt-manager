@@ -2,10 +2,8 @@
  * Application-wide configuration constants.
  * All magic numbers live here, import CONFIG rather than inlining literals.
  *
- * The map and realtime blocks are the constants `gtfs-zone-web-common`'s map stack and
- * the vendored realtime files read. They came across with those files (see
- * VENDORED.md) and are kept in the same order as gtfs-zone-rt-viewer's so the two are
- * diffable.
+ * The map and realtime blocks are kept in the same order as gtfs-zone-rt-viewer's
+ * so the two are diffable.
  */
 export const CONFIG = {
   // Same-origin in every environment. In production Traefik routes
@@ -87,7 +85,7 @@ export const CONFIG = {
   // A rule with no end_date runs forever; a chart has to stop somewhere.
   CALENDAR_OPEN_END_DAYS: 180,
 
-  // Realtime poll interval, read by the vendored poller. Per-device, so it is
+  // Realtime poll interval. Per-device, so it is
   // deliberately not in the hash.
   RT_INTERVAL_KEY: 'ym.rt.interval',
   RT_INTERVAL_DEFAULT_MS: 15000,

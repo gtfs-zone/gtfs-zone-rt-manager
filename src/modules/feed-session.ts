@@ -69,7 +69,7 @@ export class FeedSession extends FeedSessionBase<VehiclePosition> {
    * key a `PageState` of type `alert` carries.
    *
    * Deliberately not `alerts`: that name belongs to the decoded GTFS-RT
-   * records the vendored modules read, and the two are different objects. A
+   * records the shared modules read, and the two are different objects. A
    * managed alert is a row this app writes; an `AlertRecord` is what a
    * consumer of the published feed sees.
    */

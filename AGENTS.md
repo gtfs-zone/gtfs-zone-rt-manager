@@ -8,7 +8,6 @@ replacing rt-api's SQLAdmin. A `v*` tag builds and deploys the image.
 
 ```bash
 pnpm check             # typecheck + check-rt-spec + check-alert-enums
-pnpm vendor:check      # diff vendored files against their upstream
 VITE_RT_BASE=http://localhost:8000 pnpm build --watch   # into dev-stack's :4180
 ```
 
@@ -46,14 +45,6 @@ The feed parser, realtime types, page furniture and app shell come from the
 `index.ts` must import it first. A shared change is a commit, tag and bump
 there, never an edit here. Restart the watch build after a bump (a stale copy
 logs `loaded twice`).
-
-### Vendored files
-
-Listed in `VENDORED.md`; rt-viewer is the upstream except where a row says
-otherwise. Never edit a
-`verbatim` file: change it upstream and re-vendor, or promote it to `modified`
-(with `@changes`) or `adopted`. A file taken from rt-viewer keeps rt-viewer's
-own banner under ours; deleting it reports DRIFT.
 
 ## Conventions
 

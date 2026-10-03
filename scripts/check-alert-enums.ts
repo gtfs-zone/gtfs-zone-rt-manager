@@ -10,7 +10,7 @@
  * always a change to gtfs-zone-rt-api.
  *
  * A row whose sibling repo is not checked out is skipped and the run exits 0,
- * the same way `vendor-check.ts` does, so CI is never blocked by it.
+ * so CI is never blocked by it.
  */
 
 import { existsSync, readFileSync } from 'node:fs';
