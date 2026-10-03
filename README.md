@@ -1,5 +1,7 @@
 # gtfs-zone-rt-manager
 
+[![CI](https://img.shields.io/github/actions/workflow/status/gtfs-zone/gtfs-zone-rt-manager/check.yml?branch=main&label=CI)](https://github.com/gtfs-zone/gtfs-zone-rt-manager/actions/workflows/check.yml?query=branch%3Amain) [![License: AGPL-3.0-or-later](https://img.shields.io/badge/license-AGPL--3.0--or--later-blue)](LICENSE.txt) [![Container image](https://img.shields.io/badge/image-ghcr.io-blue?logo=docker&logoColor=white)](https://github.com/gtfs-zone/gtfs-zone-rt-manager/pkgs/container/gtfs-zone-rt-manager)
+
 Map-first manager for gtfs.zone feeds, trackers and tracker assignments.
 Deployed at `manage.rt.gtfs.zone`, behind oauth2-proxy.
 
