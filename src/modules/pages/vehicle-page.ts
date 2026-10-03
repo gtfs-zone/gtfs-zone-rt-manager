@@ -19,6 +19,7 @@ import {
   missing,
   section,
 } from 'gtfs-zone-web-common/gtfs/entity-render';
+import { t } from '../../i18n/messages';
 
 export function renderVehiclePage(
   ctx: RenderContext,
@@ -27,9 +28,9 @@ export function renderVehiclePage(
   const tracker = ctx.session.trackers.get(state.tracker_id);
   if (!tracker) {
     if (ctx.session.trackers.size === 0) {
-      return `<p class="text-sm opacity-60">Loading this feed's trackers…</p>`;
+      return `<p class="text-sm opacity-60">${t('page.loadingTrackers')}</p>`;
     }
-    return missing(`Tracker ${state.tracker_id}`);
+    return missing(t('page.tracker', { id: state.tracker_id }));
   }
 
   const vehicle = ctx.session.vehicles.get(state.vehicle_key);
@@ -49,21 +50,22 @@ export function renderVehiclePage(
         <p class="text-xs opacity-60 flex items-center gap-2">
           ${
             vehicle
-              ? '<span class="badge badge-xs badge-success">reporting</span>'
-              : '<span class="badge badge-xs badge-ghost">no fix</span>'
+              ? `<span class="badge badge-xs badge-success">${t('live.reporting')}</span>`
+              : `<span class="badge badge-xs badge-ghost">${t('live.noFix')}</span>`
           }
-          <span>on ${trackerLink}</span>
+          <span>${t('page.on', { tracker: trackerLink })}</span>
         </p>
       </div>
 
       ${
         vehicle
-          ? section('Position', renderVehicle(ctx, vehicle))
+          ? section(t('page.position'), renderVehicle(ctx, vehicle))
           : section(
-              'Position',
-              `<p class="text-xs opacity-60">Not reporting. A vehicle drops off the map
-               ${Math.round(CONFIG.TRACKER_STALE_MS / 1000)} seconds after its last fix;
-               the rest of ${trackerLink}'s fleet is on its tracker page.</p>`
+              t('page.position'),
+              `<p class="text-xs opacity-60">${t('page.notReporting', {
+                seconds: Math.round(CONFIG.TRACKER_STALE_MS / 1000),
+                tracker: trackerLink,
+              })}</p>`
             )
       }
     </div>`;

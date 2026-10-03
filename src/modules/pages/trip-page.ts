@@ -49,6 +49,7 @@ import {
 } from 'gtfs-zone-web-common/gtfs/entity-render';
 import { serviceCatalog, weekdaysLabel } from '../service-catalog';
 import { renderAlertList } from 'gtfs-zone-web-common/gtfs/alert-page';
+import { t } from '../../i18n/messages';
 
 /**
  * When this trip runs: three read-only lines off the service it points at.
@@ -63,9 +64,9 @@ function renderService(ctx: RenderContext, trip: Trip): string {
 
   if (!service) {
     return section(
-      'Service',
+      t('trip.service'),
       `<p class="text-xs opacity-60">${escHtml(
-        `This trip names service_id ${trip.service_id}, which is in neither calendar.txt nor calendar_dates.txt.`
+        t('trip.unknownService', { id: trip.service_id })
       )}</p>`
     );
   }
@@ -75,15 +76,18 @@ function renderService(ctx: RenderContext, trip: Trip): string {
   // already says.
   const window =
     service.start && service.end
-      ? `${service.start} to ${service.end}`
-      : 'No date range';
+      ? t('days.range', { start: service.start, end: service.end })
+      : t('trip.noRange');
 
   return section(
-    'Service',
+    t('trip.service'),
     propList([
-      prop('Service', `<span class="font-mono">${escHtml(service.id)}</span>`),
-      prop('Runs', escHtml(weekdaysLabel(service.days))),
-      prop('Window', escHtml(window)),
+      prop(
+        t('trip.service'),
+        `<span class="font-mono">${escHtml(service.id)}</span>`
+      ),
+      prop(t('trip.runs'), escHtml(weekdaysLabel(service.days))),
+      prop(t('trip.window'), escHtml(window)),
     ])
   );
 }
@@ -95,8 +99,8 @@ function renderSchedule(ctx: RenderContext, rt: RtIndex, trip: Trip): string {
   const times = feed.stopTimesByTrip.get(trip.trip_id) ?? [];
   if (times.length === 0) {
     return section(
-      'Schedule',
-      '<p class="text-xs opacity-60">This trip has no rows in stop_times.txt.</p>'
+      t('trip.schedule'),
+      `<p class="text-xs opacity-60">${t('trip.noStopTimes')}</p>`
     );
   }
 
@@ -148,16 +152,16 @@ function renderSchedule(ctx: RenderContext, rt: RtIndex, trip: Trip): string {
     .join('');
 
   return section(
-    'Schedule',
+    t('trip.schedule'),
     `<div class="overflow-x-auto"><table class="table table-xs">
        <thead><tr>
-         <th class="text-right">#</th><th>Stop</th>
-         <th class="text-right">Arr ${escHtml(zoneLabel())}</th>
-         <th class="text-right">Dep ${escHtml(zoneLabel())}</th>
+         <th class="text-right">#</th><th>${t('trip.stop')}</th>
+         <th class="text-right">${t('trip.arr', { zone: escHtml(zoneLabel()) })}</th>
+         <th class="text-right">${t('trip.dep', { zone: escHtml(zoneLabel()) })}</th>
          ${
            live
-             ? `<th class="text-right">Pred ${escHtml(zoneLabel())}</th>
-                <th class="text-right">Delay</th>`
+             ? `<th class="text-right">${t('trip.pred', { zone: escHtml(zoneLabel()) })}</th>
+                <th class="text-right">${t('trip.delay')}</th>`
              : ''
          }
        </tr></thead>
@@ -175,7 +179,7 @@ function renderTrackers(ctx: RenderContext, rt: RtIndex, trip: Trip): string {
     return '';
   }
   return rowSection(
-    'Reporting this trip',
+    t('trip.reporting'),
     vehicles.length,
     entityRowList(
       vehicles.map((v) => {
@@ -191,7 +195,7 @@ function renderTrackers(ctx: RenderContext, rt: RtIndex, trip: Trip): string {
               : vehicleDisplayName(ctx.session.scheduledFeed, v),
         });
       }),
-      'Nothing is reporting this trip.'
+      t('trip.nobodyReporting')
     )
   );
 }
@@ -207,7 +211,10 @@ function renderTrackers(ctx: RenderContext, rt: RtIndex, trip: Trip): string {
 function renderAssignments(ctx: RenderContext, trip: Trip): string {
   const session = ctx.session;
   if (!session.rules) {
-    return section('Assignments', '<p class="text-xs opacity-60">Loading…</p>');
+    return section(
+      t('trip.assignments'),
+      `<p class="text-xs opacity-60">${t('common.loading')}</p>`
+    );
   }
 
   const rules = session.rulesForTrip(trip.trip_id);
@@ -219,19 +226,19 @@ function renderAssignments(ctx: RenderContext, trip: Trip): string {
         : {}),
       label: tracker ? tracker.nickname : rule.tracker_id,
       sublabel: `${describeRecurrence(rule)} - ${formatWindow(rule.start_time, rule.end_time)}`,
-      actionsHtml: `${actionButton('assign:edit', String(rule.id), 'Edit')}
-        ${actionButton('assign:delete', String(rule.id), 'Delete', 'btn-outline btn-error')}`,
+      actionsHtml: `${actionButton('assign:edit', String(rule.id), t('common.edit'))}
+        ${actionButton('assign:delete', String(rule.id), t('common.delete'), 'btn-outline btn-error')}`,
     });
   });
 
   return rowSection(
-    'Assignments',
+    t('trip.assignments'),
     rules.length,
-    `${entityRowList(rows, 'No tracker is assigned to this trip.')}
+    `${entityRowList(rows, t('trip.noAssignments'))}
      <div class="mt-2">${actionButton(
        'assign:new-for-trip',
        trip.trip_id,
-       'Assign a tracker'
+       t('trip.assign')
      )}</div>`
   );
 }
@@ -246,7 +253,7 @@ export function renderTripPage(
   const feed = ctx.session.scheduledFeed;
   const trip = feed?.trips.get(state.trip_id);
   if (!feed || !trip) {
-    return missing(`Trip ${state.trip_id}`);
+    return missing(t('trip.missing', { id: state.trip_id }));
   }
 
   const route = feed.routes.get(trip.route_id);
@@ -268,17 +275,17 @@ export function renderTripPage(
         <p class="text-xs opacity-60 font-mono">${escHtml(trip.trip_id)}</p>
       </div>
 
-      ${renderAlertList(ctx, alertsForTrip(ctx.session, trip.trip_id, trip.route_id), 'Alerts')}
+      ${renderAlertList(ctx, alertsForTrip(ctx.session, trip.trip_id, trip.route_id), t('trip.alerts'))}
       ${renderTrackers(ctx, rt, trip)}
       ${renderSchedule(ctx, rt, trip)}
       ${renderService(ctx, trip)}
       ${renderAssignments(ctx, trip)}
 
       ${section(
-        'Properties',
+        t('alert.properties'),
         propList([
           prop(
-            'Route',
+            t('trip.route'),
             route
               ? entityLink(
                   ctx,
@@ -287,12 +294,17 @@ export function renderTripPage(
                 )
               : escHtml(trip.route_id)
           ),
-          prop('direction_id', escHtml(trip.direction_id || '(none)')),
+          prop('direction_id', escHtml(trip.direction_id || t('trip.none'))),
           prop(
-            'Shape',
+            t('trip.shape'),
             trip.shape_id
-              ? escHtml(`${trip.shape_id} (${shape?.length ?? 0} points)`)
-              : '<span class="opacity-40">none</span>'
+              ? escHtml(
+                  t('trip.shapePoints', {
+                    id: trip.shape_id,
+                    count: shape?.length ?? 0,
+                  })
+                )
+              : `<span class="opacity-40">${t('trip.noShape')}</span>`
           ),
         ])
       )}

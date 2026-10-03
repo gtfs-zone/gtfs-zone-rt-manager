@@ -15,6 +15,7 @@
 
 import { CONFIG } from '../config';
 import { feedTimezone } from 'gtfs-zone-web-common/gtfs/feed-time';
+import { formatDate, weekdayName } from 'gtfs-zone-web-common/i18n/fmt';
 
 /** A `YYYY-MM-DD` service date. Named for what it means, not for its shape. */
 export type ServiceDate = string;
@@ -32,8 +33,8 @@ export const WEEKDAY_KEYS = [
 
 export type WeekdayKey = (typeof WEEKDAY_KEYS)[number];
 
-/** One label per rule column, in `WEEKDAY_KEYS` order. */
-const KEY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const;
+/** One label per rule column, in `WEEKDAY_KEYS` order (Monday first). */
+const KEY_LABELS = WEEKDAY_KEYS.map((_, i) => weekdayName((i + 1) % 7));
 
 /**
  * For each display slot, the index into `WEEKDAY_KEYS` it shows.
@@ -144,7 +145,7 @@ export function dayOfMonth(date: ServiceDate): number {
 
 /** `Aug 2026`, for a header cell narrow enough to sit over a few weeks. */
 export function monthShortLabel(date: ServiceDate): string {
-  return asUtc(date).toLocaleDateString(undefined, {
+  return formatDate(asUtc(date), {
     month: 'short',
     year: 'numeric',
     timeZone: 'UTC',
@@ -153,7 +154,7 @@ export function monthShortLabel(date: ServiceDate): string {
 
 /** `Mon 17 August`, for the day agenda's heading. */
 export function dayLabel(date: ServiceDate): string {
-  return asUtc(date).toLocaleDateString(undefined, {
+  return formatDate(asUtc(date), {
     weekday: 'short',
     day: 'numeric',
     month: 'long',

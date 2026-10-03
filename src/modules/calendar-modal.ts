@@ -53,6 +53,7 @@ import {
   type TimelineRow,
 } from './timeline-chart';
 import { tripName } from './trip-picker';
+import { t } from '../i18n/messages';
 
 export interface CalendarModalHooks {
   ctx: RenderContext;
@@ -109,7 +110,7 @@ const CHIP_CLASS =
  */
 function serviceChip(service: ServiceSummary): string {
   return `<span class="${CHIP_CLASS} bg-primary/15 text-primary font-mono"
-    title="${escHtml(`Service ${service.id}`)}">${escHtml(service.id)}</span>`;
+    title="${escHtml(t('cal.service', { id: service.id }))}">${escHtml(service.id)}</span>`;
 }
 
 /**
@@ -162,8 +163,7 @@ function renderGrid(ctx: RenderContext, month: ServiceDate): string {
           ].join(''),
         }),
       })}
-      <p class="text-xs opacity-50">A chip is a service running that day, or a tracker assigned
-        to a trip. A tracker chip opens that tracker.</p>
+      <p class="text-xs opacity-50">${t('cal.gridNote')}</p>
     </div>`;
 }
 
@@ -208,8 +208,11 @@ function ruleRow(
               to: end,
               tooltip: `${label} - ${formatWindow(rule.start_time, rule.end_time)} - ${
                 rule.end_date
-                  ? `${rule.start_date} to ${rule.end_date}`
-                  : `from ${rule.start_date}, no end date`
+                  ? t('days.range', {
+                      start: rule.start_date,
+                      end: rule.end_date,
+                    })
+                  : t('cal.noEnd', { date: rule.start_date })
               }`,
             },
           ]
@@ -226,7 +229,7 @@ function ruleRow(
 function renderRuleChart(ctx: RenderContext, month: ServiceDate): string {
   const rules = [...(ctx.session.rules?.values() ?? [])];
   if (ctx.session.rules === null) {
-    return '<p class="text-xs opacity-60">Loading rules…</p>';
+    return `<p class="text-xs opacity-60">${t('cal.loadingRules')}</p>`;
   }
 
   // Far enough past today that an open-ended rule reads as continuing, and at
@@ -239,7 +242,7 @@ function renderRuleChart(ctx: RenderContext, month: ServiceDate): string {
 
   return renderTimelineChart(
     rules.map((rule) => ruleRow(ctx, rule, openEnd)),
-    { emptyMessage: 'No tracker is assigned to a trip on this feed.' }
+    { emptyMessage: t('cal.noRules') }
   );
 }
 
@@ -256,19 +259,19 @@ function unassignedLine(ctx: RenderContext): string {
   if (unassigned === 0) {
     return '';
   }
-  return `<p class="text-xs opacity-50">${unassigned} of ${counts.total} trips on this feed have no
-    rule assigned.</p>`;
+  return `<p class="text-xs opacity-50">${t('cal.unassigned', { count: unassigned, total: counts.total })}</p>`;
 }
 
 function renderTimeline(ctx: RenderContext, month: ServiceDate): string {
   return `
     <div class="space-y-4">
       ${section(
-        'Assignments',
+        t('trip.assignments'),
         `${renderRuleChart(ctx, month)}
-         <p class="text-xs opacity-50">A shaded week is a week the rule runs on its weekdays. A
-         triangle is a date <span class="text-success">added</span> or
-         <span class="text-error">removed</span> by hand.</p>
+         <p class="text-xs opacity-50">${t('cal.timelineNote', {
+           added: `<span class="text-success">${t('cal.added')}</span>`,
+           removed: `<span class="text-error">${t('cal.removed')}</span>`,
+         })}</p>
          ${unassignedLine(ctx)}`
       )}
     </div>`;
@@ -286,7 +289,7 @@ function covers(
   return range !== null && range.from <= from && range.to >= to;
 }
 
-const NO_FEED = '<p class="text-sm opacity-60">No feed is selected.</p>';
+const NO_FEED = `<p class="text-sm opacity-60">${t('common.noFeed')}</p>`;
 
 /**
  * Open the calendar.
@@ -309,7 +312,7 @@ export async function showCalendarModal(
   }
 
   await showSharedCalendarModal({
-    title: 'Calendar',
+    title: t('cal.title'),
     codec: ISO_DATE_CODEC,
     weekStart: CONFIG.WEEK_START,
     today,
@@ -317,19 +320,19 @@ export async function showCalendarModal(
     tabs: [
       {
         key: 'grid',
-        label: 'Month grid',
+        label: t('cal.grid'),
         render: (month) => (session.feed ? renderGrid(ctx, month) : NO_FEED),
       },
       {
         key: 'timeline',
-        label: 'Timeline',
+        label: t('cal.timeline'),
         render: (month) =>
           session.feed ? renderTimeline(ctx, month) : NO_FEED,
       },
     ],
     statusHtml: (from, to) =>
       session.feed && !covers(session, from, to)
-        ? '<p class="text-xs opacity-60">Loading this month…</p>'
+        ? `<p class="text-xs opacity-60">${t('cal.loadingMonth')}</p>`
         : '',
     // The month on screen, and the rules behind both tabs.
     onMonth: (from, to) => {

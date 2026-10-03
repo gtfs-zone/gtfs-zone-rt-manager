@@ -4,6 +4,7 @@ import {
   renderSunIcon,
 } from 'gtfs-zone-web-common/ui/nav-icons';
 import type { NavbarAction } from 'gtfs-zone-web-common/ui/navbar-actions';
+import { t } from '../i18n/messages';
 
 /**
  * This app's navbar action row.
@@ -29,7 +30,7 @@ export const NAVBAR_ACTIONS: NavbarAction[] = [
     id: 'calendar-btn',
     // The month a feed runs, and who is covering it. The badge counts today's
     // assignments once they are loaded.
-    label: 'Calendar',
+    label: t('nav.calendar'),
     icon: renderNavIcon('calendar'),
     badgeId: 'calendar-count',
     badgeClass: 'badge-primary',
@@ -38,14 +39,14 @@ export const NAVBAR_ACTIONS: NavbarAction[] = [
     kind: 'icon',
     id: 'share-btn',
     // Who manages this feed, and who has been invited.
-    label: 'Share',
+    label: t('nav.share'),
     icon: renderLocalIcon(SHARE_PATH),
   },
   {
     kind: 'icon',
     id: 'alerts-btn',
     // Every managed alert on this feed. The badge counts them.
-    label: 'Service alerts',
+    label: t('nav.alerts'),
     icon: renderNavIcon('alerts'),
     badgeId: 'alerts-badge',
     badgeClass: 'badge-error',
@@ -53,7 +54,7 @@ export const NAVBAR_ACTIONS: NavbarAction[] = [
   {
     kind: 'toggle',
     id: 'theme-toggle',
-    label: 'Toggle theme',
+    label: t('nav.theme'),
     iconOn: renderSunIcon('swap-on h-5 w-5'),
     iconOff: renderMoonIcon('swap-off h-5 w-5'),
     inputClass: 'theme-controller',
@@ -62,7 +63,7 @@ export const NAVBAR_ACTIONS: NavbarAction[] = [
   {
     kind: 'icon',
     id: 'help-btn',
-    label: 'Guide',
+    label: t('nav.guide'),
     icon: renderNavIcon('guide'),
   },
   {
@@ -71,7 +72,7 @@ export const NAVBAR_ACTIONS: NavbarAction[] = [
     // The signed-in person, labelled with their own name or address at boot.
     // Starts hidden and opens the account modal, which holds the link out to
     // Keycloak's Account Console and sign-out.
-    label: 'Account',
+    label: t('nav.account'),
     labelId: 'user-label',
     icon: renderLocalIcon(USER_PATH, 'h-4 w-4'),
     btnClass: 'btn-ghost',
@@ -81,7 +82,7 @@ export const NAVBAR_ACTIONS: NavbarAction[] = [
     id: 'feed-switcher-btn',
     // Your feeds only, plus New feed. Last, and the only primary button, the
     // way [Load] is in the upstreams.
-    label: 'Select feed',
+    label: t('nav.selectFeed'),
     labelId: 'feed-switcher-label',
     icon: renderNavIcon('load', { sizeClass: 'h-4 w-4' }),
     btnClass: 'btn-primary',

@@ -36,6 +36,7 @@ import {
 } from 'gtfs-zone-web-common/gtfs/entity-row';
 import { actionButton, formatIsoDate, personLabel } from './managed-render';
 import { showModal } from 'gtfs-zone-web-common/ui/modal-utils';
+import { t } from '../i18n/messages';
 
 export interface ShareModalHooks {
   ctx: RenderContext;
@@ -52,13 +53,15 @@ function managerRow(
   canManage: boolean
 ): string {
   return entityRow(ctx, {
-    label: `${personLabel(member)}${isYou ? ' (you)' : ''}`,
+    label: isYou
+      ? t('share.you', { name: personLabel(member) })
+      : personLabel(member),
     // Only when the label is a name: repeating the address under itself says
     // nothing.
     sublabel: member.display_name ? (member.email ?? undefined) : undefined,
     badgeHtml: member.is_owner
-      ? '<span class="badge badge-primary badge-xs">owner</span>'
-      : `<span class="text-xs opacity-50">added ${formatIsoDate(member.created_at)}</span>`,
+      ? `<span class="badge badge-primary badge-xs">${t('share.owner')}</span>`
+      : `<span class="text-xs opacity-50">${t('share.added', { date: formatIsoDate(member.created_at) })}</span>`,
     // The owner is not a membership row at all: they leave through a transfer,
     // which is the button above this list.
     actionsHtml:
@@ -66,7 +69,7 @@ function managerRow(
         ? actionButton(
             'member:remove',
             String(member.user_id),
-            'Remove',
+            t('share.remove'),
             'btn-ghost'
           )
         : '',
@@ -80,21 +83,26 @@ function inviteRow(
 ): string {
   return entityRow(ctx, {
     label: invite.email,
-    badgeHtml: `<span class="text-xs opacity-50">invited ${formatIsoDate(invite.created_at)}</span>`,
+    badgeHtml: `<span class="text-xs opacity-50">${t('share.invited', { date: formatIsoDate(invite.created_at) })}</span>`,
     actionsHtml: canManage
-      ? actionButton('invite:revoke', String(invite.id), 'Revoke', 'btn-ghost')
+      ? actionButton(
+          'invite:revoke',
+          String(invite.id),
+          t('share.revoke'),
+          'btn-ghost'
+        )
       : '',
   });
 }
 
 function renderShare(ctx: RenderContext, meUserId: number | null): string {
   if (!ctx.session.feed) {
-    return `<p class="text-sm opacity-60">No feed is selected.</p>`;
+    return `<p class="text-sm opacity-60">${t('common.noFeed')}</p>`;
   }
 
   const members = ctx.session.members;
   if (!members) {
-    return `<p class="text-sm opacity-60">Loading the managers of this feed…</p>`;
+    return `<p class="text-sm opacity-60">${t('share.loading')}</p>`;
   }
 
   // The owner first, then everybody else by name, so the row that answers
@@ -113,34 +121,33 @@ function renderShare(ctx: RenderContext, meUserId: number | null): string {
       ${
         canManage
           ? `<div class="flex flex-wrap gap-2">
-              ${actionButton('manager:add', '', 'Add manager', 'btn-primary')}
-              ${actionButton('feed:transfer', '', 'Transfer ownership')}
+              ${actionButton('manager:add', '', t('share.addManager'), 'btn-primary')}
+              ${actionButton('feed:transfer', '', t('share.transfer'))}
             </div>`
           : ''
       }
 
       ${rowSection(
-        'Managers',
+        t('share.managers'),
         managers.length,
         entityRowList(
           managers.map((m) =>
             managerRow(ctx, m, m.user_id === meUserId, canManage)
           ),
-          'Nobody manages this feed.'
+          t('share.noManagers')
         )
       )}
 
       ${
         members.invites.length
           ? rowSection(
-              'Pending invites',
+              t('share.invites'),
               members.invites.length,
               `${entityRowList(
                 members.invites.map((i) => inviteRow(ctx, i, canManage)),
-                'No pending invites.'
+                t('share.noInvites')
               )}
-               <p class="text-xs opacity-50">An invited address becomes a manager the first time
-               somebody signs in with it.</p>`
+               <p class="text-xs opacity-50">${t('share.inviteNote')}</p>`
             )
           : ''
       }
@@ -170,9 +177,9 @@ export async function showShareModal(hooks: ShareModalHooks): Promise<void> {
   session.addEventListener('change', onChange);
 
   await showModal({
-    title: 'Share',
+    title: t('share.title'),
     body: '<div data-share-root></div>',
-    actions: [{ label: 'Close', onClick: () => {} }],
+    actions: [{ label: t('common.close'), onClick: () => {} }],
     enterAction: 0,
     escapeAction: 0,
     boxClassName: 'max-w-2xl',

@@ -47,6 +47,7 @@ import { getMe } from './api-client';
 import { notify } from 'gtfs-zone-web-common/ui/notification-system';
 import { createPageStateManager } from './page-state-manager';
 import { FeedEventStream } from './event-stream';
+import { t } from '../i18n/messages';
 
 export interface AppStateHooks extends FocusHooks<PageState> {
   /** Called whenever the selected feed changes, including to null. */
@@ -134,7 +135,7 @@ export class AppState extends ValidatedFocusController<
       if (err instanceof SessionExpiredError) {
         return;
       }
-      notify.error(`Could not reach the API: ${describe(err)}`);
+      notify.error(t('app.noApi', { error: describe(err) }));
       this.repaint();
       return;
     }
@@ -147,7 +148,7 @@ export class AppState extends ValidatedFocusController<
       (wanted ? await this.findFeed(wanted) : null) ?? (await this.onlyFeed());
     if (!feed) {
       if (wanted) {
-        notify.warning(`No feed named "${wanted}" is available to you.`);
+        notify.warning(t('app.noFeedNamed', { name: wanted }));
       }
       // No feed means no focus worth restoring: every page but home is scoped
       // to one.
@@ -196,7 +197,7 @@ export class AppState extends ValidatedFocusController<
       if (err instanceof SessionExpiredError) {
         return null;
       }
-      notify.error(`Could not list your feeds: ${describe(err)}`);
+      notify.error(t('app.listFailed', { error: describe(err) }));
       return null;
     }
   }
@@ -256,9 +257,7 @@ export class AppState extends ValidatedFocusController<
     }
     const url = scheduleFetchUrl(feed);
     if (!url) {
-      this.session.noScheduled(
-        'This feed has no schedule yet. Upload a zip to give it one.'
-      );
+      this.session.noScheduled(t('app.noScheduleYet'));
       return;
     }
     void this.session.loadScheduled(url, feed.feed_name);
@@ -286,7 +285,7 @@ export class AppState extends ValidatedFocusController<
       return;
     }
     await this.fetchInto(
-      'trackers',
+      t('what.trackers'),
       () => listTrackers(feed.id),
       (rows) => this.session.setTrackers(rows)
     );
@@ -299,7 +298,7 @@ export class AppState extends ValidatedFocusController<
       return;
     }
     await this.fetchInto(
-      'service alerts',
+      t('what.alerts'),
       () => listAlerts(feed.id),
       (rows) => this.session.setServiceAlerts(rows)
     );
@@ -312,7 +311,7 @@ export class AppState extends ValidatedFocusController<
       return;
     }
     await this.fetchInto(
-      'members',
+      t('what.members'),
       () => getMembers(feed.id),
       (members) => this.session.setMembers(members)
     );
@@ -337,7 +336,7 @@ export class AppState extends ValidatedFocusController<
         return;
       }
       this.session.failedUploads();
-      notify.error(`Could not load uploads: ${describe(err)}`);
+      notify.error(t('app.uploadsFailed', { error: describe(err) }));
     }
   }
 
@@ -348,7 +347,7 @@ export class AppState extends ValidatedFocusController<
       return;
     }
     await this.fetchInto(
-      'assignment rules',
+      t('what.rules'),
       () => listRules(feed.id),
       (rows) => this.session.setRules(rows)
     );
@@ -362,7 +361,7 @@ export class AppState extends ValidatedFocusController<
     }
     this.assignmentWindow = { from, to };
     await this.fetchInto(
-      'assignments',
+      t('what.assignments'),
       () => listAssignments(feed.id, from, to),
       (rows) => this.session.setAssignments(from, to, rows)
     );
@@ -424,7 +423,7 @@ export class AppState extends ValidatedFocusController<
       return;
     }
     await this.fetchInto(
-      'tracker positions',
+      t('what.positions'),
       () => listTrackerPositions(feed.id),
       (rows) => this.session.setVehicles(rows)
     );
@@ -458,17 +457,17 @@ export class AppState extends ValidatedFocusController<
   private async loadManagedObjects(feed: Feed): Promise<void> {
     await Promise.all([
       this.fetchInto(
-        'trackers',
+        t('what.trackers'),
         () => listTrackers(feed.id),
         (rows) => this.session.setTrackers(rows)
       ),
       this.fetchInto(
-        'service alerts',
+        t('what.alerts'),
         () => listAlerts(feed.id),
         (rows) => this.session.setServiceAlerts(rows)
       ),
       this.fetchInto(
-        'members',
+        t('what.members'),
         () => getMembers(feed.id),
         (members) => this.session.setMembers(members)
       ),
@@ -476,7 +475,7 @@ export class AppState extends ValidatedFocusController<
       // is pushed. A tracker reporting once a minute would otherwise leave the
       // map empty for most of that minute.
       this.fetchInto(
-        'tracker positions',
+        t('what.positions'),
         () => listTrackerPositions(feed.id),
         (rows) => this.session.setVehicles(rows)
       ),
@@ -495,7 +494,7 @@ export class AppState extends ValidatedFocusController<
       if (err instanceof SessionExpiredError) {
         return;
       }
-      notify.error(`Could not load ${what}: ${describe(err)}`);
+      notify.error(t('app.loadFailed', { what, error: describe(err) }));
     }
   }
 
@@ -581,7 +580,7 @@ export class AppState extends ValidatedFocusController<
       await load();
     } catch (err) {
       if (!(err instanceof SessionExpiredError)) {
-        notify.error(`Could not load this ${state.type}: ${describe(err)}`);
+        notify.error(t('app.pageFailed', { error: describe(err) }));
       }
     } finally {
       this.loadingPages.delete(key);
@@ -631,13 +630,9 @@ export class AppState extends ValidatedFocusController<
     }
 
     if (after === 'success') {
-      notify.success(
-        `${feed.feed_name}: the server finished loading the schedule.`
-      );
+      notify.success(t('app.loaded', { feed: feed.feed_name }));
     } else if (after === 'failed') {
-      notify.error(
-        `${feed.feed_name}: the server could not load the schedule.`
-      );
+      notify.error(t('app.loadError', { feed: feed.feed_name }));
     }
   }
 
@@ -699,7 +694,7 @@ export class AppState extends ValidatedFocusController<
       if (err instanceof SessionExpiredError) {
         return;
       }
-      notify.error(`Could not refresh the feed: ${describe(err)}`);
+      notify.error(t('app.refreshFailed', { error: describe(err) }));
     }
   }
 

@@ -59,6 +59,7 @@ import {
 } from 'gtfs-zone-web-common/ui/keyboard-shortcuts';
 import { managerShortcuts } from './modules/shortcut-list';
 import { configureSpecMarkup } from 'gtfs-zone-web-common/gtfs/spec-markup';
+import { t } from './i18n/messages';
 
 // A `#anchor` in a spec description resolves against the realtime reference.
 // The realtime reference embeds no images, so none are handed in.
@@ -70,6 +71,8 @@ configureSpecMarkup({
 // The navbar's action row is data, not markup. It has to be rendered before
 // anything below looks a control up by id.
 renderNavbarActions(document.getElementById('navbar-actions')!, NAVBAR_ACTIONS);
+
+document.title = t('app.title');
 
 const version = document.getElementById('app-version');
 if (version) {
@@ -151,7 +154,7 @@ let panel: PanelRenderer;
 const appState = new AppState(session, {
   onStateChange: (state) => modalRouter.sync(state),
   onFeedChange: (feed) => {
-    feedSwitcherLabel.textContent = feed ? feed.feed_name : 'Select feed';
+    feedSwitcherLabel.textContent = feed ? feed.feed_name : t('nav.selectFeed');
     if (!feed) {
       mapCtrl.clearScheduledFeed();
       mapCtrl.clearVehicles();
@@ -348,7 +351,8 @@ void appState.boot().then(() => {
     // Their own name, or the address they signed in with. `personLabel`'s last
     // resort is the surrogate user id, which says nothing to the person
     // reading it, so the navbar falls back to the generic word instead.
-    const label = me.display_name || me.email ? personLabel(me) : 'Account';
+    const label =
+      me.display_name || me.email ? personLabel(me) : t('nav.account');
     userLabel.textContent = label;
     userBtn.setAttribute('aria-label', label);
     userBtn.addEventListener('click', () => {

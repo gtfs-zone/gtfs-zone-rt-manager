@@ -42,6 +42,7 @@ import {
   type ServiceDate,
   type WeekdayKey,
 } from './service-date';
+import { t } from '../i18n/messages';
 
 /** Week columns for a range of dates, day columns for a single week. */
 export type TimelineUnit = 'week' | 'day';
@@ -175,10 +176,10 @@ export function weekdayFlags(
 function weekdaysTooltip(flags: readonly boolean[]): string {
   const days = WEEKDAY_LABELS.filter((_, i) => flags[i]);
   if (days.length === 7) {
-    return 'Every day';
+    return t('days.every');
   }
   if (days.length === 0) {
-    return 'No regular days';
+    return t('timeline.noRegular');
   }
   return days.join(', ');
 }
@@ -281,7 +282,10 @@ function cellTicks(row: TimelineRow, column: TimelineColumnRange): string {
     const added = tick.kind === 'added';
     ticks.push(
       tooltipTrigger(
-        tick.tooltip ?? `${added ? 'Added' : 'Removed'} ${dayLabel(tick.date)}`,
+        tick.tooltip ??
+          t(added ? 'timeline.added' : 'timeline.removed', {
+            date: dayLabel(tick.date),
+          }),
         renderTriangleIcon(`h-2.5 w-2.5 ${added ? '-rotate-90' : 'rotate-90'}`),
         `inline-flex ${added ? 'text-success' : 'text-error'}`
       )
@@ -316,7 +320,7 @@ export function renderTimelineChart(
   rows: readonly TimelineRow[],
   options: TimelineOptions = {}
 ): string {
-  const empty = options.emptyMessage ?? 'Nothing to show on the timeline.';
+  const empty = options.emptyMessage ?? t('timeline.empty');
   if (rows.length === 0) {
     return emptyChart(empty);
   }
@@ -470,9 +474,10 @@ export function renderTimelineChart(
     .join('');
 
   const truncatedNote = truncated
-    ? `<div class="text-xs text-warning mb-2">Range longer than ${
-        CONFIG.TIMELINE_MAX_DAYS
-      } days: the display stops at ${escHtml(columns[columns.length - 1].end)}.</div>`
+    ? `<div class="text-xs text-warning mb-2">${t('timeline.truncated', {
+        days: CONFIG.TIMELINE_MAX_DAYS,
+        date: escHtml(columns[columns.length - 1].end),
+      })}</div>`
     : '';
 
   return `<div>${truncatedNote}

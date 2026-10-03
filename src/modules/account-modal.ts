@@ -18,6 +18,7 @@ import {
   type ModalAction,
 } from 'gtfs-zone-web-common/ui/modal-utils';
 import { escHtml } from 'gtfs-zone-web-common/gtfs/entity-render';
+import { t } from '../i18n/messages';
 
 /** Opens the account modal. Resolves when it closes. */
 export async function showAccountModal(me: Me): Promise<void> {
@@ -26,7 +27,9 @@ export async function showAccountModal(me: Me): Promise<void> {
   // has no display name.
   const email = me.email && me.email !== label ? me.email : null;
 
-  const actions: ModalAction[] = [{ label: 'Close', onClick: () => {} }];
+  const actions: ModalAction[] = [
+    { label: t('account.close'), onClick: () => {} },
+  ];
 
   // A deployment without a Keycloak Account Console has no page to send them
   // to, so the entry goes away rather than 404ing.
@@ -35,7 +38,7 @@ export async function showAccountModal(me: Me): Promise<void> {
     actions.push({
       // A new tab: the console is a different origin with no link back, so
       // navigating there in this tab strands the map.
-      label: 'Manage account',
+      label: t('account.manage'),
       onClick: () => {
         window.open(accountUrl, '_blank', 'noopener');
       },
@@ -43,7 +46,7 @@ export async function showAccountModal(me: Me): Promise<void> {
   }
 
   actions.push({
-    label: 'Sign out',
+    label: t('account.signOut'),
     className: 'btn-error',
     onClick: () => {
       window.location.assign(CONFIG.SIGN_OUT_URL);
@@ -51,12 +54,12 @@ export async function showAccountModal(me: Me): Promise<void> {
   });
 
   await showModal({
-    title: 'Account',
+    title: t('account.title'),
     body: `
       <div class="space-y-1">
         <p class="font-medium">${escHtml(label)}</p>
         ${email ? `<p class="text-sm opacity-70">${escHtml(email)}</p>` : ''}
-        ${me.is_admin ? '<p class="text-xs opacity-70">Administrator</p>' : ''}
+        ${me.is_admin ? `<p class="text-xs opacity-70">${t('account.admin')}</p>` : ''}
       </div>`,
     actions,
     escapeAction: 0,

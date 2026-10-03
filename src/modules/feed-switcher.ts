@@ -21,11 +21,12 @@ import { loadStatusBadge } from './managed-render';
 import { showModal } from 'gtfs-zone-web-common/ui/modal-utils';
 import { showNewFeedForm } from './schedule-upload';
 import type { Feed } from '../types/api';
+import { t } from '../i18n/messages';
 
 function feedRow(feed: Feed, selectedId: number | null): string {
   const owner = feed.is_owner
-    ? 'yours'
-    : `shared by ${feed.owner_name ?? 'someone'}`;
+    ? t('feeds.yours')
+    : t('feeds.sharedBy', { name: feed.owner_name ?? t('feeds.someone') });
   return `<button
       type="button"
       data-feed-id="${feed.id}"
@@ -46,15 +47,13 @@ function feedRow(feed: Feed, selectedId: number | null): string {
 
 function listMarkup(feeds: Feed[], selectedId: number | null): string {
   if (feeds.length === 0) {
-    return `<p class="text-sm opacity-50 text-center py-6">
-      No feeds yet. Create one below.
-    </p>`;
+    return `<p class="text-sm opacity-50 text-center py-6">${t('feeds.none')}</p>`;
   }
   return feeds.map((feed) => feedRow(feed, selectedId)).join('');
 }
 
 const NEW_FEED_BUTTON = `
-  <button id="new-feed" class="btn btn-primary btn-sm w-full mt-4">New feed</button>`;
+  <button id="new-feed" class="btn btn-primary btn-sm w-full mt-4">${t('feeds.new')}</button>`;
 
 export interface FeedSwitcherOptions {
   /** The feed currently selected, marked in the list. */
@@ -70,21 +69,21 @@ export async function showFeedSwitcher(
   const selectedId = options.selected?.id ?? null;
 
   await showModal({
-    title: 'Feeds',
+    title: t('feeds.title'),
     body: `
       ${
         options.isAdmin
           ? `<label class="label cursor-pointer justify-start gap-2 pb-2">
                <input id="feed-show-all" type="checkbox" class="toggle toggle-sm" />
-               <span class="label-text text-xs">Show every feed on the server</span>
+               <span class="label-text text-xs">${t('feeds.showAll')}</span>
              </label>`
           : ''
       }
       <div id="feed-list" class="space-y-2">
-        <p class="text-sm opacity-50 text-center py-6">Loading…</p>
+        <p class="text-sm opacity-50 text-center py-6">${t('common.loading')}</p>
       </div>
       ${NEW_FEED_BUTTON}`,
-    actions: [{ label: 'Close', onClick: () => {} }],
+    actions: [{ label: t('common.close'), onClick: () => {} }],
     escapeAction: 0,
     boxClassName: 'max-w-lg',
     onMount: (close) => {

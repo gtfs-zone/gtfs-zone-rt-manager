@@ -106,6 +106,7 @@ import {
 import { showModal } from 'gtfs-zone-web-common/ui/modal-utils';
 import { notify } from 'gtfs-zone-web-common/ui/notification-system';
 import { escHtml } from 'gtfs-zone-web-common/gtfs/entity-render';
+import { t } from '../i18n/messages';
 
 /** One line of the cell menu: what it writes, and the write itself. */
 interface MenuChoice {
@@ -250,7 +251,7 @@ export class Actions {
         case 'invite:revoke':
           return await this.revokePendingInvite(arg);
         default:
-          notify.error(`No such action: ${action}`);
+          notify.error(t('act.noAction', { action }));
       }
     } catch (err) {
       // Everything reachable from a form reports its own failure inside the
@@ -267,7 +268,7 @@ export class Actions {
   private feedOrWarn(): Feed | null {
     const feed = this.session.feed;
     if (!feed) {
-      notify.warning('Select a feed first.');
+      notify.warning(t('act.selectFeed'));
     }
     return feed;
   }
@@ -279,16 +280,15 @@ export class Actions {
     }
 
     const updated = await showEntityForm<Feed>({
-      title: `Edit ${feed.feed_name}`,
+      title: t('act.editTitle', { name: feed.feed_name }),
       conflictField: 'feed_name',
       fields: [
         {
           name: 'feed_name',
-          label: 'Name',
+          label: t('act.name'),
           value: feed.feed_name,
           autofocus: true,
-          tooltip:
-            'Appears in every public GTFS-RT URL this feed serves, so renaming it moves them.',
+          tooltip: t('act.nameTooltip'),
         },
       ],
       submit: (values) =>
@@ -318,29 +318,28 @@ export class Actions {
     }
 
     const updated = await showEntityForm<Feed>({
-      title: 'Load schedule from URL',
-      submitLabel: 'Load',
+      title: t('act.linkTitle'),
+      submitLabel: t('act.load'),
       fields: [
         {
           name: 'static_feed_url',
-          label: 'Scheduled feed URL',
+          label: t('act.urlLabel'),
           type: 'url',
           value: feed.static_feed_url,
           autofocus: true,
           placeholder: 'https://example.com/gtfs.zip',
-          tooltip:
-            'Changing it re-downloads the schedule, here and on the server.',
+          tooltip: t('act.urlTooltip'),
         },
       ],
       validate: (values): Record<string, string> | null => {
         const url = values.static_feed_url.trim();
         if (!url) {
           return {
-            static_feed_url: 'A linked feed needs a scheduled feed URL',
+            static_feed_url: t('act.urlRequired'),
           };
         }
         if (!isHttpUrl(url)) {
-          return { static_feed_url: 'Must be a valid http or https URL' };
+          return { static_feed_url: t('act.urlInvalid') };
         }
         return null;
       },
@@ -381,7 +380,7 @@ export class Actions {
     }
 
     await reloadFeed(feed.id);
-    notify.info(`Queued a reload of ${feed.feed_name}`);
+    notify.info(t('act.reloadQueued', { name: feed.feed_name }));
     // The stream reports the load moving to `running` a moment from now, but
     // only once gtfs-zone-static-importer picks the task up; re-reading the row keeps the
     // gap from looking like nothing happened.
@@ -396,16 +395,16 @@ export class Actions {
     }
 
     const uploaded = await showEntityForm<GtfsUpload>({
-      title: isHosted(feed) ? 'Replace schedule' : 'Upload a schedule',
+      title: isHosted(feed) ? t('act.replaceTitle') : t('act.uploadTitle'),
       intro: isHosted(feed)
-        ? `The new zip becomes what this feed serves, and the one it is serving now stays in the
-           history so you can go back to it.`
-        : `Uploading a zip hosts this feed here: it stops being downloaded from
-           ${feed.static_feed_url ?? 'its URL'} and is served at its own permanent URL instead.`,
-      submitLabel: 'Upload',
+        ? t('act.replaceIntro')
+        : t('act.uploadIntro', {
+            url: feed.static_feed_url ?? t('act.itsUrl'),
+          }),
+      submitLabel: t('act.upload'),
       fields: [scheduleZipField({ autofocus: true })],
       validate: (values): Record<string, string> | null =>
-        values.file ? null : { file: 'Choose a schedule zip to upload' },
+        values.file ? null : { file: t('act.chooseZip') },
       submit: (_values, files) => putSchedule(feed.id, files.file!),
     });
     if (!uploaded) {
@@ -413,7 +412,10 @@ export class Actions {
     }
 
     notify.success(
-      `Uploaded ${uploaded.original_filename} (${formatBytes(uploaded.size_bytes)})`
+      t('act.uploaded', {
+        name: uploaded.original_filename,
+        size: formatBytes(uploaded.size_bytes),
+      })
     );
     await this.app.refreshFeed();
     await this.app.refreshUploads();
@@ -430,15 +432,15 @@ export class Actions {
     }
     const url = publicScheduleUrl(feed);
     if (!url) {
-      notify.warning('This feed has no schedule URL yet.');
+      notify.warning(t('act.noUrl'));
       return;
     }
     try {
       await navigator.clipboard.writeText(url);
-      notify.success('Copied the schedule URL');
+      notify.success(t('act.copied'));
     } catch {
       // Denied permission, or an insecure origin. The URL is on screen already.
-      notify.warning('Could not copy. The URL is on the page, above this.');
+      notify.warning(t('act.copyFailed'));
     }
   }
 
@@ -454,20 +456,17 @@ export class Actions {
     }
 
     const confirmed = await confirmAction({
-      title: 'Serve this upload',
-      question: `${upload.original_filename} becomes the schedule this feed serves.`,
-      consequences: [
-        'The server re-reads it, so the published realtime feed matches it within a minute or two',
-        'The upload it is serving now stays in the history',
-      ],
-      confirmLabel: 'Serve it',
+      title: t('act.serveTitle'),
+      question: t('act.serveQuestion', { name: upload.original_filename }),
+      consequences: [t('act.serveReread'), t('act.serveKeeps')],
+      confirmLabel: t('act.serveIt'),
     });
     if (!confirmed) {
       return;
     }
 
     await activateUpload(feed.id, upload.id);
-    notify.success(`Now serving ${upload.original_filename}`);
+    notify.success(t('act.serving', { name: upload.original_filename }));
     await this.app.refreshFeed();
     await this.app.refreshUploads();
     this.app.reloadScheduled();
@@ -485,17 +484,19 @@ export class Actions {
     }
 
     const confirmed = await confirmAction({
-      title: 'Delete this upload',
-      question: `${upload.original_filename} is deleted from storage. It cannot be undone.`,
-      consequences: ['You will not be able to roll back to it'],
-      confirmLabel: 'Delete',
+      title: t('act.deleteUploadTitle'),
+      question: t('act.deleteUploadQuestion', {
+        name: upload.original_filename,
+      }),
+      consequences: [t('act.noRollback')],
+      confirmLabel: t('common.delete'),
     });
     if (!confirmed) {
       return;
     }
 
     await deleteUpload(feed.id, upload.id);
-    notify.success(`Deleted ${upload.original_filename}`);
+    notify.success(t('act.deleted', { name: upload.original_filename }));
     await this.app.refreshUploads();
   }
 
@@ -508,14 +509,14 @@ export class Actions {
     const trackers = this.session.trackers.size;
     const alerts = this.session.serviceAlerts.size;
     const confirmed = await confirmTyped({
-      title: `Delete ${feed.feed_name}`,
-      question: `This deletes the feed and everything on it. It cannot be undone.`,
+      title: t('act.deleteTitle', { name: feed.feed_name }),
+      question: t('act.deleteFeedQuestion'),
       phrase: feed.feed_name,
-      phraseLabel: 'feed name',
+      phraseLabel: t('act.feedName'),
       consequences: [
-        `${trackers} tracker${trackers === 1 ? '' : 's'} and their assignments go with it`,
-        `${alerts} service alert${alerts === 1 ? '' : 's'} go with it`,
-        'The published GTFS-RT URLs stop answering, and the name is free to be taken',
+        t('act.goTrackers', { count: trackers }),
+        t('act.goAlerts', { count: alerts }),
+        t('act.urlsStop'),
       ],
     });
     if (!confirmed) {
@@ -523,7 +524,7 @@ export class Actions {
     }
 
     await deleteFeed(feed.id);
-    notify.success(`Deleted ${feed.feed_name}`);
+    notify.success(t('act.deleted', { name: feed.feed_name }));
     this.app.clearFeed();
   }
 
@@ -540,19 +541,18 @@ export class Actions {
       (m) => !m.is_owner
     );
     if (candidates.length === 0) {
-      notify.warning('Add a manager before handing it over.');
+      notify.warning(t('act.addManagerFirst'));
       return;
     }
 
     const updated = await showEntityForm<Feed>({
-      title: `Transfer ${feed.feed_name}`,
-      intro:
-        'The new owner can delete the feed and add or remove managers. You stay on as a manager.',
-      submitLabel: 'Transfer',
+      title: t('act.transferTitle', { name: feed.feed_name }),
+      intro: t('act.transferIntro'),
+      submitLabel: t('act.transfer'),
       fields: [
         {
           name: 'new_owner_id',
-          label: 'New owner',
+          label: t('act.newOwner'),
           type: 'select',
           value: String(candidates[0].user_id),
           options: candidates.map((m) => ({
@@ -571,7 +571,10 @@ export class Actions {
     this.app.adoptFeedRow(updated);
     await this.app.refreshMembers();
     notify.success(
-      `${feed.feed_name} now belongs to ${updated.owner_name ?? 'them'}`
+      t('act.transferred', {
+        feed: feed.feed_name,
+        owner: updated.owner_name ?? t('act.them'),
+      })
     );
   }
 
@@ -584,22 +587,20 @@ export class Actions {
     }
 
     const created = await showEntityForm<TrackerDetail>({
-      title: 'New tracker',
+      title: t('act.newTracker'),
       conflictField: 'nickname',
       fields: [
         {
           name: 'nickname',
-          label: 'Nickname',
+          label: t('act.nickname'),
           autofocus: true,
-          tooltip:
-            'The label the map and the public feed show. Unique within this feed.',
+          tooltip: t('act.nicknameTooltip'),
         },
         {
           name: 'device_key',
-          label: 'Device key',
-          placeholder: 'generated for you',
-          tooltip:
-            'The Traccar credential. Settable now and never again, so leave it blank unless you are matching an existing device.',
+          label: t('act.deviceKey'),
+          placeholder: t('act.generated'),
+          tooltip: t('act.deviceKeyTooltip'),
         },
       ],
       submit: (values) => {
@@ -619,7 +620,7 @@ export class Actions {
     // hand: caching it here is what stops the tracker page fetching it again a
     // moment later. After the refresh, which replaces the summary map.
     this.session.setTrackerDetail(created);
-    notify.success(`Created ${created.nickname}`);
+    notify.success(t('act.created', { name: created.nickname }));
     // Straight to its page: the next thing anybody does with a new tracker is
     // provision it, and the credential is served there.
     this.app.setFocus({ type: 'tracker', tracker_id: created.id });
@@ -632,14 +633,13 @@ export class Actions {
     }
 
     const updated = await showEntityForm<Tracker>({
-      title: `Rename ${tracker.nickname}`,
-      intro:
-        'The nickname is a label, not an address: links to this tracker keep working after a rename.',
+      title: t('act.renameTitle', { name: tracker.nickname }),
+      intro: t('act.renameIntro'),
       conflictField: 'nickname',
       fields: [
         {
           name: 'nickname',
-          label: 'Nickname',
+          label: t('act.nickname'),
           value: tracker.nickname,
           autofocus: true,
         },
@@ -652,7 +652,7 @@ export class Actions {
     }
 
     await this.app.refreshTrackers();
-    notify.success(`Renamed to ${updated.nickname}`);
+    notify.success(t('act.renamed', { name: updated.nickname }));
   }
 
   private async removeTracker(trackerId: string): Promise<void> {
@@ -662,14 +662,11 @@ export class Actions {
     }
 
     const confirmed = await confirmTyped({
-      title: `Delete ${tracker.nickname}`,
-      question: 'This deletes the tracker and stops its device reporting.',
+      title: t('act.deleteTitle', { name: tracker.nickname }),
+      question: t('act.deleteTrackerQuestion'),
       phrase: tracker.nickname,
-      phraseLabel: 'nickname',
-      consequences: [
-        'Its assignment rules are deleted with it',
-        'Its Traccar device is retired, so the credential stops working',
-      ],
+      phraseLabel: t('act.nicknameLabel'),
+      consequences: [t('act.rulesGo'), t('act.deviceRetired')],
     });
     if (!confirmed) {
       return;
@@ -677,7 +674,7 @@ export class Actions {
 
     await deleteTracker(tracker.id);
     await this.app.refreshTrackers();
-    notify.success(`Deleted ${tracker.nickname}`);
+    notify.success(t('act.deleted', { name: tracker.nickname }));
     // The page it was on is gone; anything else would render "not found".
     if (
       this.app.focus.type === 'tracker' &&
@@ -703,32 +700,31 @@ export class Actions {
 
     const provisioning = await getProvisioning(trackerId);
     await showModal({
-      title: escHtml(`Provision ${tracker.nickname}`),
+      title: escHtml(t('act.provisionTitle', { name: tracker.nickname })),
       body: `
         <div class="space-y-3">
-          <p class="text-xs opacity-70">Scan this with the Traccar Client app, or paste the link
-          into it. Anyone who has either can post positions as this tracker.</p>
+          <p class="text-xs opacity-70">${t('act.provisionNote')}</p>
           <div class="bg-white rounded-lg p-3 flex justify-center [&>svg]:h-48 [&>svg]:w-48">
             ${provisioning.qr_svg}
           </div>
           <label class="fieldset">
-            <span class="label">Configuration link</span>
+            <span class="label">${t('act.configLink')}</span>
             <input class="input input-bordered w-full font-mono text-xs" readonly
                    value="${escHtml(provisioning.config_url)}" />
           </label>
           <a class="btn btn-sm btn-outline w-full" href="${escHtml(provisioning.config_url)}">
-            Open in Traccar Client
+            ${t('act.openTraccar')}
           </a>
           <label class="fieldset">
             <span class="label">${tooltipLabelContent(
-              'Device key',
-              'Type this in by hand if the QR flow fails.'
+              t('act.deviceKey'),
+              t('act.keyByHand')
             )}</span>
             <input class="input input-bordered w-full font-mono text-xs" readonly
                    value="${escHtml(provisioning.device_key)}" />
           </label>
         </div>`,
-      actions: [{ label: 'Close', onClick: () => {} }],
+      actions: [{ label: t('common.close'), onClick: () => {} }],
       escapeAction: 0,
       boxClassName: 'max-w-md',
     });
@@ -741,30 +737,29 @@ export class Actions {
     return [
       {
         name: 'header_text',
-        label: 'Header',
+        label: t('act.header'),
         spec: { message: 'Alert', field: 'header_text' },
         value: alert?.header_text ?? '',
         autofocus: true,
-        tooltip:
-          'The one line a rider sees. Shown in every consumer of this feed.',
+        tooltip: t('act.headerTooltip'),
       },
       {
         name: 'description_text',
-        label: 'Description',
+        label: t('act.description'),
         spec: { message: 'Alert', field: 'description_text' },
         type: 'textarea',
         value: alert?.description_text ?? '',
       },
       {
         name: 'url',
-        label: 'More information URL',
+        label: t('act.moreUrl'),
         spec: { message: 'Alert', field: 'url' },
         type: 'url',
         value: alert?.url ?? '',
       },
       {
         name: 'cause',
-        label: 'Cause',
+        label: t('act.cause'),
         spec: { message: 'Alert', field: 'cause' },
         type: 'select',
         value: alert?.cause ?? '',
@@ -772,7 +767,7 @@ export class Actions {
       },
       {
         name: 'effect',
-        label: 'Effect',
+        label: t('act.effect'),
         spec: { message: 'Alert', field: 'effect' },
         type: 'select',
         value: alert?.effect ?? '',
@@ -780,7 +775,7 @@ export class Actions {
       },
       {
         name: 'severity_level',
-        label: 'Severity',
+        label: t('act.severity'),
         spec: { message: 'Alert', field: 'severity_level' },
         type: 'select',
         value: alert?.severity_level ?? '',
@@ -792,16 +787,15 @@ export class Actions {
       // is what a person filling these in needs.
       {
         name: 'active_period_start',
-        label: 'Active from',
+        label: t('act.activeFrom'),
         spec: { message: 'TimeRange', field: 'start' },
         type: 'datetime',
         value: toLocalInput(alert?.active_period_start),
-        tooltip:
-          'In your own timezone. Leave both blank to publish it for as long as it exists.',
+        tooltip: t('act.activeFromTooltip'),
       },
       {
         name: 'active_period_end',
-        label: 'Active until',
+        label: t('act.activeUntil'),
         spec: { message: 'TimeRange', field: 'end' },
         type: 'datetime',
         value: toLocalInput(alert?.active_period_end),
@@ -822,7 +816,7 @@ export class Actions {
     const errors: Record<string, string> = {};
     for (const name of ['active_period_start', 'active_period_end']) {
       if (values[name].trim() && fromLocalInput(values[name]) === null) {
-        errors[name] = 'A date as YYYY-MM-DD, and a time';
+        errors[name] = t('act.dateTime');
       }
     }
     return Object.keys(errors).length ? errors : null;
@@ -849,10 +843,9 @@ export class Actions {
     }
 
     const created = await showEntityForm<Alert>({
-      title: 'New service alert',
-      intro:
-        'It applies to the whole feed until you add informed entities naming a route, stop or trip.',
-      submitLabel: 'Publish',
+      title: t('act.newAlert'),
+      intro: t('act.newAlertIntro'),
+      submitLabel: t('act.publish'),
       fields: this.alertFields(null),
       validate: (values) => this.validateAlert(values),
       submit: (values) => createAlert(feed.id, this.alertBody(values)),
@@ -862,7 +855,7 @@ export class Actions {
     }
 
     await this.app.refreshServiceAlerts();
-    notify.success('Published the alert');
+    notify.success(t('act.published'));
     this.app.setFocus({ type: 'alert', alert_id: String(created.id) });
   }
 
@@ -873,7 +866,7 @@ export class Actions {
     }
 
     const updated = await showEntityForm<Alert>({
-      title: 'Edit alert',
+      title: t('act.editAlert'),
       fields: this.alertFields(alert),
       validate: (values) => this.validateAlert(values),
       submit: (values) => updateAlert(alert.id, this.alertBody(values)),
@@ -883,7 +876,7 @@ export class Actions {
     }
 
     await this.app.refreshServiceAlerts();
-    notify.success('Saved the alert');
+    notify.success(t('act.alertSaved'));
   }
 
   private async removeAlert(alertId: string): Promise<void> {
@@ -893,16 +886,12 @@ export class Actions {
     }
 
     const confirmed = await confirmAction({
-      title: 'Delete alert',
-      question: `Delete "${alert.header_text}"? Consumers of this feed stop seeing it.`,
+      title: t('act.deleteAlert'),
+      question: t('act.deleteAlertQuestion', { header: alert.header_text }),
       consequences: alert.entity_count
-        ? [
-            `Its ${alert.entity_count} informed entit${
-              alert.entity_count === 1 ? 'y' : 'ies'
-            } go with it`,
-          ]
+        ? [t('act.entitiesGo', { count: alert.entity_count })]
         : [],
-      confirmLabel: 'Delete',
+      confirmLabel: t('common.delete'),
     });
     if (!confirmed) {
       return;
@@ -910,7 +899,7 @@ export class Actions {
 
     await deleteAlert(alert.id);
     await this.app.refreshServiceAlerts();
-    notify.success('Deleted the alert');
+    notify.success(t('act.alertDeleted'));
     if (
       this.app.focus.type === 'alert' &&
       this.app.focus.alert_id === alertId
@@ -935,7 +924,7 @@ export class Actions {
     return [
       {
         name: 'agency_id',
-        label: 'Agency id',
+        label: t('act.agencyId'),
         spec: { message: 'EntitySelector', field: 'agency_id' },
         type: 'combo',
         options: agencyOptions(feed),
@@ -944,7 +933,7 @@ export class Actions {
       },
       {
         name: 'route_id',
-        label: 'Route id',
+        label: t('act.routeId'),
         spec: { message: 'EntitySelector', field: 'route_id' },
         type: 'combo',
         options: routes,
@@ -952,7 +941,7 @@ export class Actions {
       },
       {
         name: 'route_type',
-        label: 'Route type',
+        label: t('act.routeType'),
         spec: { message: 'EntitySelector', field: 'route_type' },
         type: 'combo',
         options: routeTypeOptions(feed),
@@ -960,16 +949,16 @@ export class Actions {
       },
       {
         name: 'direction_id',
-        label: 'Direction id',
+        label: t('act.directionId'),
         spec: { message: 'EntitySelector', field: 'direction_id' },
         type: 'combo',
         options: directions,
         comboEmpty: NO_SCHEDULE,
-        tooltip: 'Only means something alongside a route id.',
+        tooltip: t('act.directionTooltip'),
       },
       {
         name: 'stop_id',
-        label: 'Stop id',
+        label: t('act.stopId'),
         spec: { message: 'EntitySelector', field: 'stop_id' },
         type: 'combo',
         options: stopOptions(feed),
@@ -977,7 +966,7 @@ export class Actions {
       },
       {
         name: 'trip_id',
-        label: 'Trip id',
+        label: t('act.tripId'),
         spec: { message: 'TripDescriptor', field: 'trip_id' },
         // The whole feed, because an alert can name any trip in it. The combo
         // caps what it lists and matches the id as well as the label, so a
@@ -988,7 +977,7 @@ export class Actions {
       },
       {
         name: 'trip_route_id',
-        label: 'Trip route id',
+        label: t('act.tripRouteId'),
         spec: { message: 'TripDescriptor', field: 'route_id' },
         type: 'combo',
         options: routes,
@@ -996,7 +985,7 @@ export class Actions {
       },
       {
         name: 'trip_direction_id',
-        label: 'Trip direction id',
+        label: t('act.tripDirectionId'),
         spec: { message: 'TripDescriptor', field: 'direction_id' },
         type: 'combo',
         options: directions,
@@ -1004,13 +993,13 @@ export class Actions {
       },
       {
         name: 'trip_start_time',
-        label: 'Trip start time',
+        label: t('act.tripStartTime'),
         spec: { message: 'TripDescriptor', field: 'start_time' },
         placeholder: 'HH:MM:SS',
       },
       {
         name: 'trip_start_date',
-        label: 'Trip start date',
+        label: t('act.tripStartDate'),
         spec: { message: 'TripDescriptor', field: 'start_date' },
         placeholder: 'YYYYMMDD',
       },
@@ -1024,10 +1013,9 @@ export class Actions {
     }
 
     const created = await showEntityForm({
-      title: 'Add informed entity',
-      intro:
-        'Name at least one of agency, route, route type, stop or trip. Nothing here is checked against the schedule: an id can be published before the zip carrying it is loaded.',
-      submitLabel: 'Add',
+      title: t('act.addEntity'),
+      intro: t('act.addEntityIntro'),
+      submitLabel: t('act.add'),
       fields: this.entityFields(),
       submit: (values) => {
         const body: InformedEntityWrite = {
@@ -1050,7 +1038,7 @@ export class Actions {
     }
 
     await this.refreshAlertDetail(alert.id);
-    notify.success('Added the entity');
+    notify.success(t('act.entityAdded'));
   }
 
   private async removeEntity(arg: string): Promise<void> {
@@ -1063,11 +1051,9 @@ export class Actions {
     }
 
     const confirmed = await confirmAction({
-      title: 'Remove informed entity',
-      question: 'Remove this entity from the alert?',
-      consequences: [
-        'The alert stays, and applies to the whole feed if this was its last entity',
-      ],
+      title: t('act.removeEntity'),
+      question: t('act.removeEntityQuestion'),
+      consequences: [t('act.alertStays')],
     });
     if (!confirmed) {
       return;
@@ -1075,7 +1061,7 @@ export class Actions {
 
     await deleteEntity(alert.id, Number(entityId));
     await this.refreshAlertDetail(alert.id);
-    notify.success('Removed the entity');
+    notify.success(t('act.entityRemoved'));
   }
 
   /**
@@ -1136,7 +1122,7 @@ export class Actions {
     }
     const base = {
       name: 'trip_id',
-      label: 'Trip',
+      label: t('act.trip'),
       value: tripId,
     };
     if (options.length && options.length <= CONFIG.TRIP_SELECT_MAX) {
@@ -1173,17 +1159,17 @@ export class Actions {
       this.tripField(scopeRoute, rule?.trip_id ?? tripId),
       {
         name: 'repeats',
-        label: 'Repeats',
+        label: t('act.repeats'),
         type: 'radio',
         value: rule ? (ruleIsOneOff(rule) ? 'once' : 'weekly') : 'weekly',
         options: [
-          { value: 'once', label: 'Once' },
-          { value: 'weekly', label: 'Weekly' },
+          { value: 'once', label: t('act.once') },
+          { value: 'weekly', label: t('act.weekly') },
         ],
       },
       {
         name: 'weekdays',
-        label: 'Runs on',
+        label: t('act.runsOn'),
         type: 'weekdays',
         value: weekdayValue(
           WEEKDAY_KEYS.map((key) =>
@@ -1194,32 +1180,31 @@ export class Actions {
       },
       {
         name: 'start_date',
-        label: 'Starting',
+        label: t('act.starting'),
         type: 'date',
         value: rule?.start_date ?? startDate,
-        tooltip: 'In the feed\u2019s timezone, not yours.',
-        labelWhen: { field: 'repeats', equals: 'once', label: 'On' },
+        tooltip: t('act.feedTz'),
+        labelWhen: { field: 'repeats', equals: 'once', label: t('act.on') },
       },
       {
         name: 'end_date',
-        label: 'Until',
+        label: t('act.until'),
         type: 'date',
         value: rule?.end_date ?? '',
         visibleWhen: { field: 'repeats', equals: 'weekly' },
       },
       {
         name: 'start_time',
-        label: 'Starts',
+        label: t('act.starts'),
         value: rule ? ruleTimeInput(rule.start_time) : '',
         placeholder: 'HH:MM',
       },
       {
         name: 'end_time',
-        label: 'Ends',
+        label: t('act.ends'),
         value: rule ? ruleTimeInput(rule.end_time) : '',
-        placeholder: 'HH:MM, or 25:10 for the small hours',
-        tooltip:
-          'Past midnight keeps counting: a run ending at 01:10 the next morning is 25:10.',
+        placeholder: t('act.endsPlaceholder'),
+        tooltip: t('act.endsTooltip'),
       },
     ];
   }
@@ -1230,7 +1215,7 @@ export class Actions {
   ): Record<string, string> | null {
     const errors: Record<string, string> = {};
     if (!values.trip_id.trim()) {
-      errors.trip_id = 'A rule needs a trip';
+      errors.trip_id = t('act.needsTrip');
     }
     // The date boxes are typeable, so the shape is this form's to check: the
     // month grid can only produce a service date, but a person can type
@@ -1238,23 +1223,23 @@ export class Actions {
     const startDate = values.start_date.trim();
     const endDate = values.end_date.trim();
     if (!startDate) {
-      errors.start_date = 'A rule needs a first service date';
+      errors.start_date = t('act.needsDate');
     } else if (!isServiceDate(startDate)) {
-      errors.start_date = 'A date as YYYY-MM-DD';
+      errors.start_date = t('act.dateFormat');
     }
     if (endDate && !isServiceDate(endDate)) {
-      errors.end_date = 'A date as YYYY-MM-DD';
+      errors.end_date = t('act.dateFormat');
     }
     const start_time = parseRuleTime(values.start_time);
     const end_time = parseRuleTime(values.end_time);
     if (start_time === null) {
-      errors.start_time = 'A clock time as HH:MM';
+      errors.start_time = t('act.clock');
     }
     if (end_time === null) {
-      errors.end_time = 'A clock time as HH:MM';
+      errors.end_time = t('act.clock');
     }
     if (start_time !== null && end_time !== null && end_time <= start_time) {
-      errors.end_time = 'The window ends before it starts';
+      errors.end_time = t('act.endsBefore');
     }
     // `Once` is where a rule with no weekday now belongs; `Weekly` with none
     // picked is a rule that never runs.
@@ -1262,7 +1247,7 @@ export class Actions {
       values.repeats === 'weekly' &&
       !weekdayBits(values.weekdays).some(Boolean)
     ) {
-      errors.weekdays = 'Pick at least one day, or choose Once';
+      errors.weekdays = t('act.pickDay');
     }
     return Object.keys(errors).length ? errors : null;
   }
@@ -1341,7 +1326,7 @@ export class Actions {
       a.nickname.localeCompare(b.nickname)
     );
     if (trackers.length === 0) {
-      notify.warning('Create a tracker before assigning one.');
+      notify.warning(t('act.createTrackerFirst'));
       return;
     }
 
@@ -1365,20 +1350,21 @@ export class Actions {
     }
 
     const created = await showEntityForm<TrackerRule>({
-      title: trip ? `Assign ${tripName(trip)}` : 'Assign a trip',
-      intro:
-        'A tracker reporting inside this window is running this trip, and the service date it started on is the trip\u2019s start_date in the published feed.',
-      submitLabel: 'Assign',
+      title: trip
+        ? t('act.assignTrip', { trip: tripName(trip) })
+        : t('act.assignATrip'),
+      intro: t('act.assignIntro'),
+      submitLabel: t('act.assign'),
       // Opened from a trip, every field is already prefilled from that trip and
       // the day that was clicked, so the common case is pressing Assign.
       allowPristine: true,
       fields: [
         {
           name: 'tracker_id',
-          label: 'Tracker',
+          label: t('act.tracker'),
           type: 'select',
           value: trackers[0].id,
-          options: trackers.map((t) => ({ value: t.id, label: t.nickname })),
+          options: trackers.map((tr) => ({ value: tr.id, label: tr.nickname })),
           autofocus: true,
         },
         ...fields,
@@ -1388,7 +1374,7 @@ export class Actions {
         // The select carries an empty first option, and a rule with no tracker
         // would be posted to a path with a hole in it.
         if (!values.tracker_id) {
-          errors.tracker_id = 'Pick a tracker';
+          errors.tracker_id = t('act.pickTracker');
         }
         return Object.keys(errors).length ? errors : null;
       },
@@ -1411,7 +1397,7 @@ export class Actions {
     }
 
     await this.app.refreshCalendar();
-    notify.success('Assigned');
+    notify.success(t('act.assigned'));
   }
 
   private async editAssignment(ruleId: string): Promise<void> {
@@ -1423,10 +1409,9 @@ export class Actions {
 
     const updated = await showEntityForm<TrackerRule>({
       title: tracker
-        ? `Edit ${tracker.nickname}\u2019s assignment`
-        : 'Edit assignment',
-      intro:
-        'Changing when a rule runs leaves its per-day exceptions alone: they name dates, and "not on the 4th" survives a change of weekday.',
+        ? t('act.editAssignmentOf', { name: tracker.nickname })
+        : t('act.editAssignment'),
+      intro: t('act.editAssignmentIntro'),
       fields: this.ruleFields(
         rule,
         rule.trip_id,
@@ -1464,7 +1449,7 @@ export class Actions {
     }
 
     await this.app.refreshCalendar();
-    notify.success('Saved the assignment');
+    notify.success(t('act.assignmentSaved'));
   }
 
   private async removeAssignment(ruleId: string): Promise<void> {
@@ -1475,13 +1460,13 @@ export class Actions {
     const tracker = this.session.trackers.get(rule.tracker_id);
 
     const confirmed = await confirmAction({
-      title: 'Delete assignment',
-      question: `Stop ${tracker?.nickname ?? 'this tracker'} running ${rule.trip_id}?`,
-      consequences: [
-        'Every day it covers goes with it, past and future',
-        'A fix arriving inside its window stops resolving to that trip',
-      ],
-      confirmLabel: 'Delete',
+      title: t('act.deleteAssignment'),
+      question: t('act.deleteAssignmentQuestion', {
+        tracker: tracker?.nickname ?? t('act.thisTracker'),
+        trip: rule.trip_id,
+      }),
+      consequences: [t('act.everyDayGoes'), t('act.fixStops')],
+      confirmLabel: t('common.delete'),
     });
     if (!confirmed) {
       return;
@@ -1489,7 +1474,7 @@ export class Actions {
 
     await deleteRule(rule.id);
     await this.app.refreshCalendar();
-    notify.success('Deleted the assignment');
+    notify.success(t('act.assignmentDeleted'));
   }
 
   /**
@@ -1512,7 +1497,9 @@ export class Actions {
     await addRuleException(rule.id, { date, exception_type: type });
     await this.app.refreshCalendar();
     notify.success(
-      type === 'removed' ? `Skipping ${date}` : `Running on ${date}`
+      type === 'removed'
+        ? t('act.skipping', { date })
+        : t('act.running', { date })
     );
   }
 
@@ -1527,7 +1514,7 @@ export class Actions {
 
     await deleteRuleException(rule.id, exception.id);
     await this.app.refreshCalendar();
-    notify.success(`${date} follows the rule again`);
+    notify.success(t('act.followsRule', { date }));
   }
 
   /**
@@ -1577,45 +1564,47 @@ export class Actions {
         // matters is putting it back rather than excepting it twice.
         choices.push({
           label: running
-            ? `Stop running ${nickname} on this date`
-            : `Un-skip ${nickname}`,
-          detail: 'Drops the exception, so this date follows the rule again.',
+            ? t('act.stopRunning', { name: nickname })
+            : t('act.unskip', { name: nickname }),
+          detail: t('act.dropException'),
           run: () => this.undoException(`${rule.id}:${date}`),
         });
       } else if (running) {
         choices.push({
-          label: `Skip ${nickname} on this date`,
-          detail:
-            'One removed exception. Every other date the rule covers is untouched.',
+          label: t('act.skip', { name: nickname }),
+          detail: t('act.skipDetail'),
           run: () => this.exceptOneDay(`${rule.id}:${date}`, 'removed'),
         });
       } else {
         choices.push({
-          label: `Run ${nickname} on this date`,
-          detail:
-            'One added exception. The rule\u2019s weekdays are untouched.',
+          label: t('act.run', { name: nickname }),
+          detail: t('act.runDetail'),
           run: () => this.exceptOneDay(`${rule.id}:${date}`, 'added'),
         });
       }
 
       choices.push({
-        label: `Edit ${nickname}\u2019s rule\u2026`,
-        detail: `${describeRecurrence(rule)} \u00b7 ${formatWindow(rule.start_time, rule.end_time)}. Changing it changes every week.`,
+        label: t('act.editRule', { name: nickname }),
+        detail: t('act.editRuleDetail', {
+          recurrence: describeRecurrence(rule),
+          window: formatWindow(rule.start_time, rule.end_time),
+        }),
         run: () => this.editAssignment(String(rule.id)),
       });
     }
 
     choices.push({
-      label: 'Assign a tracker to this trip\u2026',
-      detail: 'A new rule, starting on this date.',
+      label: t('act.assignToTrip'),
+      detail: t('act.newRuleHere'),
       className: 'btn-primary',
       run: () => this.newAssignment(date, tripId),
     });
 
     await this.chooseAndRun(
-      trip
-        ? `${tripName(trip)} on ${dayLabel(date)}`
-        : `${tripId} on ${dayLabel(date)}`,
+      t('act.tripOnDay', {
+        trip: trip ? tripName(trip) : tripId,
+        date: dayLabel(date),
+      }),
       choices
     );
   }
@@ -1648,7 +1637,7 @@ export class Actions {
           </li>`
         )
         .join('')}</ul>`,
-      actions: [{ label: 'Cancel', onClick: () => {} }],
+      actions: [{ label: t('confirm.cancel'), onClick: () => {} }],
       escapeAction: 0,
       boxClassName: 'max-w-md',
       onMount: (close) => {
@@ -1683,16 +1672,15 @@ export class Actions {
     }
 
     const result = await showEntityForm({
-      title: 'Add manager',
-      intro:
-        'They get access once they sign in with a verified copy of this address. Nothing is emailed from here.',
-      submitLabel: 'Add',
+      title: t('act.addManager'),
+      intro: t('act.addManagerIntro'),
+      submitLabel: t('act.add'),
       fields: [
         {
           name: 'email',
-          label: 'Email address',
+          label: t('act.email'),
           autofocus: true,
-          tooltip: 'Matched against verified addresses only.',
+          tooltip: t('act.emailTooltip'),
         },
       ],
       submit: (values) => addMember(feed.id, values.email.trim()),
@@ -1720,9 +1708,12 @@ export class Actions {
     }
 
     const confirmed = await confirmAction({
-      title: 'Remove manager',
-      question: `Take ${personLabel(member)} off ${feed.feed_name}?`,
-      consequences: ['Anything they made on this feed stays'],
+      title: t('act.removeManager'),
+      question: t('act.removeManagerQuestion', {
+        name: personLabel(member),
+        feed: feed.feed_name,
+      }),
+      consequences: [t('act.madeStays')],
     });
     if (!confirmed) {
       return;
@@ -1730,7 +1721,7 @@ export class Actions {
 
     await removeMember(feed.id, member.user_id);
     await this.app.refreshMembers();
-    notify.success(`Removed ${personLabel(member)}`);
+    notify.success(t('act.removed', { name: personLabel(member) }));
   }
 
   private async revokePendingInvite(inviteId: string): Promise<void> {
@@ -1746,10 +1737,10 @@ export class Actions {
     }
 
     const confirmed = await confirmAction({
-      title: 'Revoke invite',
-      question: `Withdraw the invite to ${invite.email}?`,
-      consequences: ['They get nothing if they sign in later'],
-      confirmLabel: 'Revoke',
+      title: t('act.revokeInvite'),
+      question: t('act.revokeQuestion', { email: invite.email }),
+      consequences: [t('act.getNothing')],
+      confirmLabel: t('act.revoke'),
     });
     if (!confirmed) {
       return;
@@ -1757,6 +1748,6 @@ export class Actions {
 
     await revokeInvite(feed.id, invite.id);
     await this.app.refreshMembers();
-    notify.success(`Revoked the invite to ${invite.email}`);
+    notify.success(t('act.revoked', { email: invite.email }));
   }
 }

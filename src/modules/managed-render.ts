@@ -23,6 +23,8 @@ import {
   formatRelative,
   timestampWithAge,
 } from 'gtfs-zone-web-common/gtfs/entity-render';
+import { t } from '../i18n/messages';
+import { formatDate } from 'gtfs-zone-web-common/i18n/fmt';
 
 /** Epoch seconds from an ISO string, or undefined for a null/unparseable one. */
 function epochSeconds(iso: string | null | undefined): number | undefined {
@@ -49,8 +51,15 @@ export function formatIsoDate(iso: string | null | undefined): string {
   if (seconds === undefined) {
     return '—';
   }
-  return new Date(seconds * 1000).toLocaleDateString();
+  return formatDate(seconds * 1000);
 }
+
+const LOAD_STATUS_LABELS: Record<string, string> = {
+  success: t('load.success'),
+  failed: t('load.failed'),
+  running: t('load.running'),
+  pending: t('load.pending'),
+};
 
 const LOAD_BADGE_CLASS: Record<string, string> = {
   success: 'badge-success',
@@ -69,10 +78,10 @@ export function loadStatusBadge(
   size = 'badge-sm'
 ): string {
   if (!load) {
-    return `<span class="badge badge-ghost ${size}">never loaded</span>`;
+    return `<span class="badge badge-ghost ${size}">${t('load.never')}</span>`;
   }
   const cls = LOAD_BADGE_CLASS[load.status] ?? 'badge-ghost';
-  return `<span class="badge ${cls} ${size}">${escHtml(load.status)}</span>`;
+  return `<span class="badge ${cls} ${size}">${escHtml(LOAD_STATUS_LABELS[load.status] ?? load.status)}</span>`;
 }
 
 /**
@@ -84,7 +93,11 @@ export function loadStatusBadge(
 export function personLabel(
   person: Pick<Member, 'user_id' | 'email' | 'display_name'>
 ): string {
-  return person.display_name || person.email || `User ${person.user_id}`;
+  return (
+    person.display_name ||
+    person.email ||
+    t('person.user', { id: person.user_id })
+  );
 }
 
 /**
@@ -217,7 +230,9 @@ export function livenessBadge(
     // The count is only worth showing when it is surprising: one vehicle is
     // what a tracker normally is, and several is the thing worth noticing.
     const label =
-      liveness.vehicles > 1 ? `${liveness.vehicles} vehicles` : 'reporting';
+      liveness.vehicles > 1
+        ? t('live.vehicles', { count: liveness.vehicles })
+        : t('live.reporting');
     return `<span class="${cls}">${escHtml(label)}</span>`;
   }
   if (liveness.state === 'quiet') {
@@ -225,7 +240,7 @@ export function livenessBadge(
       formatRelative(liveness.since)
     )}</span>`;
   }
-  return `<span class="${cls}">no fix</span>`;
+  return `<span class="${cls}">${t('live.noFix')}</span>`;
 }
 
 // ─── Rule times and recurrence ────────────────────────────────────────────────
@@ -247,7 +262,7 @@ export function formatRuleTime(seconds: number): string {
   ).padStart(2, '0')}`;
   const secs = inDay % 60;
   const full = secs ? `${clock}:${String(secs).padStart(2, '0')}` : clock;
-  return days > 0 ? `${full} (+${days}d)` : full;
+  return days > 0 ? t('rule.nextDay', { time: full, days }) : full;
 }
 
 /**
@@ -280,7 +295,10 @@ export function parseRuleTime(value: string): number | null {
 
 /** `09:00 to 17:00`, the pair as one reading. */
 export function formatWindow(start: number, end: number): string {
-  return `${formatRuleTime(start)} to ${formatRuleTime(end)}`;
+  return t('rule.window', {
+    start: formatRuleTime(start),
+    end: formatRuleTime(end),
+  });
 }
 
 /**
@@ -295,11 +313,11 @@ export function describeRecurrence(rule: TrackerRule): string {
     (_, slot) => rule[WEEKDAY_KEYS[WEEKDAY_DISPLAY[slot]]]
   );
   if (days.length === 0) {
-    return `Once on ${rule.start_date}`;
+    return t('days.once', { date: rule.start_date });
   }
-  const recurrence = days.length === 7 ? 'Every day' : days.join(', ');
+  const recurrence = days.length === 7 ? t('days.every') : days.join(', ');
   const range = rule.end_date
-    ? `${rule.start_date} to ${rule.end_date}`
-    : `from ${rule.start_date}`;
+    ? t('days.range', { start: rule.start_date, end: rule.end_date })
+    : t('days.from', { date: rule.start_date });
   return `${recurrence} - ${range}`;
 }

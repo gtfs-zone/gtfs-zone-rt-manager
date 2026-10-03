@@ -39,6 +39,7 @@ import { escHtml } from 'gtfs-zone-web-common/gtfs/entity-render';
 import { WEEKDAY_DISPLAY, WEEKDAY_KEYS, WEEKDAY_LABELS } from './service-date';
 import type { SpecRef } from './spec-field';
 import { specLabelContent, tooltipLabelContent } from './spec-field';
+import { t } from '../i18n/messages';
 
 export type FieldType =
   | 'text'
@@ -307,7 +308,7 @@ function renderInput(field: FormField): string {
       <input ${common} type="file" class="sr-only"${
         field.accept ? ` accept="${escHtml(field.accept)}"` : ''
       } />
-      <span class="text-xs opacity-70" data-drop-label>Drop a file here, or click to choose one</span>
+      <span class="text-xs opacity-70" data-drop-label>${t('form.drop')}</span>
     </label>
     <div class="pt-2 empty:hidden" data-preview="${escHtml(field.name)}"></div>`;
   }
@@ -462,9 +463,9 @@ export async function showEntityForm<T>(
         ${options.fields.map(renderField).join('')}
       </div>`,
     actions: [
-      { label: 'Cancel', onClick: () => {} },
+      { label: t('confirm.cancel'), onClick: () => {} },
       {
-        label: options.submitLabel ?? 'Save',
+        label: options.submitLabel ?? t('form.save'),
         className: 'btn-primary',
         // `showModal` disables every button while this promise is pending and
         // re-enables them if it returns true, which is exactly the in-flight
@@ -544,9 +545,7 @@ export async function showEntityForm<T>(
         const label = zone.querySelector<HTMLElement>('[data-drop-label]')!;
         const announce = (): void => {
           const file = input.files?.[0] ?? null;
-          label.textContent = file
-            ? file.name
-            : 'Drop a file here, or click to choose one';
+          label.textContent = file ? file.name : t('form.drop');
           slot.replaceChildren();
           field.onFile?.(file, slot);
         };
@@ -642,9 +641,7 @@ export async function showEntityForm<T>(
                 )
                 .join('')
             : `<li class="px-3 py-2 text-xs opacity-60">${escHtml(
-                all.length
-                  ? 'Nothing in this feed matches that.'
-                  : (field.comboEmpty ?? '')
+                all.length ? t('form.noMatch') : (field.comboEmpty ?? '')
               )}</li>`;
         };
 

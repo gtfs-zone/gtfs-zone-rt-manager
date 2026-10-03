@@ -44,6 +44,8 @@ import {
   section,
   timestampWithAge,
 } from 'gtfs-zone-web-common/gtfs/entity-render';
+import { t } from '../../i18n/messages';
+import { formatNumber } from 'gtfs-zone-web-common/i18n/fmt';
 
 /**
  * The credential, behind a disclosure.
@@ -56,15 +58,14 @@ import {
 function renderDeviceKey(ctx: RenderContext, tracker: Tracker): string {
   const detail = ctx.session.trackerDetails.get(tracker.id);
   if (!detail) {
-    return `<p class="text-xs opacity-60">Fetching the device key…</p>`;
+    return `<p class="text-xs opacity-60">${t('tracker.fetchingKey')}</p>`;
   }
   return `
     <details class="text-xs rounded-lg border border-base-300 p-2"
              data-detail="device-key:${escHtml(tracker.id)}">
-      <summary class="cursor-pointer font-medium">Show device key</summary>
+      <summary class="cursor-pointer font-medium">${t('tracker.showKey')}</summary>
       <p class="font-mono break-all mt-2 select-all">${escHtml(detail.device_key)}</p>
-      <p class="opacity-60 mt-2">This is the Traccar identifier the phone or box is configured
-      with. Anyone holding it can post positions as this tracker.</p>
+      <p class="opacity-60 mt-2">${t('tracker.keyNote')}</p>
     </details>`;
 }
 
@@ -96,17 +97,30 @@ export function renderVehicle(
   const stop = position.stopId ? feed?.stops.get(position.stopId) : undefined;
 
   return propList([
-    prop('Reported', timestampWithAge(position.timestamp)),
-    prop('Coordinates', mapsLink(position)),
+    prop(t('tracker.reported'), timestampWithAge(position.timestamp)),
+    prop(t('tracker.coordinates'), mapsLink(position)),
     position.bearing === undefined
       ? ''
-      : prop('Bearing', `${escHtml(String(Math.round(position.bearing)))}°`),
+      : prop(
+          t('tracker.bearing'),
+          `${escHtml(String(Math.round(position.bearing)))}°`
+        ),
     position.speed === undefined
       ? ''
-      : prop('Speed', `${escHtml((position.speed * 3.6).toFixed(1))} km/h`),
+      : prop(
+          t('tracker.speed'),
+          escHtml(
+            t('tracker.speedValue', {
+              speed: formatNumber(position.speed * 3.6, {
+                minimumFractionDigits: 1,
+                maximumFractionDigits: 1,
+              }),
+            })
+          )
+        ),
     position.tripId
       ? prop(
-          'Trip',
+          t('crumb.trip'),
           entityLink(
             ctx,
             {
@@ -117,10 +131,13 @@ export function renderVehicle(
             feed?.trips.get(position.tripId)?.headsign || position.tripId
           )
         )
-      : prop('Trip', '<span class="opacity-40">unassigned</span>'),
+      : prop(
+          t('crumb.trip'),
+          `<span class="opacity-40">${t('tracker.unassigned')}</span>`
+        ),
     route
       ? prop(
-          'Route',
+          t('trip.route'),
           entityLink(
             ctx,
             { type: 'route', route_id: route.id },
@@ -130,7 +147,7 @@ export function renderVehicle(
       : '',
     stop
       ? prop(
-          `${VEHICLE_STATUS_LABELS[position.currentStatus ?? 2] ?? 'at'}`,
+          VEHICLE_STATUS_LABELS[position.currentStatus ?? 2] ?? t('tracker.at'),
           entityLink(
             ctx,
             { type: 'stop', stop_id: stop.id },
@@ -140,7 +157,9 @@ export function renderVehicle(
       : '',
     // The service date of the trip being run, when the producer reports one.
     // Data about the trip, not part of what identifies the vehicle.
-    position.startDate ? prop('Service date', escHtml(position.startDate)) : '',
+    position.startDate
+      ? prop(t('tracker.serviceDate'), escHtml(position.startDate))
+      : '',
   ]);
 }
 
@@ -159,16 +178,15 @@ function renderPosition(
 ): string {
   if (positions.length === 0) {
     return section(
-      'Position',
-      `<p class="text-xs opacity-60">Not reporting. A tracker appears on the map once it
-       has posted a fix, and drops off again after ${Math.round(
-         CONFIG.TRACKER_STALE_MS / 1000
-       )} seconds without one.</p>`
+      t('page.position'),
+      `<p class="text-xs opacity-60">${t('tracker.notReporting', {
+        seconds: Math.round(CONFIG.TRACKER_STALE_MS / 1000),
+      })}</p>`
     );
   }
 
   if (positions.length === 1) {
-    return section('Position', renderVehicle(ctx, positions[0]));
+    return section(t('page.position'), renderVehicle(ctx, positions[0]));
   }
 
   const feed = ctx.session.scheduledFeed;
@@ -210,7 +228,11 @@ function renderPosition(
       });
     });
 
-  return rowSection('Vehicles', positions.length, entityRowList(rows, ''));
+  return rowSection(
+    t('tracker.vehicles'),
+    positions.length,
+    entityRowList(rows, '')
+  );
 }
 
 /**
@@ -224,7 +246,10 @@ function renderPosition(
 function renderAssignments(ctx: RenderContext, trackerId: string): string {
   const session = ctx.session;
   if (!session.rules) {
-    return section('Assignments', '<p class="text-xs opacity-60">Loading…</p>');
+    return section(
+      t('trip.assignments'),
+      `<p class="text-xs opacity-60">${t('common.loading')}</p>`
+    );
   }
 
   const rules = [...session.rules.values()].filter(
@@ -248,15 +273,15 @@ function renderAssignments(ctx: RenderContext, trackerId: string): string {
         ? trip.raw.trip_short_name?.trim() || trip.headsign || rule.trip_id
         : rule.trip_id,
       sublabel: `${describeRecurrence(rule)} - ${formatWindow(rule.start_time, rule.end_time)}`,
-      actionsHtml: `${actionButton('assign:edit', String(rule.id), 'Edit')}
-        ${actionButton('assign:delete', String(rule.id), 'Delete', 'btn-outline btn-error')}`,
+      actionsHtml: `${actionButton('assign:edit', String(rule.id), t('common.edit'))}
+        ${actionButton('assign:delete', String(rule.id), t('common.delete'), 'btn-outline btn-error')}`,
     });
   });
 
   return rowSection(
-    'Assignments',
+    t('trip.assignments'),
     rules.length,
-    entityRowList(rows, 'This tracker is not assigned to anything.')
+    entityRowList(rows, t('tracker.noAssignments'))
   );
 }
 
@@ -270,9 +295,9 @@ export function renderTrackerPage(
     // `breadcrumbs.validateState` lets through; saying "not in the feed" for
     // one round trip contradicts it.
     if (ctx.session.trackers.size === 0) {
-      return `<p class="text-sm opacity-60">Loading this feed's trackers…</p>`;
+      return `<p class="text-sm opacity-60">${t('page.loadingTrackers')}</p>`;
     }
-    return missing(`Tracker ${state.tracker_id}`);
+    return missing(t('page.tracker', { id: state.tracker_id }));
   }
 
   const positions = ctx.session.vehiclesFor(tracker.id);
@@ -287,16 +312,16 @@ export function renderTrackerPage(
       </div>
 
       <div class="flex flex-wrap gap-2">
-        ${actionButton('tracker:edit', tracker.id, 'Rename')}
-        ${actionButton('tracker:delete', tracker.id, 'Delete', 'btn-outline btn-error')}
+        ${actionButton('tracker:edit', tracker.id, t('tracker.rename'))}
+        ${actionButton('tracker:delete', tracker.id, t('common.delete'), 'btn-outline btn-error')}
       </div>
 
       ${renderPosition(ctx, positions)}
       ${renderAssignments(ctx, tracker.id)}
       ${section(
-        'Provisioning',
+        t('tracker.provisioning'),
         `<div class="space-y-2">
-          ${actionButton('tracker:provision', tracker.id, 'Show QR and link', 'btn-primary')}
+          ${actionButton('tracker:provision', tracker.id, t('tracker.showQr'), 'btn-primary')}
           ${renderDeviceKey(ctx, tracker)}
         </div>`
       )}

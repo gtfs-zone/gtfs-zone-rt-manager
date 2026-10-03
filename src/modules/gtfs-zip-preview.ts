@@ -16,6 +16,7 @@
 import JSZip from 'jszip';
 import { CONFIG } from '../config';
 import { GTFSScheduled } from 'gtfs-zone-web-common/gtfs/scheduled';
+import { t } from '../i18n/messages';
 
 /** Mirrors gtfs-zone-rt-api's `REQUIRED_FILES`. */
 const REQUIRED_FILES = [
@@ -97,16 +98,16 @@ function rejectByName(names: string[]): string | null {
   );
   if (nested.length) {
     const directory = nested[0].slice(0, nested[0].lastIndexOf('/'));
-    return `The .txt files are inside '${directory}/'. They have to be at the top level of the zip`;
+    return t('zip.nested', { directory });
   }
 
   const missing = REQUIRED_FILES.filter((name) => !root.has(name));
   if (missing.length) {
-    return `That zip is missing ${missing.join(', ')}`;
+    return t('zip.missing', { files: missing.join(', ') });
   }
 
   if (!CALENDAR_FILES.some((name) => root.has(name))) {
-    return 'That zip has neither calendar.txt nor calendar_dates.txt';
+    return t('zip.noCalendar');
   }
   return null;
 }
@@ -123,10 +124,10 @@ function rejectByName(names: string[]): string | null {
 export async function previewGtfsZip(file: File): Promise<ZipPreview> {
   if (file.size > CONFIG.UPLOAD_MAX_BYTES) {
     const mb = Math.round(CONFIG.UPLOAD_MAX_BYTES / (1 << 20));
-    return { ok: false, reason: `That file is larger than ${mb} MB` };
+    return { ok: false, reason: t('zip.tooLarge', { mb }) };
   }
   if (file.size === 0) {
-    return { ok: false, reason: 'That file is empty' };
+    return { ok: false, reason: t('zip.empty') };
   }
 
   await new Promise((resolve) => setTimeout(resolve, 0));
@@ -135,7 +136,7 @@ export async function previewGtfsZip(file: File): Promise<ZipPreview> {
   try {
     zip = await JSZip.loadAsync(file);
   } catch {
-    return { ok: false, reason: 'That file is not a zip archive' };
+    return { ok: false, reason: t('zip.notZip') };
   }
 
   const named = rejectByName(Object.keys(zip.files));
@@ -149,7 +150,9 @@ export async function previewGtfsZip(file: File): Promise<ZipPreview> {
   } catch (err) {
     return {
       ok: false,
-      reason: `That zip could not be parsed: ${err instanceof Error ? err.message : String(err)}`,
+      reason: t('zip.parseFailed', {
+        message: err instanceof Error ? err.message : String(err),
+      }),
     };
   }
 

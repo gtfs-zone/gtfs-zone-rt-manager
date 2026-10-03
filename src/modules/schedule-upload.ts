@@ -20,6 +20,7 @@ import type { FormField } from './entity-form';
 import { showEntityForm } from './entity-form';
 import { previewGtfsZip } from './gtfs-zip-preview';
 import { escHtml } from 'gtfs-zone-web-common/gtfs/entity-render';
+import { t } from '../i18n/messages';
 
 /** Mirrors gtfs-zone-rt-api's `_FEED_NAME_RE`, so the refusal happens before the request. */
 const FEED_NAME_RE = /^[a-z][a-z0-9_-]{2,63}$/;
@@ -41,7 +42,7 @@ function renderPreview(slot: HTMLElement, file: File): void {
   pending.set(slot, token);
   slot.innerHTML = `<span class="text-xs opacity-60">
     <span class="loading loading-spinner loading-xs align-middle"></span>
-    Reading ${escHtml(file.name)}…
+    ${t('upload.reading', { name: escHtml(file.name) })}
   </span>`;
 
   void previewGtfsZip(file).then((preview) => {
@@ -58,20 +59,22 @@ function renderPreview(slot: HTMLElement, file: File): void {
     const s = preview.summary;
     const dates =
       s.serviceStart && s.serviceEnd
-        ? `${s.serviceStart} to ${s.serviceEnd}`
-        : 'no dated service';
+        ? t('upload.range', { start: s.serviceStart, end: s.serviceEnd })
+        : t('upload.noService');
     const agencies = s.agencies.length
       ? s.agencies.join(', ')
-      : 'no named agency';
+      : t('upload.noAgency');
     slot.innerHTML = `<div class="rounded-lg bg-base-200 px-3 py-2 space-y-1 text-xs">
       <div class="font-semibold">${escHtml(agencies)}</div>
-      <div class="opacity-70">
-        ${s.routes.toLocaleString()} routes, ${s.stops.toLocaleString()} stops,
-        ${s.trips.toLocaleString()} trips
-      </div>
-      <div class="opacity-70">Service ${escHtml(dates)} - ${escHtml(
-        formatBytes(s.sizeBytes)
-      )}</div>
+      <div class="opacity-70">${t('upload.counts', {
+        routes: s.routes,
+        stops: s.stops,
+        trips: s.trips,
+      })}</div>
+      <div class="opacity-70">${t('upload.service', {
+        dates: escHtml(dates),
+        size: escHtml(formatBytes(s.sizeBytes)),
+      })}</div>
     </div>`;
   });
 }
@@ -87,11 +90,12 @@ export function scheduleZipField(
 ): FormField {
   return {
     name: 'file',
-    label: 'Schedule zip',
+    label: t('upload.zip'),
     type: 'file',
     accept: '.zip,application/zip',
-    tooltip: `A GTFS zip, up to ${Math.round(CONFIG.UPLOAD_MAX_BYTES / (1 << 20))} MB. It is
-           stored here and published at this feed's own URL.`,
+    tooltip: t('upload.zipTooltip', {
+      mb: Math.round(CONFIG.UPLOAD_MAX_BYTES / (1 << 20)),
+    }),
     onFile: (file, slot) => {
       if (file) {
         renderPreview(slot, file);
@@ -128,25 +132,22 @@ export async function putSchedule(
  */
 export async function showNewFeedForm(): Promise<Feed | null> {
   return showEntityForm<Feed>({
-    title: 'New feed',
+    title: t('upload.newTitle'),
     conflictField: 'feed_name',
-    submitLabel: 'Create feed',
+    submitLabel: t('upload.create'),
     fields: [
       {
         name: 'feed_name',
-        label: 'Name',
+        label: t('upload.name'),
         autofocus: true,
         placeholder: 'my-agency',
-        tooltip: `Starts with a lowercase letter, then lowercase letters, digits, - and _, 3-64
-               characters. It appears in every public GTFS-RT URL this feed serves, so it
-               cannot be changed casually.`,
+        tooltip: t('upload.nameTooltip'),
       },
     ],
     validate: (values): Record<string, string> | null => {
       if (!FEED_NAME_RE.test(values.feed_name.trim())) {
         return {
-          feed_name:
-            'Starts with a lowercase letter, then lowercase letters, digits, - and _, 3-64 characters',
+          feed_name: t('upload.nameInvalid'),
         };
       }
       return null;

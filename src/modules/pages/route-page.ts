@@ -26,6 +26,7 @@ import {
 } from 'gtfs-zone-web-common/gtfs/entity-render';
 import type { RenderContext, RtIndex } from '../render-context';
 import { RT_PAGE_HOOKS } from '../render-context';
+import { t } from '../../i18n/messages';
 
 // --- Trips --------------------------------------------------------------------
 
@@ -49,8 +50,7 @@ function assignedTrackers(ctx: RenderContext): Map<string, string> {
 }
 
 /** `Unassigned`, in the same style a badge from the API would render in. */
-const UNASSIGNED_BADGE =
-  '<span class="badge badge-ghost badge-xs opacity-60">Unassigned</span>';
+const UNASSIGNED_BADGE = `<span class="badge badge-ghost badge-xs opacity-60">${t('page.unassigned')}</span>`;
 
 /**
  * The route's trips in this direction, ordered by first departure, so the tree
@@ -100,7 +100,7 @@ function renderTrips(
   const more =
     ordered.length > shown.length
       ? `<p class="text-xs opacity-50">${escHtml(
-          `${ordered.length - shown.length} more trips not shown.`
+          t('page.moreTrips', { count: ordered.length - shown.length })
         )}</p>`
       : '';
 
@@ -111,16 +111,16 @@ function renderTrips(
   const unassigned = counts ? counts.total - counts.assigned : null;
 
   return rowSection(
-    'Trips',
+    t('page.trips'),
     ordered.length,
     `<div class="max-h-96 overflow-y-auto overflow-x-hidden px-2">${entityRowList(
       rows,
-      'No trips in this direction.'
+      t('page.noTrips')
     )}</div>${more}`,
     unassigned === null
       ? countBadge('—')
       : unassigned > 0
-        ? countBadge(`${unassigned} unassigned`)
+        ? countBadge(t('page.unassignedCount', { count: unassigned }))
         : ''
   );
 }
@@ -148,13 +148,15 @@ function renderServices(ctx: RenderContext, route: Route): string {
       label: service.id,
       sublabel: weekdaysLabel(service.days),
       ...(service.start && service.end
-        ? { badge: `${service.start} to ${service.end}` }
+        ? {
+            badge: t('days.range', { start: service.start, end: service.end }),
+          }
         : {}),
     })
   );
 
   return rowSection(
-    'Service calendar',
+    t('page.serviceCalendar'),
     services.length,
     `${entityRowList(rows, '')}${cappedNote(services.length, shown.length)}`
   );
@@ -172,6 +174,6 @@ export function renderRoutePage(
     directionExtra: (routeId, directionId) =>
       renderTrips(ctx, routeId, directionId),
     routeExtra: (route) => renderServices(ctx, route),
-    vehicleCountLabel: 'Trackers with a fix',
+    vehicleCountLabel: t('page.trackersWithFix'),
   });
 }

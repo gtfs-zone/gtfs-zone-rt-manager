@@ -21,6 +21,7 @@
 
 import { CONFIG } from '../config';
 import type { Feed } from '../types/api';
+import { t } from '../i18n/messages';
 
 /** True for a feed whose zip this app stores and publishes. */
 export function isHosted(feed: Feed): boolean {
@@ -47,5 +48,5 @@ export function scheduleFetchUrl(feed: Feed): string | null {
 
 /** How the source reads in a sentence, for a label or a toast. */
 export function sourceLabel(feed: Feed): string {
-  return isHosted(feed) ? 'Uploaded zip' : 'Linked URL';
+  return isHosted(feed) ? t('source.uploaded') : t('source.linked');
 }

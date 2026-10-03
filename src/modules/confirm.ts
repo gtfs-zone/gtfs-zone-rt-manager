@@ -17,6 +17,7 @@
 
 import { showModal } from 'gtfs-zone-web-common/ui/modal-utils';
 import { escHtml } from 'gtfs-zone-web-common/gtfs/entity-render';
+import { t } from '../i18n/messages';
 
 function consequenceList(consequences: string[]): string {
   if (consequences.length === 0) {
@@ -48,9 +49,9 @@ export async function confirmAction(options: ConfirmOptions): Promise<boolean> {
         ${consequenceList(options.consequences ?? [])}
       </div>`,
     actions: [
-      { label: 'Cancel', onClick: () => {} },
+      { label: t('confirm.cancel'), onClick: () => {} },
       {
-        label: options.confirmLabel ?? 'Remove',
+        label: options.confirmLabel ?? t('confirm.remove'),
         className: 'btn-error',
         onClick: () => {
           confirmed = true;
@@ -79,7 +80,7 @@ export async function confirmTyped(
   options: ConfirmTypedOptions
 ): Promise<boolean> {
   let confirmed = false;
-  const label = options.phraseLabel ?? 'name';
+  const label = options.phraseLabel ?? t('confirm.name');
 
   await showModal({
     title: escHtml(options.title),
@@ -88,16 +89,18 @@ export async function confirmTyped(
         <p class="text-sm">${escHtml(options.question)}</p>
         ${consequenceList(options.consequences ?? [])}
         <label class="fieldset">
-          <span class="label">Type the ${escHtml(label)}
-            <span class="font-mono">${escHtml(options.phrase)}</span> to confirm</span>
+          <span class="label">${t('confirm.type', {
+            label: escHtml(label),
+            phrase: `<span class="font-mono">${escHtml(options.phrase)}</span>`,
+          })}</span>
           <input data-confirm-input class="input input-bordered w-full"
                  autocomplete="off" autofocus />
         </label>
       </div>`,
     actions: [
-      { label: 'Cancel', onClick: () => {} },
+      { label: t('confirm.cancel'), onClick: () => {} },
       {
-        label: options.confirmLabel ?? 'Delete',
+        label: options.confirmLabel ?? t('confirm.delete'),
         className: 'btn-error',
         onClick: () => {
           confirmed = true;

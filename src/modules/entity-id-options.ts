@@ -15,10 +15,10 @@
 
 import type { GTFSScheduled } from 'gtfs-zone-web-common/gtfs/scheduled';
 import type { FieldOption } from './entity-form';
+import { t } from '../i18n/messages';
 
 /** What a combo says when there is no schedule to suggest from. */
-export const NO_SCHEDULE =
-  'The schedule has not loaded in this browser, so there is nothing to suggest. Type the id exactly as the feed spells it.';
+export const NO_SCHEDULE = t('ids.noSchedule');
 
 /**
  * `route_type` names, for labelling only.
@@ -28,16 +28,16 @@ export const NO_SCHEDULE =
  * number, which is what the reference calls them too.
  */
 const ROUTE_TYPE_NAMES: Record<number, string> = {
-  0: 'Tram, streetcar or light rail',
-  1: 'Subway or metro',
-  2: 'Rail',
-  3: 'Bus',
-  4: 'Ferry',
-  5: 'Cable tram',
-  6: 'Aerial lift',
-  7: 'Funicular',
-  11: 'Trolleybus',
-  12: 'Monorail',
+  0: t('routeType.0'),
+  1: t('routeType.1'),
+  2: t('routeType.2'),
+  3: t('routeType.3'),
+  4: t('routeType.4'),
+  5: t('routeType.5'),
+  6: t('routeType.6'),
+  7: t('routeType.7'),
+  11: t('routeType.11'),
+  12: t('routeType.12'),
 };
 
 export function agencyOptions(feed: GTFSScheduled | null): FieldOption[] {
@@ -93,7 +93,7 @@ export function routeTypeOptions(feed: GTFSScheduled | null): FieldOption[] {
       label: ROUTE_TYPE_NAMES[type]
         ? `${type} — ${ROUTE_TYPE_NAMES[type]}`
         : String(type),
-      detail: `${count} route${count === 1 ? '' : 's'}`,
+      detail: t('ids.routes', { count }),
     }));
 }
 
@@ -133,7 +133,7 @@ export function directionOptions(feed: GTFSScheduled | null): FieldOption[] {
     return {
       value: direction,
       label: direction,
-      detail: top.length ? `e.g. ${top.join(' - ')}` : '',
+      detail: top.length ? t('ids.examples', { list: top.join(' - ') }) : '',
     };
   });
 }

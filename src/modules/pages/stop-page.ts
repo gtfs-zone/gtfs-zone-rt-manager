@@ -17,6 +17,7 @@ import { servicesForTrips, weekdaysLabel } from '../service-catalog';
 import { CONFIG } from '../../config';
 import type { RenderContext, RtIndex } from '../render-context';
 import { RT_PAGE_HOOKS } from '../render-context';
+import { t } from '../../i18n/messages';
 
 /**
  * When anything calls here, as the waterfall.
@@ -50,13 +51,15 @@ function renderServices(ctx: RenderContext, stopIds: string[]): string {
       label: service.id,
       sublabel: weekdaysLabel(service.days),
       ...(service.start && service.end
-        ? { badge: `${service.start} to ${service.end}` }
+        ? {
+            badge: t('days.range', { start: service.start, end: service.end }),
+          }
         : {}),
     })
   );
 
   return rowSection(
-    'Service calendar',
+    t('page.serviceCalendar'),
     services.length,
     `${entityRowList(rows, '')}${cappedNote(services.length, shown.length)}`
   );

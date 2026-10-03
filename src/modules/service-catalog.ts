@@ -28,6 +28,7 @@ import {
   WEEKDAY_DISPLAY,
   WEEKDAY_LABELS,
 } from './service-date';
+import { t } from '../i18n/messages';
 
 /** One service_id, with both halves of its calendar resolved. */
 export interface ServiceSummary {
@@ -58,10 +59,10 @@ export function weekdaysLabel(days: readonly boolean[]): string {
   // label is about is the one `WEEKDAY_DISPLAY` points at.
   const named = WEEKDAY_LABELS.filter((_, slot) => days[WEEKDAY_DISPLAY[slot]]);
   if (named.length === 7) {
-    return 'Every day';
+    return t('days.every');
   }
   if (named.length === 0) {
-    return 'No weekly pattern';
+    return t('days.none');
   }
   return named.join(', ');
 }

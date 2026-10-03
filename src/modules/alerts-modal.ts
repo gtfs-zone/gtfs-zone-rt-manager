@@ -30,6 +30,7 @@ import type { FeedSession } from './feed-session';
 import { actionButton } from './managed-render';
 import { showModal } from 'gtfs-zone-web-common/ui/modal-utils';
 import type { RenderContext } from './render-context';
+import { t } from '../i18n/messages';
 
 export interface AlertsModalHooks {
   ctx: RenderContext;
@@ -46,7 +47,7 @@ export function alertsBadgeCount(session: FeedSession): number {
 
 function renderAlerts(ctx: RenderContext): string {
   if (!ctx.session.feed) {
-    return `<p class="text-sm opacity-60">No feed is selected.</p>`;
+    return `<p class="text-sm opacity-60">${t('common.noFeed')}</p>`;
   }
 
   // Newest first: an alert is written about something happening now, so the
@@ -58,15 +59,15 @@ function renderAlerts(ctx: RenderContext): string {
   const rows = alerts.map((alert) =>
     entityRow(ctx, {
       state: { type: 'alert', alert_id: String(alert.id) },
-      label: alert.header_text || `Alert ${alert.id}`,
-      badge: `${alert.entity_count} entit${alert.entity_count === 1 ? 'y' : 'ies'}`,
+      label: alert.header_text || t('alerts.fallback', { id: alert.id }),
+      badge: t('alerts.entities', { count: alert.entity_count }),
     })
   );
 
   return `
     <div class="space-y-3">
-      <div class="flex justify-end">${actionButton('alert:new', '', 'New alert', 'btn-primary')}</div>
-      ${entityRowList(rows, 'No service alerts.')}
+      <div class="flex justify-end">${actionButton('alert:new', '', t('alerts.new'), 'btn-primary')}</div>
+      ${entityRowList(rows, t('alerts.none'))}
     </div>`;
 }
 
@@ -92,9 +93,9 @@ export async function showAlertsModal(hooks: AlertsModalHooks): Promise<void> {
   session.addEventListener('change', onChange);
 
   await showModal({
-    title: 'Service alerts',
+    title: t('alerts.title'),
     body: '<div data-alerts-root></div>',
-    actions: [{ label: 'Close', onClick: () => {} }],
+    actions: [{ label: t('common.close'), onClick: () => {} }],
     enterAction: 0,
     escapeAction: 0,
     boxClassName: 'max-w-2xl',

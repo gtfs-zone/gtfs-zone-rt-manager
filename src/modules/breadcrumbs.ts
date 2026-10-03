@@ -19,11 +19,12 @@ import {
 } from 'gtfs-zone-web-common/gtfs/breadcrumbs';
 import type { RoutePageRef } from 'gtfs-zone-web-common/gtfs/entity-render';
 import type { FeedSession } from './feed-session';
+import { t } from '../i18n/messages';
 
 function home(session: FeedSession): BreadcrumbItem<PageState> {
   return {
-    typeLabel: 'Feed',
-    label: truncateCrumb(session.feed?.feed_name ?? 'Feed'),
+    typeLabel: t('crumb.feed'),
+    label: truncateCrumb(session.feed?.feed_name ?? t('crumb.feed')),
     pageState: { type: 'home' },
   };
 }
@@ -41,15 +42,18 @@ export function trackerLabel(session: FeedSession, trackerId: string): string {
 /** A live vehicle's own label; an expired one has nothing left to name it by. */
 export function vehicleLabel(session: FeedSession, key: string): string {
   const vehicle = session.vehicles.get(key);
-  return vehicle?.label || vehicle?.vehicleId || 'Vehicle';
+  return vehicle?.label || vehicle?.vehicleId || t('crumb.vehicle');
 }
 
 export function alertLabel(session: FeedSession, alertId: string): string {
   const managed = session.serviceAlerts.get(alertId);
   if (managed) {
-    return managed.header_text || `Alert ${alertId}`;
+    return managed.header_text || t('alerts.fallback', { id: alertId });
   }
-  return rtAlertHeader(session.alerts, alertId) ?? `Alert ${alertId}`;
+  return (
+    rtAlertHeader(session.alerts, alertId) ??
+    t('alerts.fallback', { id: alertId })
+  );
 }
 
 /** The route a trip belongs to, from the state or from the parsed feed. */
@@ -96,7 +100,7 @@ export function buildBreadcrumbs(
       return [
         home(session),
         {
-          typeLabel: 'Tracker',
+          typeLabel: t('crumb.tracker'),
           label: truncateCrumb(trackerLabel(session, state.tracker_id)),
           pageState: state,
         },
@@ -106,12 +110,12 @@ export function buildBreadcrumbs(
       return [
         home(session),
         {
-          typeLabel: 'Tracker',
+          typeLabel: t('crumb.tracker'),
           label: truncateCrumb(trackerLabel(session, state.tracker_id)),
           pageState: { type: 'tracker', tracker_id: state.tracker_id },
         },
         {
-          typeLabel: 'Vehicle',
+          typeLabel: t('crumb.vehicle'),
           label: truncateCrumb(vehicleLabel(session, state.vehicle_key)),
           pageState: state,
         },
@@ -129,7 +133,7 @@ export function buildBreadcrumbs(
         home(session),
         ...(routeId ? [routeCrumb(feed, routeId)] : []),
         {
-          typeLabel: 'Trip',
+          typeLabel: t('crumb.trip'),
           label: truncateCrumb(tripLabel(session, state.trip_id)),
           pageState: state,
         },
@@ -142,7 +146,7 @@ export function buildBreadcrumbs(
         home(session),
         ...(parent ? [alertParentCrumb(feed, parent)] : []),
         {
-          typeLabel: 'Service alert',
+          typeLabel: t('crumb.alert'),
           label: truncateCrumb(alertLabel(session, state.alert_id)),
           pageState: state,
         },

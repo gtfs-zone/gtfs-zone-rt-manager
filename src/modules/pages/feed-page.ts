@@ -52,6 +52,7 @@ import { isHosted, publicScheduleUrl, sourceLabel } from '../feed-source';
 import { formatBytes } from 'gtfs-zone-web-common/gtfs/feed-download';
 import { routeSortKey } from 'gtfs-zone-web-common/gtfs/route-sort';
 import { assignmentCounts } from '../service-catalog';
+import { t } from '../../i18n/messages';
 
 /** Where a section heading's `(?)` sends a reader who wants the whole thing. */
 const SCHEDULE_REFERENCE_URL =
@@ -60,10 +61,8 @@ const REALTIME_REFERENCE_URL =
   'https://gtfs.org/documentation/realtime/reference/';
 
 /** The reference's own words, so this app is not paraphrasing the spec. */
-const SCHEDULE_TOOLTIP = `The General Transit Feed Specification (GTFS) is a standardized format
-  for public transportation schedules and associated geographic information.`;
-const REALTIME_TOOLTIP = `GTFS Realtime is a feed specification that allows public transportation
-  agencies to provide realtime updates about their fleet to application developers.`;
+const SCHEDULE_TOOLTIP = t('feed.scheduleTooltip');
+const REALTIME_TOOLTIP = t('feed.realtimeTooltip');
 
 /**
  * A section heading's `(?)`, using the same trigger markup `spec-field.ts`
@@ -106,11 +105,11 @@ function renderScheduledStatus(ctx: RenderContext): string {
   const session = ctx.session;
   if (session.scheduleError) {
     return `<div class="alert alert-warning alert-sm text-xs">
-      <span>The scheduled feed did not load: ${escHtml(session.scheduleError)}</span>
+      <span>${t('feed.scheduleFailed', { error: escHtml(session.scheduleError) })}</span>
     </div>`;
   }
   if (!session.scheduledFeed) {
-    return `<p class="text-xs opacity-60">Downloading the schedule…</p>`;
+    return `<p class="text-xs opacity-60">${t('feed.downloading')}</p>`;
   }
   return '';
 }
@@ -142,10 +141,10 @@ function renderTrackers(ctx: RenderContext): string {
   );
 
   return rowSection(
-    'Trackers',
+    t('feed.trackers'),
     trackers.length,
-    `${scrollbox(entityRowList(rows, 'No trackers yet.'))}
-     <div class="pt-1">${actionButton('tracker:new', '', 'New tracker')}</div>`
+    `${scrollbox(entityRowList(rows, t('feed.noTrackers')))}
+     <div class="pt-1">${actionButton('tracker:new', '', t('feed.newTracker'))}</div>`
   );
 }
 
@@ -159,7 +158,7 @@ function renderTrackers(ctx: RenderContext): string {
 function renderRoutes(ctx: RenderContext): string {
   const feed = ctx.session.scheduledFeed;
   if (!feed) {
-    return rowSection('Routes', 0, renderScheduledStatus(ctx));
+    return rowSection(t('feed.routes'), 0, renderScheduledStatus(ctx));
   }
 
   const routes = [...feed.routes.values()].sort((a, b) => {
@@ -192,15 +191,15 @@ function renderRoutes(ctx: RenderContext): string {
       leadHtml: routeBadge(ctx, route),
       label: route.long_name || route.short_name || route.id,
       badge: counts
-        ? `${counts.assigned}/${counts.total} assigned`
-        : `${tripIds.length} trip${tripIds.length === 1 ? '' : 's'}`,
+        ? t('feed.assigned', { assigned: counts.assigned, total: counts.total })
+        : t('feed.trips', { count: tripIds.length }),
     });
   });
 
   return rowSection(
-    'Routes',
+    t('feed.routes'),
     routes.length,
-    `${scrollbox(entityRowList(rows, 'No routes in this feed.'))}
+    `${scrollbox(entityRowList(rows, t('feed.noRoutes')))}
      ${cappedNote(routes.length, shown.length)}`
   );
 }
@@ -211,10 +210,10 @@ function renderRoutes(ctx: RenderContext): string {
 function uploaderLabel(ctx: RenderContext, upload: GtfsUpload): string {
   const id = upload.uploaded_by_user_id;
   if (id === null) {
-    return 'someone no longer on this feed';
+    return t('feed.goneUploader');
   }
   const member = ctx.session.members?.members.find((m) => m.user_id === id);
-  return member ? personLabel(member) : `user ${id}`;
+  return member ? personLabel(member) : t('feed.user', { id });
 }
 
 /** One upload as a line: what it was, how big, when, and by whom. */
@@ -237,7 +236,7 @@ function reloadButton(feed: Feed): string {
   return actionButton(
     'feed:reload',
     '',
-    running ? 'Reloading…' : 'Reload',
+    running ? t('feed.reloading') : t('feed.reload'),
     'btn-outline',
     running
   );
@@ -261,14 +260,14 @@ function renderHistory(ctx: RenderContext, feed: Feed): string {
   const uploads = ctx.session.uploads;
   if (uploads === undefined) {
     return isHosted(feed)
-      ? '<p class="text-xs opacity-60">Loading upload history…</p>'
+      ? `<p class="text-xs opacity-60">${t('feed.loadingHistory')}</p>`
       : '';
   }
   if (uploads === null) {
     return `
       <p class="text-xs opacity-60">
-        Could not load upload history.
-        ${actionButton('feed:retry-uploads', '', 'Retry', 'btn-ghost btn-xs')}
+        ${t('feed.historyFailed')}
+        ${actionButton('feed:retry-uploads', '', t('feed.retry'), 'btn-ghost btn-xs')}
       </p>`;
   }
   if (uploads.length === 0) {
@@ -281,23 +280,23 @@ function renderHistory(ctx: RenderContext, feed: Feed): string {
       label: upload.original_filename,
       sublabel: `${formatBytes(upload.size_bytes)} - ${uploaderLabel(ctx, upload)}`,
       badgeHtml: upload.is_current
-        ? '<span class="badge badge-xs badge-success">serving</span>'
+        ? `<span class="badge badge-xs badge-success">${t('feed.serving')}</span>`
         : `<span class="text-xs opacity-60">${isoWithAge(upload.uploaded_at)}</span>`,
       actionsHtml: upload.is_current
         ? ''
-        : `${actionButton('upload:activate', upload.id, 'Serve')}
-           ${actionButton('upload:delete', upload.id, 'Delete', 'btn-ghost btn-error')}`,
+        : `${actionButton('upload:activate', upload.id, t('feed.serve'))}
+           ${actionButton('upload:delete', upload.id, t('common.delete'), 'btn-ghost btn-error')}`,
     })
   );
 
   return `
     <details class="text-xs rounded-lg border border-base-300 p-2" data-detail="feed:uploads">
-      <summary class="cursor-pointer font-medium">Upload history (${uploads.length})</summary>
+      <summary class="cursor-pointer font-medium">${t('feed.history', { count: uploads.length })}</summary>
       <div class="mt-1">
-        ${entityRowList(rows, 'No uploads yet.')}
+        ${entityRowList(rows, t('feed.noUploads'))}
         ${
           uploads.length > shown.length
-            ? `<p class="text-xs opacity-50">${uploads.length - shown.length} older not shown.</p>`
+            ? `<p class="text-xs opacity-50">${t('feed.olderHidden', { count: uploads.length - shown.length })}</p>`
             : ''
         }
       </div>
@@ -322,48 +321,53 @@ function renderScheduled(ctx: RenderContext, feed: Feed): string {
   const load = feed.load;
   const scheduledFeed = ctx.session.scheduledFeed;
 
-  const rows = [prop('Source', escHtml(sourceLabel(feed)))];
+  const rows = [prop(t('feed.source'), escHtml(sourceLabel(feed)))];
   if (scheduledFeed) {
     const counts = assignmentCounts(ctx.session, scheduledFeed.trips.keys());
     rows.push(
       prop(
-        'Trips assigned',
-        counts ? `${counts.assigned} of ${counts.total}` : '—'
+        t('feed.tripsAssigned'),
+        counts
+          ? t('feed.assignedOf', {
+              assigned: counts.assigned,
+              total: counts.total,
+            })
+          : '—'
       )
     );
   }
   if (hosted) {
     rows.push(
       published
-        ? urlRow('Published at', published)
+        ? urlRow(t('feed.publishedAt'), published)
         : prop(
-            'Published at',
-            '<span class="opacity-40">nothing uploaded yet</span>'
+            t('feed.publishedAt'),
+            `<span class="opacity-40">${t('feed.nothingUploaded')}</span>`
           )
     );
     rows.push(
       current
-        ? prop('Serving', uploadLine(ctx, current))
+        ? prop(t('feed.servingLabel'), uploadLine(ctx, current))
         : prop(
-            'Serving',
-            '<span class="opacity-40">nothing uploaded yet</span>'
+            t('feed.servingLabel'),
+            `<span class="opacity-40">${t('feed.nothingUploaded')}</span>`
           )
     );
   } else {
-    rows.push(urlRow('Downloaded from', feed.static_feed_url ?? '—'));
+    rows.push(urlRow(t('feed.downloadedFrom'), feed.static_feed_url ?? '—'));
   }
 
   if (load) {
-    rows.push(prop('Last loaded', isoWithAge(load.last_loaded_at)));
+    rows.push(prop(t('feed.lastLoaded'), isoWithAge(load.last_loaded_at)));
     // `isoWithAge` counts in both directions, so a start in the past reads as
     // an elapsed time while a retry in the future reads as a countdown. Both
     // are driven by the panel's own ticker, so a running load shows itself
     // running without the stream having to say anything.
-    rows.push(prop('Started', isoWithAge(load.started_at)));
+    rows.push(prop(t('feed.started'), isoWithAge(load.started_at)));
     if (load.next_retry_at) {
-      rows.push(prop('Next retry', isoWithAge(load.next_retry_at)));
+      rows.push(prop(t('feed.nextRetry'), isoWithAge(load.next_retry_at)));
     }
-    rows.push(prop('Feed timezone', escHtml(load.timezone ?? '—')));
+    rows.push(prop(t('feed.timezone'), escHtml(load.timezone ?? '—')));
   }
 
   const editor = new URLSearchParams({ load: published ?? '' });
@@ -381,17 +385,16 @@ function renderScheduled(ctx: RenderContext, feed: Feed): string {
       ${
         published
           ? ''
-          : `<p class="text-xs opacity-60">This feed has no schedule yet. Upload a zip or load one
-             from a URL below to give it one.</p>`
+          : `<p class="text-xs opacity-60">${t('feed.noSchedule')}</p>`
       }
       ${propList(rows)}
       <div class="flex flex-wrap gap-2 pt-1">
-        ${actionButton('feed:replace-schedule', '', 'Upload GTFS schedule')}
-        ${actionButton('feed:link-schedule', '', 'Load schedule from URL')}
+        ${actionButton('feed:replace-schedule', '', t('feed.upload'))}
+        ${actionButton('feed:link-schedule', '', t('feed.link'))}
         ${hosted ? '' : reloadButton(feed)}
-        ${published ? actionButton('feed:copy-schedule-url', '', 'Copy URL') : ''}
+        ${published ? actionButton('feed:copy-schedule-url', '', t('feed.copyUrl')) : ''}
         <a class="btn btn-xs btn-outline" target="_blank" rel="noopener"
-           href="${escHtml(`${CONFIG.EDITOR_BASE}/#${editor.toString()}`)}">Open in editor</a>
+           href="${escHtml(`${CONFIG.EDITOR_BASE}/#${editor.toString()}`)}">${t('feed.openEditor')}</a>
       </div>
       ${renderHistory(ctx, feed)}
     </div>`,
@@ -420,15 +423,15 @@ function renderRealtime(feed: Feed): string {
   });
 
   return section(
-    'GTFS Realtime Endpoints',
+    t('feed.endpoints'),
     `${propList([
-      urlRow('Vehicle positions', feed.vehicle_positions_url, true),
-      urlRow('Trip updates', feed.trip_updates_url, true),
-      urlRow('Service alerts', feed.service_alerts_url, true),
+      urlRow(t('feed.vehiclePositions'), feed.vehicle_positions_url, true),
+      urlRow(t('feed.tripUpdates'), feed.trip_updates_url, true),
+      urlRow(t('feed.serviceAlerts'), feed.service_alerts_url, true),
     ])}
     <div class="flex flex-wrap gap-2 pt-1">
       <a class="btn btn-xs btn-outline" target="_blank" rel="noopener"
-         href="${escHtml(`${CONFIG.VIZ_BASE}/#${viz.toString()}`)}">Open in visualizer</a>
+         href="${escHtml(`${CONFIG.VIZ_BASE}/#${viz.toString()}`)}">${t('feed.openViewer')}</a>
     </div>`,
     docsTooltip(REALTIME_REFERENCE_URL, REALTIME_TOOLTIP)
   );
@@ -446,10 +449,10 @@ function renderRealtime(feed: Feed): string {
  */
 function renderActions(feed: Feed): string {
   return section(
-    'Feed',
+    t('feed.feed'),
     `<div class="flex flex-wrap gap-2">
-      ${actionButton('feed:edit', '', 'Edit')}
-      ${feed.can_manage ? actionButton('feed:delete', '', 'Delete', 'btn-outline btn-error') : ''}
+      ${actionButton('feed:edit', '', t('common.edit'))}
+      ${feed.can_manage ? actionButton('feed:delete', '', t('common.delete'), 'btn-outline btn-error') : ''}
     </div>`
   );
 }
@@ -457,12 +460,15 @@ function renderActions(feed: Feed): string {
 export function renderFeedPage(ctx: RenderContext): string {
   const feed = ctx.session.feed;
   if (!feed) {
-    return '<p class="text-base-content/50 text-sm text-center py-8">No feed selected</p>';
+    return `<p class="text-base-content/50 text-sm text-center py-8">${t('feed.noFeed')}</p>`;
   }
 
+  const ownerName = feed.owner_name ?? t('feed.user', { id: feed.owner_id });
   const owner = feed.is_owner
-    ? 'you'
-    : `${feed.owner_name ?? `user ${feed.owner_id}`}${feed.can_manage ? ' (you may manage it)' : ''}`;
+    ? t('feed.you')
+    : feed.can_manage
+      ? t('feed.mayManage', { name: ownerName })
+      : ownerName;
 
   return `
     <div class="space-y-4">
@@ -470,7 +476,7 @@ export function renderFeedPage(ctx: RenderContext): string {
         <h2 class="text-lg font-semibold leading-tight">${escHtml(feed.feed_name)}</h2>
         <div class="flex items-center gap-2 text-xs opacity-70">
           ${loadStatusBadge(feed.load, 'badge-xs')}
-          <span>Owned by ${escHtml(owner)}</span>
+          <span>${t('feed.ownedBy', { owner: escHtml(owner) })}</span>
         </div>
       </div>
 

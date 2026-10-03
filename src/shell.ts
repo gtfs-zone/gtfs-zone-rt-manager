@@ -4,10 +4,11 @@
  */
 
 import { mountAppShell } from 'gtfs-zone-web-common/ui/app-shell';
+import { t } from './i18n/messages';
 
 // No dock: the panel is the whole of the mobile UI here.
 mountAppShell({
   brandPrefix: 'manage',
   brandSuffix: '.rt.gtfs.zone',
-  panelPlaceholder: 'No feed selected',
+  panelPlaceholder: t('shell.noFeed'),
 });

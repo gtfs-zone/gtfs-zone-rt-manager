@@ -14,41 +14,38 @@ import {
   shortcutsPage,
   type HelpPage,
 } from 'gtfs-zone-web-common/ui/help-pages';
+import { t } from '../i18n/messages';
 
 const ABOUT_APP: AboutApp = {
   name: 'manage.rt.gtfs.zone',
-  blurb: [
-    'manage.rt.gtfs.zone runs a GTFS Realtime feed: the schedule behind it, the trackers reporting positions, what each tracker is running today, and the alerts riders see.',
-    'A feed here is published at rt.gtfs.zone for anybody to consume. What you set up on this map is what the world reads:',
-  ],
+  blurb: [t('help.about.blurb'), t('help.about.blurb2')],
   highlights: [
-    'Feeds, with a schedule you link by URL or upload',
-    'Trackers, and the trips they are assigned to',
-    'Service alerts, written against the loaded schedule',
-    'Managers, and who owns the feed',
+    t('help.about.feeds'),
+    t('help.about.trackers'),
+    t('help.about.alerts'),
+    t('help.about.managers'),
   ],
-  blurbFooter:
-    'The schedule is parsed in your browser, so browsing a feed uploads nothing. Uploading a schedule is the exception and is the point of it: that zip is stored and served publicly at the permanent gtfs.zip URL of that feed.',
-  contactSubject: 'manage.rt.gtfs.zone feedback',
+  blurbFooter: t('help.about.footer'),
+  contactSubject: t('help.about.subject'),
   repo: 'gtfs-zone-rt-manager',
   sibling: {
     name: 'viz.rt.gtfs.zone',
     href: 'https://viz.rt.gtfs.zone',
-    note: 'watch a realtime feed on a live map',
+    note: t('help.about.sibling'),
   },
 };
 
 /** The Project block, with this app as the one that is not linked. */
-const PROJECT_SECTION = renderSection('Project', [
-  `${link('https://gtfs.zone', 'gtfs.zone')}: the project these tools belong to`,
+const PROJECT_SECTION = renderSection(t('help.about.project'), [
+  `${link('https://gtfs.zone', 'gtfs.zone')}: ${t('help.about.site')}`,
   `${link(ABOUT_APP.sibling.href, ABOUT_APP.sibling.name)}: ${ABOUT_APP.sibling.note}`,
-  `${link('https://edit.gtfs.zone', 'edit.gtfs.zone')}: build and edit a GTFS schedule feed in the browser`,
+  `${link('https://edit.gtfs.zone', 'edit.gtfs.zone')}: ${t('help.about.editor')}`,
 ]);
 
 /** The Resources block: the two specs a feed here is written against. */
-const RESOURCES_SECTION = renderSection('Resources', [
-  `${link('https://gtfs.org/documentation/schedule/reference/', 'GTFS Schedule Reference')}: the file format behind a schedule`,
-  `${link('https://gtfs.org/documentation/realtime/reference/', 'GTFS Realtime Reference')}: the field reference behind every alert and trip update here`,
+const RESOURCES_SECTION = renderSection(t('help.about.resources'), [
+  `${link('https://gtfs.org/documentation/schedule/reference/', 'GTFS Schedule Reference')}: ${t('help.about.schedule')}`,
+  `${link('https://gtfs.org/documentation/realtime/reference/', 'GTFS Realtime Reference')}: ${t('help.about.realtime')}`,
 ]);
 
 export const HELP_PAGES: HelpPage[] = [

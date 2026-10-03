@@ -22,6 +22,7 @@ import type { RTFieldSpec, RTPresence } from '../gtfs-rt-spec/types';
 import { rtField } from '../gtfs-rt-spec/index';
 import { renderSpecDescription } from 'gtfs-zone-web-common/gtfs/spec-markup';
 import { escHtml } from 'gtfs-zone-web-common/gtfs/entity-render';
+import { t } from '../i18n/messages';
 
 /** Which message field a form field is. Resolved against `src/gtfs-rt-spec/`. */
 export interface SpecRef {
@@ -71,22 +72,20 @@ export function specTooltipContent(ref: SpecRef, spec: RTFieldSpec): string {
     parts.push(renderSpecDescription(spec.description));
   }
   parts.push(
-    `<div class="opacity-70">ID: <code class="text-xs">${escHtml(ref.message)}.${escHtml(
-      spec.name
-    )}</code></div>`
+    `<div class="opacity-70">${t('spec.id', {
+      id: `<code class="text-xs">${escHtml(ref.message)}.${escHtml(spec.name)}</code>`,
+    })}</div>`
   );
   parts.push(
-    `<div class="opacity-70">Type: <code class="text-xs">${escHtml(spec.type)}</code>${
-      spec.cardinality === 'Many' ? ', repeated' : ''
-    }</div>`
+    `<div class="opacity-70">${t('spec.type', {
+      type: `<code class="text-xs">${escHtml(spec.type)}</code>`,
+    })}${spec.cardinality === 'Many' ? t('spec.repeated') : ''}</div>`
   );
   parts.push(
-    `<div class="opacity-70">Presence: ${escHtml(spec.presence)}</div>`
+    `<div class="opacity-70">${t('spec.presence', { presence: escHtml(spec.presence) })}</div>`
   );
   if (spec.experimental) {
-    parts.push(
-      '<div class="opacity-70">Still experimental, and subject to change.</div>'
-    );
+    parts.push(`<div class="opacity-70">${t('spec.experimental')}</div>`);
   }
   return parts.join('');
 }

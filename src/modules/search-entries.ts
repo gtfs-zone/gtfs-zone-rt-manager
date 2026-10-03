@@ -27,6 +27,7 @@ import {
   dotMarker,
   type SearchEntry,
 } from 'gtfs-zone-web-common/ui/search-controller';
+import { t } from '../i18n/messages';
 
 // Alerts have no map feature and so no color of their own; amber reads as the
 // warning it is against every basemap.
@@ -64,10 +65,10 @@ export function buildSearchEntries(
       icon: dotMarker(vehicleColor(routeId)),
       primary: tracker.nickname,
       secondary: fleet
-        ? `${positions.length} vehicles`
+        ? t('search.vehicles', { count: positions.length })
         : position
           ? vehicleDisplayName(feed, position)
-          : 'no fix',
+          : t('search.noFix'),
       haystack: fleet
         ? searchHaystack(tracker.nickname)
         : searchHaystack(
@@ -111,7 +112,7 @@ export function buildSearchEntries(
     entries.push({
       payload: { type: 'alert', alert_id: String(alert.id) },
       icon: dotMarker(ALERT_MARKER_COLOR),
-      primary: alert.header_text || `Alert ${alert.id}`,
+      primary: alert.header_text || t('search.alert', { id: alert.id }),
       secondary: alert.effect ?? alert.cause ?? undefined,
       haystack: searchHaystack(
         alert.header_text,

@@ -37,27 +37,28 @@ import {
   propList,
   section,
 } from 'gtfs-zone-web-common/gtfs/entity-render';
+import { t } from '../../i18n/messages';
 
 /** The managed alert's own window, which is one period rather than a list. */
 function renderManagedWindow(alert: Alert): string {
   if (!alert.active_period_start && !alert.active_period_end) {
-    return `<p class="text-xs opacity-60">No window set — the alert is published for as long as it exists.</p>`;
+    return `<p class="text-xs opacity-60">${t('alert.noWindow')}</p>`;
   }
   return propList([
     prop(
-      'From',
+      t('alert.from'),
       escHtml(
         alert.active_period_start
           ? formatIso(alert.active_period_start)
-          : 'always'
+          : t('alert.always')
       )
     ),
     prop(
-      'Until',
+      t('alert.until'),
       escHtml(
         alert.active_period_end
           ? formatIso(alert.active_period_end)
-          : 'open-ended'
+          : t('alert.openEnded')
       )
     ),
   ]);
@@ -103,14 +104,14 @@ function renderAffectedEntity(ctx: RenderContext, e: InformedEntity): string {
       e.route_id ??
       e.stop_id ??
       e.agency_id ??
-      'The whole feed — this entity names nothing';
+      t('alert.wholeFeed');
   }
 
   // Everything the row did not spend on its label, so a selector that names a
   // route *and* a direction still says both.
   const rest: string[] = [];
   if (e.agency_id && label !== e.agency_id) {
-    rest.push(`agency ${e.agency_id}`);
+    rest.push(t('alert.agency', { id: e.agency_id }));
   }
   if (e.route_type !== null) {
     rest.push(`route_type ${e.route_type}`);
@@ -119,16 +120,18 @@ function renderAffectedEntity(ctx: RenderContext, e: InformedEntity): string {
     rest.push(`route_id ${route.id}`);
   }
   if (stop && (trip || route)) {
-    rest.push(`stop ${stop.name || stop.id}`);
+    rest.push(t('alert.stop', { name: stop.name || stop.id }));
   }
   if (e.direction_id !== null) {
-    rest.push(`direction ${e.direction_id}`);
+    rest.push(t('alert.direction', { id: e.direction_id }));
   }
   if (trip && route) {
-    rest.push(`on ${route.short_name || route.long_name || route.id}`);
+    rest.push(
+      t('alert.on', { route: route.short_name || route.long_name || route.id })
+    );
   }
   if (e.trip_route_id && !route) {
-    rest.push(`trip route ${e.trip_route_id}`);
+    rest.push(t('alert.tripRoute', { id: e.trip_route_id }));
   }
   if (e.trip_start_date) {
     rest.push(e.trip_start_date);
@@ -152,20 +155,23 @@ function renderAffectedEntity(ctx: RenderContext, e: InformedEntity): string {
     label,
     ...(rest.length ? { sublabel: rest.join(' - ') } : {}),
     badge: ALERT_LEVEL_LABELS[level],
-    actionsHtml: actionButton('entity:delete', arg, 'Remove', 'btn-ghost'),
+    actionsHtml: actionButton(
+      'entity:delete',
+      arg,
+      t('common.remove'),
+      'btn-ghost'
+    ),
   });
 }
 
 /** What the alert informs, or the count while the detail request is in flight. */
 function renderAffects(ctx: RenderContext, alert: Alert): string {
   const detail = ctx.session.alertDetails.get(String(alert.id));
-  const empty = 'Nothing named — the alert applies to the whole feed.';
+  const empty = t('alert.nothingNamed');
   if (!detail) {
     return alert.entity_count === 0
       ? emptyState(empty)
-      : `<p class="text-xs opacity-60">Loading ${escHtml(String(alert.entity_count))} informed entit${
-          alert.entity_count === 1 ? 'y' : 'ies'
-        }…</p>`;
+      : `<p class="text-xs opacity-60">${t('alert.loadingEntities', { count: alert.entity_count })}</p>`;
   }
   return entityRowList(
     detail.entities.map((e) => renderAffectedEntity(ctx, e)),
@@ -199,14 +205,14 @@ function renderManagedAlertPage(ctx: RenderContext, alert: Alert): string {
         <div class="flex items-center gap-2">
           ${
             active
-              ? '<span class="badge badge-warning badge-xs">active</span>'
-              : '<span class="badge badge-ghost badge-xs">not active</span>'
+              ? `<span class="badge badge-warning badge-xs">${t('alert.active')}</span>`
+              : `<span class="badge badge-ghost badge-xs">${t('alert.notActive')}</span>`
           }
         </div>
         <h2 class="text-lg font-semibold leading-tight">${escHtml(alert.header_text)}</h2>
         <div class="flex flex-wrap gap-2">
-          ${actionButton('alert:edit', String(alert.id), 'Edit')}
-          ${actionButton('alert:delete', String(alert.id), 'Delete', 'btn-outline btn-error')}
+          ${actionButton('alert:edit', String(alert.id), t('common.edit'))}
+          ${actionButton('alert:delete', String(alert.id), t('common.delete'), 'btn-outline btn-error')}
         </div>
         ${
           alert.description_text
@@ -222,21 +228,21 @@ function renderManagedAlertPage(ctx: RenderContext, alert: Alert): string {
       </div>
 
       ${section(
-        'Properties',
+        t('alert.properties'),
         propList([
-          prop('Cause', escHtml(alert.cause ?? '—')),
-          prop('Effect', escHtml(alert.effect ?? '—')),
-          prop('Severity', escHtml(alert.severity_level ?? '—')),
+          prop(t('alert.cause'), escHtml(alert.cause ?? '—')),
+          prop(t('alert.effect'), escHtml(alert.effect ?? '—')),
+          prop(t('alert.severity'), escHtml(alert.severity_level ?? '—')),
         ])
       )}
 
-      ${section('Active window', renderManagedWindow(alert))}
+      ${section(t('alert.window'), renderManagedWindow(alert))}
       ${rowSection(
-        'Affects',
+        t('alert.affects'),
         alert.entity_count,
         `<div class="space-y-2">
           ${renderAffects(ctx, alert)}
-          ${actionButton('entity:add', String(alert.id), 'Add entity')}
+          ${actionButton('entity:add', String(alert.id), t('alert.addEntity'))}
         </div>`
       )}
     </div>`;
