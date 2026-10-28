@@ -1,3 +1,30 @@
+## v0.9.0 (2026-10-28)
+
+### Feat
+
+- link the GitHub repo from the navbar
+- add the language toggle to the navbar
+- translate the UI into French through t() and the fmt helpers
+
+### Fix
+
+- **deps**: upgrade packages with published security advisories
+
+### Refactor
+
+- drop the unused realtime poll interval constants
+- use RtMapController from gtfs-zone-web-common
+- use route, stop and alert pages and entity rows from gtfs-zone-web-common
+- extend ValidatedFocusController from gtfs-zone-web-common
+- extend RtPanel from gtfs-zone-web-common
+- use breadcrumb helpers from gtfs-zone-web-common
+- build schedule search entries with gtfs-zone-web-common
+- extend FeedSessionBase from gtfs-zone-web-common
+- use layer manager from gtfs-zone-web-common
+- build page-state codec from gtfs-zone-web-common
+- build calendar modal from gtfs-zone-web-common
+- build help pages from gtfs-zone-web-common
+
 ## v0.8.2 (2026-10-02)
 
 ## v0.8.1 (2026-10-01)
