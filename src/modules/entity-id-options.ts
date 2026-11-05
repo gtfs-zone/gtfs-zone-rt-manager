@@ -14,31 +14,12 @@
  */
 
 import type { GTFSScheduled } from 'gtfs-zone-web-common/gtfs/scheduled';
+import { routeTypeLabel } from 'gtfs-zone-web-common/gtfs/entity-render';
 import type { FieldOption } from './entity-form';
 import { t } from '../i18n/messages';
 
 /** What a combo says when there is no schedule to suggest from. */
 export const NO_SCHEDULE = t('ids.noSchedule');
-
-/**
- * `route_type` names, for labelling only.
- *
- * The values a combo offers come from the feed's own `routes.txt`; this only
- * says what one means. Extended route types have no entry and show the bare
- * number, which is what the reference calls them too.
- */
-const ROUTE_TYPE_NAMES: Record<number, string> = {
-  0: t('routeType.0'),
-  1: t('routeType.1'),
-  2: t('routeType.2'),
-  3: t('routeType.3'),
-  4: t('routeType.4'),
-  5: t('routeType.5'),
-  6: t('routeType.6'),
-  7: t('routeType.7'),
-  11: t('routeType.11'),
-  12: t('routeType.12'),
-};
 
 export function agencyOptions(feed: GTFSScheduled | null): FieldOption[] {
   if (!feed) {
@@ -77,7 +58,10 @@ export function stopOptions(feed: GTFSScheduled | null): FieldOption[] {
   }));
 }
 
-/** The distinct `route_type` values this feed uses, with how many routes each. */
+/**
+ * The distinct `route_type` values this feed uses, with how many routes each,
+ * named by their gtfs-zone-vocab label. An unknown code shows the bare number.
+ */
 export function routeTypeOptions(feed: GTFSScheduled | null): FieldOption[] {
   if (!feed) {
     return [];
@@ -88,13 +72,17 @@ export function routeTypeOptions(feed: GTFSScheduled | null): FieldOption[] {
   }
   return [...counts.entries()]
     .sort((a, b) => a[0] - b[0])
-    .map(([type, count]) => ({
-      value: String(type),
-      label: ROUTE_TYPE_NAMES[type]
-        ? `${type} — ${ROUTE_TYPE_NAMES[type]}`
-        : String(type),
-      detail: t('ids.routes', { count }),
-    }));
+    .map(([type, count]) => {
+      const name = routeTypeLabel(type);
+      if (name === undefined) {
+        console.warn(`[EntityIdOptions] Unknown route_type ${type}`);
+      }
+      return {
+        value: String(type),
+        label: name ? `${type} - ${name}` : String(type),
+        detail: t('ids.routes', { count }),
+      };
+    });
 }
 
 /**
