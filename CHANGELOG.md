@@ -1,3 +1,9 @@
+## v0.10.0 (2026-11-05)
+
+### Feat
+
+- **alerts**: name route types from gtfs-zone-vocab
+
 ## v0.9.0 (2026-10-28)
 
 ### Feat
