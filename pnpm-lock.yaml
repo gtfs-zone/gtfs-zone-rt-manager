@@ -18,11 +18,11 @@ importers:
         specifier: ^5.7.46
         version: 5.7.46
       gtfs-zone-vocab:
-        specifier: github:gtfs-zone/gtfs-zone-vocab#v0.1.0
-        version: https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/52bc8ee4eb2f7059e1b5050ee73dbb55858e3599
+        specifier: github:gtfs-zone/gtfs-zone-vocab#v0.2.0
+        version: https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/341ec43a9b0b7cd179e53ce9ae371c4a0cf1b4be
       gtfs-zone-web-common:
-        specifier: github:gtfs-zone/gtfs-zone-web-common#v5.19.0
-        version: https://codeload.github.com/gtfs-zone/gtfs-zone-web-common/tar.gz/90a17c2a1b2518569826de16900a11599b84d7ee(@leeoniya/ufuzzy@1.0.19)(gtfs-realtime-bindings@2.2.0)(gtfs-zone-vocab@https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/52bc8ee4eb2f7059e1b5050ee73dbb55858e3599)(jszip@3.10.2)(maplibre-gl@6.11.2)(papaparse@5.7.0)
+        specifier: github:gtfs-zone/gtfs-zone-web-common#v5.20.0
+        version: https://codeload.github.com/gtfs-zone/gtfs-zone-web-common/tar.gz/bb9d85daa60b3965d8a78ddbd56188ec19db5ac9(@leeoniya/ufuzzy@1.0.19)(gtfs-realtime-bindings@2.2.0)(gtfs-zone-vocab@https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/341ec43a9b0b7cd179e53ce9ae371c4a0cf1b4be)(jszip@3.10.2)(maplibre-gl@6.11.2)(papaparse@5.7.0)
       jszip:
         specifier: ^3.10.2
         version: 3.10.2
@@ -1208,13 +1208,13 @@ packages:
     resolution: {integrity: sha512-JX6aADdPWtKMXA3Z/G2TK2kgR/gXZFFpfL7cdlR2fYvnJK5JDiyfEGC4+/65dF591d8nooUjhM387OSdesAIDQ==}
     engines: {node: '>=22'}
 
-  gtfs-zone-vocab@https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/52bc8ee4eb2f7059e1b5050ee73dbb55858e3599:
-    resolution: {gitHosted: true, tarball: https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/52bc8ee4eb2f7059e1b5050ee73dbb55858e3599}
-    version: 0.1.0
+  gtfs-zone-vocab@https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/341ec43a9b0b7cd179e53ce9ae371c4a0cf1b4be:
+    resolution: {gitHosted: true, tarball: https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/341ec43a9b0b7cd179e53ce9ae371c4a0cf1b4be}
+    version: 0.2.0
 
-  gtfs-zone-web-common@https://codeload.github.com/gtfs-zone/gtfs-zone-web-common/tar.gz/90a17c2a1b2518569826de16900a11599b84d7ee:
-    resolution: {gitHosted: true, tarball: https://codeload.github.com/gtfs-zone/gtfs-zone-web-common/tar.gz/90a17c2a1b2518569826de16900a11599b84d7ee}
-    version: 5.19.0
+  gtfs-zone-web-common@https://codeload.github.com/gtfs-zone/gtfs-zone-web-common/tar.gz/bb9d85daa60b3965d8a78ddbd56188ec19db5ac9:
+    resolution: {gitHosted: true, integrity: sha512-qAF6erp+P1VdO/JitVYJY9nG0hZlsyE2OVrItiI0WW87afzbfyc/33gSePxcpj9TWtdY3ppWwZbVi0NqolSvWg==, tarball: https://codeload.github.com/gtfs-zone/gtfs-zone-web-common/tar.gz/bb9d85daa60b3965d8a78ddbd56188ec19db5ac9}
+    version: 5.20.0
     peerDependencies:
       '@leeoniya/ufuzzy': '*'
       gtfs-realtime-bindings: '*'
@@ -2693,12 +2693,12 @@ snapshots:
       protobufjs: 8.8.0
       protobufjs-cli: 2.7.0(protobufjs@8.8.0)
 
-  gtfs-zone-vocab@https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/52bc8ee4eb2f7059e1b5050ee73dbb55858e3599: {}
+  gtfs-zone-vocab@https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/341ec43a9b0b7cd179e53ce9ae371c4a0cf1b4be: {}
 
-  gtfs-zone-web-common@https://codeload.github.com/gtfs-zone/gtfs-zone-web-common/tar.gz/90a17c2a1b2518569826de16900a11599b84d7ee(@leeoniya/ufuzzy@1.0.19)(gtfs-realtime-bindings@2.2.0)(gtfs-zone-vocab@https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/52bc8ee4eb2f7059e1b5050ee73dbb55858e3599)(jszip@3.10.2)(maplibre-gl@6.11.2)(papaparse@5.7.0):
+  gtfs-zone-web-common@https://codeload.github.com/gtfs-zone/gtfs-zone-web-common/tar.gz/bb9d85daa60b3965d8a78ddbd56188ec19db5ac9(@leeoniya/ufuzzy@1.0.19)(gtfs-realtime-bindings@2.2.0)(gtfs-zone-vocab@https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/341ec43a9b0b7cd179e53ce9ae371c4a0cf1b4be)(jszip@3.10.2)(maplibre-gl@6.11.2)(papaparse@5.7.0):
     dependencies:
       '@leeoniya/ufuzzy': 1.0.19
-      gtfs-zone-vocab: https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/52bc8ee4eb2f7059e1b5050ee73dbb55858e3599
+      gtfs-zone-vocab: https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/341ec43a9b0b7cd179e53ce9ae371c4a0cf1b4be
       jszip: 3.10.2
       maplibre-gl: 6.11.2
       papaparse: 5.7.0
