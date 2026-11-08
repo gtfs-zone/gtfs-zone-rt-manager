@@ -34,10 +34,8 @@ import { PanelRenderer } from './modules/panel-renderer';
 import { Actions } from './modules/actions';
 import { addDays, startOfWeek, today } from './modules/service-date';
 import { initFieldTooltipPortal } from 'gtfs-zone-web-common/util/tooltip-position';
-import {
-  setHelpPages,
-  showHelpModal,
-} from 'gtfs-zone-web-common/ui/help-modal';
+import { setHelpPages } from 'gtfs-zone-web-common/ui/help-modal';
+import { showRoutedHelpModal } from './modules/routed-help';
 import {
   HELP_GROUP_ORDER,
   setHelpRuntimeData,
@@ -212,7 +210,9 @@ modalRouter.register('alerts', () =>
     action: (action, arg) => void actions.run(action, arg),
   })
 );
-modalRouter.register('help', (modal) => showHelpModal(modal.page));
+modalRouter.register('help', (modal) =>
+  showRoutedHelpModal(appState.pages, modal.page)
+);
 
 panel = new PanelRenderer(panelContent, session, {
   navigate: (state) => appState.setFocus(state),
