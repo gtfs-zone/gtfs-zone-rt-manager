@@ -1,3 +1,9 @@
+## v0.11.0 (2026-11-08)
+
+### Feat
+
+- **help**: keep the guide's open page in the hash
+
 ## v0.10.0 (2026-11-05)
 
 ### Feat
