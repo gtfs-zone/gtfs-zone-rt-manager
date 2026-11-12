@@ -144,9 +144,9 @@ export async function previewGtfsZip(file: File): Promise<ZipPreview> {
     return { ok: false, reason: named };
   }
 
-  const feed = new GTFSScheduled();
+  let feed: GTFSScheduled;
   try {
-    await feed.loadFromFile(file);
+    feed = await GTFSScheduled.load({ file }, { mirror: 'all' });
   } catch (err) {
     return {
       ok: false,
@@ -157,16 +157,16 @@ export async function previewGtfsZip(file: File): Promise<ZipPreview> {
   }
 
   const range = serviceRange(feed);
-  return {
-    ok: true,
-    summary: {
-      sizeBytes: file.size,
-      agencies: feed.agencies.map((a) => a.name).filter(Boolean),
-      routes: feed.routes.size,
-      stops: feed.stops.size,
-      trips: feed.trips.size,
-      serviceStart: range.start,
-      serviceEnd: range.end,
-    },
+  const summary = {
+    sizeBytes: file.size,
+    agencies: feed.agencies.map((a) => a.name).filter(Boolean),
+    routes: feed.routes.size,
+    stops: feed.stops.size,
+    trips: feed.trips.size,
+    serviceStart: range.start,
+    serviceEnd: range.end,
   };
+  // The preview only needs the summary; the worker goes now.
+  feed.release();
+  return { ok: true, summary };
 }
