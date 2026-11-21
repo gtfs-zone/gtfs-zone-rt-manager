@@ -5,6 +5,7 @@
  */
 
 import { CONFIG } from '../../config';
+import { renderScrollbox } from 'gtfs-zone-web-common/ui/scrollbox';
 import type { Route } from 'gtfs-zone-web-common/gtfs/scheduled';
 import type { PageState } from '../../types/page-state';
 import { renderRoutePage as renderSharedRoutePage } from 'gtfs-zone-web-common/gtfs/route-page';
@@ -113,10 +114,7 @@ function renderTrips(
   return rowSection(
     t('page.trips'),
     ordered.length,
-    `<div class="max-h-96 overflow-y-auto overflow-x-hidden px-2">${entityRowList(
-      rows,
-      t('page.noTrips')
-    )}</div>${more}`,
+    `${renderScrollbox(entityRowList(rows, t('page.noTrips')))}${more}`,
     unassigned === null
       ? countBadge('—')
       : unassigned > 0

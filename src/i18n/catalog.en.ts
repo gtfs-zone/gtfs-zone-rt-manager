@@ -52,6 +52,9 @@ export const en = {
   'search.vehicles_other': '{count} vehicles',
   'search.noFix': 'no fix',
   'search.alert': 'Alert {id}',
+  'search.groupTrackers': 'Trackers',
+  'search.groupVehicles': 'Vehicles',
+  'search.groupAlerts': 'Alerts',
   'ids.noSchedule':
     'The schedule has not loaded in this browser, so there is nothing to suggest. Type the id exactly as the feed spells it.',
   'ids.routes_one': '{count} route',

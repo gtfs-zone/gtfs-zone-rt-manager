@@ -57,6 +57,9 @@ export const fr: Translation<typeof en> = {
   'search.vehicles_other': '{count} véhicules',
   'search.noFix': 'aucune position',
   'search.alert': 'Alerte {id}',
+  'search.groupTrackers': 'Traceurs',
+  'search.groupVehicles': 'Véhicules',
+  'search.groupAlerts': 'Alertes',
   'ids.noSchedule':
     "Les horaires ne sont pas chargés dans ce navigateur : il n'y a donc rien à suggérer. Saisissez l'identifiant exactement comme le flux l'écrit.",
   'ids.routes_one': '{count} ligne',

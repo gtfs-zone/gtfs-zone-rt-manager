@@ -34,6 +34,7 @@
  */
 import { CONFIG } from '../config';
 import { FeedSessionBase } from 'gtfs-zone-web-common/gtfs/feed-session';
+import type { ScheduledOptions } from 'gtfs-zone-web-common/gtfs/scheduled';
 import type {
   Alert,
   AlertDetail,
@@ -50,6 +51,9 @@ import type { ServiceDate } from './service-date';
 import type { VehiclePosition } from '../map-controller';
 
 export class FeedSession extends FeedSessionBase<VehiclePosition> {
+  // An agency's own feed is small: keep all of it on the main thread.
+  protected scheduleOptions: ScheduledOptions = { mirror: 'all' };
+
   /** The selected feed's API row, or null when nothing is selected. */
   feed: Feed | null = null;
 

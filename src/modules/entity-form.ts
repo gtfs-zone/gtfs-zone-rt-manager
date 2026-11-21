@@ -35,6 +35,10 @@ import {
 } from 'gtfs-zone-web-common/ui/calendar-input';
 import { ApiError, SessionExpiredError } from './api-client';
 import { showModal } from 'gtfs-zone-web-common/ui/modal-utils';
+import {
+  mountLazyList,
+  type LazyList,
+} from 'gtfs-zone-web-common/ui/lazy-list';
 import { escHtml } from 'gtfs-zone-web-common/gtfs/entity-render';
 import { WEEKDAY_DISPLAY, WEEKDAY_KEYS, WEEKDAY_LABELS } from './service-date';
 import type { SpecRef } from './spec-field';
@@ -290,9 +294,11 @@ function renderInput(field: FormField): string {
       <input ${common} type="text" value="${escHtml(value)}" role="combobox"
         aria-expanded="false" aria-autocomplete="list" autocomplete="off"
         class="input input-bordered w-full" />
-      <ul class="hidden absolute left-0 right-0 top-full z-[60] mt-1 max-h-56 overflow-y-auto
-        rounded-box border border-base-300 bg-base-100 shadow-lg py-1"
-        role="listbox" data-combo="${escHtml(field.name)}"></ul>
+      <div class="hidden absolute left-0 right-0 top-full z-[60] mt-1 max-h-56 overflow-y-auto
+        rounded-box border border-base-300 bg-base-100 shadow-lg py-1 px-3"
+        data-combo-popup="${escHtml(field.name)}">
+        <ul class="-mx-3" role="listbox" data-combo="${escHtml(field.name)}"></ul>
+      </div>
     </div>`;
   }
   if (type === 'file') {
@@ -589,76 +595,74 @@ export async function showEntityForm<T>(
         const input = root.querySelector<HTMLInputElement>(
           `input[data-field="${CSS.escape(field.name)}"]`
         );
+        const popup = root.querySelector<HTMLElement>(
+          `[data-combo-popup="${CSS.escape(field.name)}"]`
+        );
         const list = root.querySelector<HTMLElement>(
           `[data-combo="${CSS.escape(field.name)}"]`
         );
-        if (!input || !list) {
+        if (!input || !popup || !list) {
           continue;
         }
 
         const all = field.options ?? [];
-        let shown: FieldOption[] = [];
+        // Mounted on the first open; the input is its search.
+        let rows: LazyList<FieldOption> | null = null;
+        // Index among the loaded rows, -1 for none.
         let active = -1;
 
-        const rowsFor = (query: string): FieldOption[] => {
-          const needle = query.trim().toLowerCase();
-          const out: FieldOption[] = [];
-          for (const option of all) {
-            if (
-              !needle ||
-              option.value.toLowerCase().includes(needle) ||
-              option.label.toLowerCase().includes(needle) ||
-              (option.detail ?? '').toLowerCase().includes(needle)
-            ) {
-              out.push(option);
-              if (out.length === CONFIG.COMBO_RESULT_LIMIT) {
-                break;
-              }
+        const renderRow = (option: FieldOption): string => `<li>
+          <button type="button" data-combo-value="${escHtml(option.value)}"
+            class="w-full text-left px-3 py-1.5 text-xs hover:bg-base-200">
+            <span class="block truncate">${escHtml(option.label)}</span>
+            ${
+              option.detail
+                ? `<span class="block truncate opacity-60">${escHtml(
+                    option.detail
+                  )}</span>`
+                : ''
             }
-          }
-          return out;
-        };
+          </button>
+        </li>`;
 
-        const paint = (): void => {
-          list.innerHTML = shown.length
-            ? shown
-                .map(
-                  (option, i) => `<li>
-                    <button type="button" data-combo-value="${escHtml(option.value)}"
-                      class="w-full text-left px-3 py-1.5 text-xs hover:bg-base-200 ${
-                        i === active ? 'bg-base-200' : ''
-                      }">
-                      <span class="block truncate">${escHtml(option.label)}</span>
-                      ${
-                        option.detail
-                          ? `<span class="block truncate opacity-60">${escHtml(
-                              option.detail
-                            )}</span>`
-                          : ''
-                      }
-                    </button>
-                  </li>`
-                )
-                .join('')
-            : `<li class="px-3 py-2 text-xs opacity-60">${escHtml(
-                all.length ? t('form.noMatch') : (field.comboEmpty ?? '')
-              )}</li>`;
+        const buttons = (): HTMLElement[] => [
+          ...list.querySelectorAll<HTMLElement>('[data-combo-value]'),
+        ];
+
+        const paintActive = (): void => {
+          buttons().forEach((button, i) =>
+            button.classList.toggle('bg-base-200', i === active)
+          );
         };
 
         const close = (): void => {
-          list.classList.add('hidden');
+          popup.classList.add('hidden');
           input.setAttribute('aria-expanded', 'false');
           active = -1;
         };
 
         const open = (): void => {
-          shown = rowsFor(input.value);
-          if (!shown.length && !all.length && !field.comboEmpty) {
+          if (!all.length && !field.comboEmpty) {
             return;
           }
+          if (!rows) {
+            rows = mountLazyList<FieldOption>(list, {
+              name: `combo ${field.name}`,
+              items: all,
+              pageSize: CONFIG.COMBO_PAGE_ROWS,
+              renderPage: (slice) => slice.map(renderRow).join(''),
+              match: (option, needle) =>
+                option.value.toLowerCase().includes(needle) ||
+                option.label.toLowerCase().includes(needle) ||
+                (option.detail ?? '').toLowerCase().includes(needle),
+              empty: field.comboEmpty ?? '',
+              noMatch: () => t('form.noMatch'),
+            });
+          }
+          rows.setNeedle(input.value);
           active = -1;
-          paint();
-          list.classList.remove('hidden');
+          paintActive();
+          popup.classList.remove('hidden');
           input.setAttribute('aria-expanded', 'true');
         };
 
@@ -679,7 +683,7 @@ export async function showEntityForm<T>(
         input.addEventListener('input', open);
         input.addEventListener('blur', close);
         input.addEventListener('keydown', (event) => {
-          const isOpen = !list.classList.contains('hidden');
+          const isOpen = !popup.classList.contains('hidden');
           if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
             event.preventDefault();
             if (!isOpen) {
@@ -688,19 +692,23 @@ export async function showEntityForm<T>(
             }
             // -1 is "nothing chosen", and the wrap runs through it, so
             // Up from the first row returns to what was typed.
+            // Only the loaded rows count; scrolling to the last one loads
+            // the next page.
+            const loaded = buttons();
             const step = event.key === 'ArrowDown' ? 1 : -1;
-            const slots = shown.length + 1;
+            const slots = loaded.length + 1;
             active = ((active + 1 + step + slots) % slots) - 1;
-            paint();
-            list
-              .querySelectorAll('button')
-              [active]?.scrollIntoView({ block: 'nearest' });
+            paintActive();
+            loaded[active]?.scrollIntoView({ block: 'nearest' });
           } else if (event.key === 'Enter' && isOpen && active >= 0) {
             // Stopped rather than left to bubble: the modal's own Enter
             // handling must not see the key that picked a row.
             event.preventDefault();
             event.stopPropagation();
-            choose(shown[active].value);
+            const value = buttons()[active]?.dataset.comboValue;
+            if (value !== undefined) {
+              choose(value);
+            }
           } else if (event.key === 'Escape' && isOpen) {
             // Same reason: Escape closes the popup here, not the whole form.
             event.preventDefault();
