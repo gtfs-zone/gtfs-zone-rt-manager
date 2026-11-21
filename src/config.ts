@@ -136,10 +136,8 @@ export const CONFIG = {
   // a feed, and a dropdown is the wrong shape for one.
   TRIP_SELECT_MAX: 200,
 
-  // Rows an id combo lists at once. The popup is a shortlist to pick from, not
-  // a way to page through a feed's fifty thousand stops: a query that matches
-  // more than this means "type more". Same number the trip options use.
-  COMBO_RESULT_LIMIT: 50,
+  // Rows an id combo appends per page as its popup scrolls.
+  COMBO_PAGE_ROWS: 50,
 
   // Prod URLs of the sibling apps, for deep links out of a properties page.
   VIZ_BASE: 'https://viz.rt.gtfs.zone',
