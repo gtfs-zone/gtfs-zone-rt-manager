@@ -1,3 +1,16 @@
+## v0.14.0 (2026-11-21)
+
+### Feat
+
+- **alerts**: only the alert rows scroll in the alerts modal
+- **forms**: id combo lists every match, appending pages as its popup scrolls
+- **search**: bump gtfs-zone-web-common to v6.4.0, grouped map search
+- **feed**: load the schedule through the web-common v5.22.0 feed store
+
+### Refactor
+
+- **pages**: capped lists use the shared renderScrollbox
+
 ## v0.13.0 (2026-11-12)
 
 ### Feat
