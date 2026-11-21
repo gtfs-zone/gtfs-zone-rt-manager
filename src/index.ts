@@ -29,7 +29,7 @@ import { showAccountModal } from './modules/account-modal';
 import { SearchController } from 'gtfs-zone-web-common/ui/search-controller';
 import { searchPlaces } from 'gtfs-zone-web-common/map/place-search';
 import type { PlacePayload } from 'gtfs-zone-web-common/map/place-search';
-import { buildSearchEntries } from './modules/search-entries';
+import { buildSearchGroups } from './modules/search-entries';
 import { PanelRenderer } from './modules/panel-renderer';
 import { Actions } from './modules/actions';
 import { addDays, startOfWeek, today } from './modules/service-date';
@@ -240,7 +240,7 @@ mapCtrl.onEmptySelect = () => appState.clearFocus();
 // Selecting a feed object is the same event as clicking it on the map; a place
 // only moves the map.
 const searchController = new SearchController<PageState | PlacePayload>({
-  getEntries: () => buildSearchEntries(session),
+  getGroups: () => buildSearchGroups(session),
   getRemoteEntries: (query, signal) =>
     searchPlaces(query, mapCtrl.getCenter(), signal),
   onSelect: (payload) => {

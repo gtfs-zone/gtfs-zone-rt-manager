@@ -58,6 +58,9 @@ export const de: Translation<typeof en> = {
   'search.vehicles_other': '{count} Fahrzeuge',
   'search.noFix': 'keine Position',
   'search.alert': 'Meldung {id}',
+  'search.groupTrackers': 'Tracker',
+  'search.groupVehicles': 'Fahrzeuge',
+  'search.groupAlerts': 'Meldungen',
   'ids.noSchedule':
     'Der Fahrplan ist in diesem Browser nicht geladen, daher gibt es nichts vorzuschlagen. Geben Sie die ID genau so ein, wie der Feed sie schreibt.',
   'ids.routes_one': '{count} Linie',
