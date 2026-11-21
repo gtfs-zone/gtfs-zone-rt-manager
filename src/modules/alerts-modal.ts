@@ -67,7 +67,7 @@ function renderAlerts(ctx: RenderContext): string {
   return `
     <div class="space-y-3">
       <div class="flex justify-end">${actionButton('alert:new', '', t('alerts.new'), 'btn-primary')}</div>
-      ${entityRowList(rows, t('alerts.none'))}
+      <div class="scroll-rows">${entityRowList(rows, t('alerts.none'))}</div>
     </div>`;
 }
 
