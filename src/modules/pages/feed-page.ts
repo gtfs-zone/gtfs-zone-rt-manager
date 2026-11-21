@@ -24,6 +24,7 @@
  */
 
 import { CONFIG } from '../../config';
+import { renderScrollbox } from 'gtfs-zone-web-common/ui/scrollbox';
 import type { Feed, GtfsUpload } from '../../types/api';
 import type { RenderContext } from '../render-context';
 import {
@@ -114,11 +115,6 @@ function renderScheduledStatus(ctx: RenderContext): string {
   return '';
 }
 
-/** The scroll container every list on this page shares. */
-function scrollbox(body: string): string {
-  return `<div class="max-h-96 overflow-y-auto overflow-x-hidden px-2">${body}</div>`;
-}
-
 /**
  * Every tracker on the feed, reporting or not.
  *
@@ -143,7 +139,7 @@ function renderTrackers(ctx: RenderContext): string {
   return rowSection(
     t('feed.trackers'),
     trackers.length,
-    `${scrollbox(entityRowList(rows, t('feed.noTrackers')))}
+    `${renderScrollbox(entityRowList(rows, t('feed.noTrackers')))}
      <div class="pt-1">${actionButton('tracker:new', '', t('feed.newTracker'))}</div>`
   );
 }
@@ -199,7 +195,7 @@ function renderRoutes(ctx: RenderContext): string {
   return rowSection(
     t('feed.routes'),
     routes.length,
-    `${scrollbox(entityRowList(rows, t('feed.noRoutes')))}
+    `${renderScrollbox(entityRowList(rows, t('feed.noRoutes')))}
      ${cappedNote(routes.length, shown.length)}`
   );
 }
