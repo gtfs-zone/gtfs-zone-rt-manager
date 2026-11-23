@@ -42,10 +42,9 @@ import {
   prop,
   propList,
   section,
-  timestampWithAge,
 } from 'gtfs-zone-web-common/gtfs/entity-render';
 import { t } from '../../i18n/messages';
-import { formatNumber } from 'gtfs-zone-web-common/i18n/fmt';
+import { vehicleProps } from 'gtfs-zone-web-common/gtfs/vehicle-props';
 
 /**
  * The credential, behind a disclosure.
@@ -97,27 +96,10 @@ export function renderVehicle(
   const stop = position.stopId ? feed?.stops.get(position.stopId) : undefined;
 
   return propList([
-    prop(t('tracker.reported'), timestampWithAge(position.timestamp)),
-    prop(t('tracker.coordinates'), mapsLink(position)),
-    position.bearing === undefined
-      ? ''
-      : prop(
-          t('tracker.bearing'),
-          `${escHtml(String(Math.round(position.bearing)))}°`
-        ),
-    position.speed === undefined
-      ? ''
-      : prop(
-          t('tracker.speed'),
-          escHtml(
-            t('tracker.speedValue', {
-              speed: formatNumber(position.speed * 3.6, {
-                minimumFractionDigits: 1,
-                maximumFractionDigits: 1,
-              }),
-            })
-          )
-        ),
+    ...vehicleProps(position, {
+      positionHtml: mapsLink(position),
+      omitStatus: true,
+    }),
     position.tripId
       ? prop(
           t('crumb.trip'),

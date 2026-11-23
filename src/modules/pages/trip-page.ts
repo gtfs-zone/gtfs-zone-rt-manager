@@ -28,7 +28,7 @@ import {
   describeRecurrence,
   formatWindow,
 } from '../managed-render';
-import { zoneLabel } from 'gtfs-zone-web-common/gtfs/feed-time';
+import { renderPredictionTable } from 'gtfs-zone-web-common/gtfs/prediction-table';
 import type { Prediction } from 'gtfs-zone-web-common/gtfs/rt-index';
 import type { RtIndex } from '../render-context';
 import { STRIP_ROW_CLASS } from 'gtfs-zone-web-common/gtfs/route-strip';
@@ -36,9 +36,6 @@ import type { RenderContext } from '../render-context';
 import {
   entityLink,
   escHtml,
-  formatDelay,
-  formatEpochTime,
-  formatScheduledTime,
   missing,
   prop,
   propList,
@@ -119,54 +116,30 @@ function renderSchedule(ctx: RenderContext, rt: RtIndex, trip: Trip): string {
       byStop.set(p.stop_id, p);
     }
   }
-  const live = predictions.length > 0;
-
-  const rows = times
-    .map((time) => {
-      const stop = feed.stops.get(time.stop_id);
-      const prediction =
-        bySequence.get(time.stop_sequence) ?? byStop.get(time.stop_id);
-      return `<tr class="${STRIP_ROW_CLASS}" data-stop-id="${escHtml(time.stop_id)}">
-        <td class="opacity-50 tabular-nums text-right">${escHtml(String(time.stop_sequence))}</td>
-        <td class="max-w-0 truncate">${entityLink(
-          ctx,
-          { type: 'stop', stop_id: time.stop_id },
-          stop?.name || time.stop_id
-        )}</td>
-        <td class="text-right whitespace-nowrap tabular-nums opacity-60">${escHtml(
-          formatScheduledTime(time.arrival_time || undefined, false)
-        )}</td>
-        <td class="text-right whitespace-nowrap tabular-nums opacity-60">${escHtml(
-          formatScheduledTime(time.departure_time || undefined, false)
-        )}</td>
-        ${
-          live
-            ? `<td class="text-right whitespace-nowrap tabular-nums">${escHtml(
-                formatEpochTime(prediction?.time, false)
-              )}</td>
-               <td class="text-right whitespace-nowrap">${formatDelay(prediction?.delay)}</td>`
-            : ''
-        }
-      </tr>`;
-    })
-    .join('');
 
   return section(
     t('trip.schedule'),
-    `<div class="overflow-x-auto"><table class="table table-xs">
-       <thead><tr>
-         <th class="text-right">#</th><th>${t('trip.stop')}</th>
-         <th class="text-right">${t('trip.arr', { zone: escHtml(zoneLabel()) })}</th>
-         <th class="text-right">${t('trip.dep', { zone: escHtml(zoneLabel()) })}</th>
-         ${
-           live
-             ? `<th class="text-right">${t('trip.pred', { zone: escHtml(zoneLabel()) })}</th>
-                <th class="text-right">${t('trip.delay')}</th>`
-             : ''
-         }
-       </tr></thead>
-       <tbody>${rows}</tbody>
-     </table></div>`
+    `<div class="overflow-x-auto">${renderPredictionTable(
+      times.map((time) => {
+        const stop = feed.stops.get(time.stop_id);
+        return {
+          sequence: time.stop_sequence,
+          stopHtml: entityLink(
+            ctx,
+            { type: 'stop', stop_id: time.stop_id },
+            stop?.name || time.stop_id
+          ),
+          prediction:
+            bySequence.get(time.stop_sequence) ?? byStop.get(time.stop_id),
+          scheduled: {
+            arrival: time.arrival_time || undefined,
+            departure: time.departure_time || undefined,
+          },
+          rowClass: STRIP_ROW_CLASS,
+          rowAttrs: `data-stop-id="${escHtml(time.stop_id)}"`,
+        };
+      })
+    )}</div>`
   );
 }
 
