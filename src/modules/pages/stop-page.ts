@@ -13,7 +13,8 @@ import {
   entityRowList,
   rowSection,
 } from 'gtfs-zone-web-common/gtfs/entity-row';
-import { servicesForTrips, weekdaysLabel } from '../service-catalog';
+import { servicesForTrips } from '../service-catalog';
+import { weekdaysLabel } from 'gtfs-zone-web-common/gtfs/service-days';
 import { CONFIG } from '../../config';
 import type { RenderContext, RtIndex } from '../render-context';
 import { RT_PAGE_HOOKS } from '../render-context';
@@ -49,7 +50,7 @@ function renderServices(ctx: RenderContext, stopIds: string[]): string {
   const rows = shown.map((service) =>
     entityRow(ctx, {
       label: service.id,
-      sublabel: weekdaysLabel(service.days),
+      sublabel: weekdaysLabel(service.days, CONFIG.WEEK_START),
       ...(service.start && service.end
         ? {
             badge: t('days.range', { start: service.start, end: service.end }),
@@ -72,11 +73,10 @@ export function renderStopPage(
 ): string {
   return renderSharedStopPage(ctx, rt, state.stop_id, {
     ...RT_PAGE_HOOKS,
-    tripLink: (trip_id, route_id): PageState => ({
-      type: 'trip',
-      trip_id,
-      route_id,
-    }),
+    tripLink: (loc): PageState | undefined =>
+      loc.trip_id
+        ? { type: 'trip', trip_id: loc.trip_id, route_id: loc.route_id }
+        : undefined,
     stopExtra: (_stop, serviceIds) => renderServices(ctx, serviceIds),
   });
 }

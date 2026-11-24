@@ -16,11 +16,8 @@ import {
   entityRowList,
   rowSection,
 } from 'gtfs-zone-web-common/gtfs/entity-row';
-import {
-  assignmentCounts,
-  servicesForTrips,
-  weekdaysLabel,
-} from '../service-catalog';
+import { assignmentCounts, servicesForTrips } from '../service-catalog';
+import { weekdaysLabel } from 'gtfs-zone-web-common/gtfs/service-days';
 import {
   escHtml,
   formatScheduledTime,
@@ -144,7 +141,7 @@ function renderServices(ctx: RenderContext, route: Route): string {
   const rows = shown.map((service) =>
     entityRow(ctx, {
       label: service.id,
-      sublabel: weekdaysLabel(service.days),
+      sublabel: weekdaysLabel(service.days, CONFIG.WEEK_START),
       ...(service.start && service.end
         ? {
             badge: t('days.range', { start: service.start, end: service.end }),

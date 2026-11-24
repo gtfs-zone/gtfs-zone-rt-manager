@@ -49,6 +49,7 @@ import {
   trackerLiveness,
 } from '../managed-render';
 import { resolveRealtimeUrl } from 'gtfs-zone-web-common/gtfs/feed-url-resolve';
+import { renderEndpointUrl } from 'gtfs-zone-web-common/gtfs/endpoint-status';
 import { isHosted, publicScheduleUrl, sourceLabel } from '../feed-source';
 import { formatBytes } from 'gtfs-zone-web-common/gtfs/feed-download';
 import { routeSortKey } from 'gtfs-zone-web-common/gtfs/route-sort';
@@ -86,12 +87,9 @@ function docsTooltip(url: string, content: string): string {
  * or the one this app publishes — and is shown as it stands.
  */
 function urlRow(label: string, url: string, resolve = false): string {
-  const href = resolve ? resolveRealtimeUrl(url, CONFIG.RT_BASE) : url;
   return prop(
     label,
-    `<a href="${escHtml(href)}" target="_blank" rel="noopener" class="link break-all font-mono text-xs">${escHtml(
-      url
-    )}</a>`
+    renderEndpointUrl(url, resolve ? { rtBase: CONFIG.RT_BASE } : {})
   );
 }
 

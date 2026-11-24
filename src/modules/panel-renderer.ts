@@ -50,26 +50,27 @@ export class PanelRenderer extends RtPanel<PageState, VehiclePosition> {
   ) {
     super(host, session, SESSION_EVENTS, {
       ...hooks,
-      renderPage: (state, index) =>
-        renderPage({ session, href: hooks.href }, index, state),
+      renderPage: (state, rt) =>
+        renderPage({ session, href: hooks.href }, rt, state),
     });
   }
 }
 
+/** `rt` builds the realtime index; only the cases that read it call it. */
 function renderPage(
   ctx: RenderContext,
-  index: RtIndex,
+  rt: () => RtIndex,
   state: PageState
 ): string {
   switch (state.type) {
     case 'home':
       return renderFeedPage(ctx);
     case 'route':
-      return renderRoutePage(ctx, index, state);
+      return renderRoutePage(ctx, rt(), state);
     case 'stop':
-      return renderStopPage(ctx, index, state);
+      return renderStopPage(ctx, rt(), state);
     case 'trip':
-      return renderTripPage(ctx, index, state);
+      return renderTripPage(ctx, rt(), state);
     case 'alert':
       return renderAlertPage(ctx, state);
     case 'tracker':

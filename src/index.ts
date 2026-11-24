@@ -35,7 +35,7 @@ import { Actions } from './modules/actions';
 import { addDays, startOfWeek, today } from './modules/service-date';
 import { initFieldTooltipPortal } from 'gtfs-zone-web-common/util/tooltip-position';
 import { setHelpPages } from 'gtfs-zone-web-common/ui/help-modal';
-import { showRoutedHelpModal } from './modules/routed-help';
+import { showRoutedHelpModal } from 'gtfs-zone-web-common/ui/routed-help';
 import {
   HELP_GROUP_ORDER,
   setHelpRuntimeData,

@@ -184,13 +184,12 @@ export class FeedSession extends FeedSessionBase<VehiclePosition> {
   /**
    * Apply one pushed fix, replacing that vehicle and leaving the rest alone.
    *
-   * A `Map` set rather than a rebuilt map: a fleet of fifty reporting every
-   * ten seconds is five of these a second, and the map layer diffs by feature
-   * id, so replacing one entry is the whole update.
+   * The map is copied rather than set in place, since the panel's realtime
+   * index is reused while `vehicles` keeps its identity.
    */
   applyVehicle(vehicle: VehiclePosition): void {
     const now = Date.now();
-    this.vehicles.set(vehicle.key, vehicle);
+    this.vehicles = new Map(this.vehicles).set(vehicle.key, vehicle);
     this.vehicleArrivals.set(vehicle.key, now);
     this.trackerArrivals.set(vehicle.trackerId, now);
     this.dispatchEvent(new CustomEvent('vehicles'));
@@ -206,16 +205,18 @@ export class FeedSession extends FeedSessionBase<VehiclePosition> {
    */
   pruneVehicles(): boolean {
     const cutoff = Date.now() - CONFIG.TRACKER_STALE_MS;
+    const vehicles = new Map(this.vehicles);
     let dropped = false;
     for (const [key, at] of this.vehicleArrivals) {
       if (at > cutoff) {
         continue;
       }
-      this.vehicles.delete(key);
+      vehicles.delete(key);
       this.vehicleArrivals.delete(key);
       dropped = true;
     }
     if (dropped) {
+      this.vehicles = vehicles;
       this.dispatchEvent(new CustomEvent('vehicles'));
     }
     return dropped;

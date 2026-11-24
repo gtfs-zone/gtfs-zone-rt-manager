@@ -2,12 +2,8 @@
  * The trip page: one trip's schedule, stop by stop, with whatever the live feed
  * predicts for it laid alongside, and the trackers assigned to run it.
  *
- * gtfs-zone-rt-manager's own page. gtfs-zone-rt-viewer has no trip page at all — it browses
- * route, stop, vehicle and alert — but the object hierarchy here runs
- * Route -> Trips -> Trip, because a trip is what a tracker is assigned to. Both
- * halves are here: the schedule and predictions the feeds carry, and the
- * assignment rules this app owns, which can be added from this page rather than
- * only from the calendar.
+ * The service lines and the stop times table are web-common's; the trackers
+ * and the assignment rules are this app's.
  *
  * Every clock time is rendered straight from the `stop_times` string. GTFS
  * times run past 24:00 on an overnight trip, so a `Date` round-trip would
@@ -28,17 +24,14 @@ import {
   describeRecurrence,
   formatWindow,
 } from '../managed-render';
-import { zoneLabel } from 'gtfs-zone-web-common/gtfs/feed-time';
-import type { Prediction } from 'gtfs-zone-web-common/gtfs/rt-index';
+import { serviceSection } from 'gtfs-zone-web-common/gtfs/service-days';
+import { tripStopTimesTable } from 'gtfs-zone-web-common/gtfs/trip-page';
+import { CONFIG } from '../../config';
 import type { RtIndex } from '../render-context';
-import { STRIP_ROW_CLASS } from 'gtfs-zone-web-common/gtfs/route-strip';
 import type { RenderContext } from '../render-context';
 import {
   entityLink,
   escHtml,
-  formatDelay,
-  formatEpochTime,
-  formatScheduledTime,
   missing,
   prop,
   propList,
@@ -47,126 +40,27 @@ import {
   section,
   vehicleDisplayName,
 } from 'gtfs-zone-web-common/gtfs/entity-render';
-import { serviceCatalog, weekdaysLabel } from '../service-catalog';
 import { renderAlertList } from 'gtfs-zone-web-common/gtfs/alert-page';
 import { t } from '../../i18n/messages';
 
-/**
- * When this trip runs: three read-only lines off the service it points at.
- *
- * A service is not an object this app browses — there is no page and no crumb
- * for one — so what a reader needs about it belongs here, on the trip that
- * names it: which service, which weekdays, and over what window.
- */
 function renderService(ctx: RenderContext, trip: Trip): string {
-  const feed = ctx.session.scheduledFeed!;
-  const service = serviceCatalog(feed).get(trip.service_id);
-
-  if (!service) {
-    return section(
-      t('trip.service'),
-      `<p class="text-xs opacity-60">${escHtml(
-        t('trip.unknownService', { id: trip.service_id })
-      )}</p>`
-    );
-  }
-
-  // No `calendar.txt` row means no window: the service runs on the dates
-  // `calendar_dates.txt` adds and nowhere else, which "No weekly pattern"
-  // already says.
-  const window =
-    service.start && service.end
-      ? t('days.range', { start: service.start, end: service.end })
-      : t('trip.noRange');
-
-  return section(
-    t('trip.service'),
-    propList([
-      prop(
-        t('trip.service'),
-        `<span class="font-mono">${escHtml(service.id)}</span>`
-      ),
-      prop(t('trip.runs'), escHtml(weekdaysLabel(service.days))),
-      prop(t('trip.window'), escHtml(window)),
-    ])
+  const service = serviceSection(
+    ctx.session.scheduledFeed!,
+    trip.service_id,
+    CONFIG.WEEK_START
   );
+  return section(service.title!, service.body!);
 }
 
-// ─── Schedule ─────────────────────────────────────────────────────────────────
-
 function renderSchedule(ctx: RenderContext, rt: RtIndex, trip: Trip): string {
-  const feed = ctx.session.scheduledFeed!;
-  const times = feed.stopTimesByTrip.get(trip.trip_id) ?? [];
-  if (times.length === 0) {
-    return section(
-      t('trip.schedule'),
-      `<p class="text-xs opacity-60">${t('trip.noStopTimes')}</p>`
-    );
-  }
-
-  // Predictions are keyed by stop, and a loop trip calls at the same stop
-  // twice, so the sequence is what picks the right one where the producer gave
-  // it. Where it did not, the first prediction for the stop is the best guess
-  // available and matching by stop alone is what the strip does too.
-  const predictions = rt.predictionsByTrip.get(trip.trip_id) ?? [];
-  const bySequence = new Map<number, Prediction>();
-  const byStop = new Map<string, Prediction>();
-  for (const p of predictions) {
-    if (p.stop_sequence !== undefined && !bySequence.has(p.stop_sequence)) {
-      bySequence.set(p.stop_sequence, p);
-    }
-    if (!byStop.has(p.stop_id)) {
-      byStop.set(p.stop_id, p);
-    }
-  }
-  const live = predictions.length > 0;
-
-  const rows = times
-    .map((time) => {
-      const stop = feed.stops.get(time.stop_id);
-      const prediction =
-        bySequence.get(time.stop_sequence) ?? byStop.get(time.stop_id);
-      return `<tr class="${STRIP_ROW_CLASS}" data-stop-id="${escHtml(time.stop_id)}">
-        <td class="opacity-50 tabular-nums text-right">${escHtml(String(time.stop_sequence))}</td>
-        <td class="max-w-0 truncate">${entityLink(
-          ctx,
-          { type: 'stop', stop_id: time.stop_id },
-          stop?.name || time.stop_id
-        )}</td>
-        <td class="text-right whitespace-nowrap tabular-nums opacity-60">${escHtml(
-          formatScheduledTime(time.arrival_time || undefined, false)
-        )}</td>
-        <td class="text-right whitespace-nowrap tabular-nums opacity-60">${escHtml(
-          formatScheduledTime(time.departure_time || undefined, false)
-        )}</td>
-        ${
-          live
-            ? `<td class="text-right whitespace-nowrap tabular-nums">${escHtml(
-                formatEpochTime(prediction?.time, false)
-              )}</td>
-               <td class="text-right whitespace-nowrap">${formatDelay(prediction?.delay)}</td>`
-            : ''
-        }
-      </tr>`;
-    })
-    .join('');
-
   return section(
     t('trip.schedule'),
-    `<div class="overflow-x-auto"><table class="table table-xs">
-       <thead><tr>
-         <th class="text-right">#</th><th>${t('trip.stop')}</th>
-         <th class="text-right">${t('trip.arr', { zone: escHtml(zoneLabel()) })}</th>
-         <th class="text-right">${t('trip.dep', { zone: escHtml(zoneLabel()) })}</th>
-         ${
-           live
-             ? `<th class="text-right">${t('trip.pred', { zone: escHtml(zoneLabel()) })}</th>
-                <th class="text-right">${t('trip.delay')}</th>`
-             : ''
-         }
-       </tr></thead>
-       <tbody>${rows}</tbody>
-     </table></div>`
+    tripStopTimesTable(
+      ctx,
+      ctx.session.scheduledFeed!,
+      trip,
+      rt.predictionsByTrip.get(trip.trip_id) ?? []
+    )
   );
 }
 
