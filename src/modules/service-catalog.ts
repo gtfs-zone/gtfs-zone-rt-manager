@@ -23,12 +23,7 @@ import type {
 } from 'gtfs-zone-web-common/gtfs/scheduled';
 import type { FeedSession } from './feed-session';
 import type { ServiceDate } from './service-date';
-import {
-  ruleWeekdayIndex,
-  WEEKDAY_DISPLAY,
-  WEEKDAY_LABELS,
-} from './service-date';
-import { t } from '../i18n/messages';
+import { ruleWeekdayIndex } from './service-date';
 
 /** One service_id, with both halves of its calendar resolved. */
 export interface ServiceSummary {
@@ -51,20 +46,6 @@ export function toServiceDate(compact: string | undefined): ServiceDate | null {
     return null;
   }
   return `${compact.slice(0, 4)}-${compact.slice(4, 6)}-${compact.slice(6)}`;
-}
-
-/** `Mon, Wed, Fri`, or what a service with no weekly pattern runs on. */
-export function weekdaysLabel(days: readonly boolean[]): string {
-  // `days` is Monday-first, the labels are in display order, so the flag each
-  // label is about is the one `WEEKDAY_DISPLAY` points at.
-  const named = WEEKDAY_LABELS.filter((_, slot) => days[WEEKDAY_DISPLAY[slot]]);
-  if (named.length === 7) {
-    return t('days.every');
-  }
-  if (named.length === 0) {
-    return t('days.none');
-  }
-  return named.join(', ');
 }
 
 /**
