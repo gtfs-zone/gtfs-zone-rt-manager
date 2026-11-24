@@ -1,3 +1,13 @@
+## v0.14.1 (2026-11-25)
+
+### Refactor
+
+- adopt the shared realtime modules from gtfs-zone-web-common v7.9.0
+
+### Perf
+
+- **panel**: build the realtime index only on pages that read it
+
 ## v0.14.0 (2026-11-21)
 
 ### Feat
